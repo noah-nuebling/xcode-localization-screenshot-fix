@@ -1,0 +1,9 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "set-in-code-label" : {
+      "comment" : "This is set in code"
+    }
+  },
+  "version" : "1.0"
+}

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>stringKey</key>
+		<string>1tx-W0-xDw.title</string>
+		<key>tableName</key>
+		<string>MainMenu</string>
+		<key>screenshots</key>
+		<array>
+			<dict>
+				<key>name</key>
+				<string>Screenshot 2-1.png</string>
+				<key>frame</key>
+				<string>{{50, 50}, {100, 100}}</string>
+			</dict>
+			<dict>
+				<key>name</key>
+				<string>Screenshot 3-1.png</string>
+				<key>frame</key>
+				<string>{{50, 50}, {100, 100}}</string>
+			</dict>
+		</array>
+		<key>bundlePath</key>
+		<string>some/path/0</string>
+		<key>bundleID</key>
+		<string>some.id.0</string>
+	</dict>
+	<dict>
+		<key>stringKey</key>
+		<string>1b7-l0-nxx.title</string>
+		<key>tableName</key>
+		<string>MainMenu</string>
+		<key>screenshots</key>
+		<array>
+			<dict>
+				<key>name</key>
+				<string>Screenshot 1-1.png</string>
+				<key>frame</key>
+				<string>{{25, 25}, {100, 50}}</string>
+			</dict>
+			<dict>
+				<key>name</key>
+				<string>Screenshot 2-2.png</string>
+				<key>frame</key>
+				<string>{{25, 25}, {100, 50}}</string>
+			</dict>
+		</array>
+		<key>bundlePath</key>
+		<string>some/path/1</string>
+		<key>bundleID</key>
+		<string>some.id.1</string>
+	</dict>
+	<dict>
+		<key>stringKey</key>
+		<string>set-in-code-label</string>
+		<key>tableName</key>
+		<string>Localizable</string>
+		<key>screenshots</key>
+		<array>
+			<dict>
+				<key>name</key>
+				<string>Screenshot 1-2.png</string>
+				<key>frame</key>
+				<string>{{0, 0}, {50, 100}}</string>
+			</dict>
+			<dict>
+				<key>name</key>
+				<string>Screenshot 2-3.png</string>
+				<key>frame</key>
+				<string>{{0, 0}, {50, 100}}</string>
+			</dict>
+		</array>
+		<key>bundlePath</key>
+		<string>some/path/2</string>
+		<key>bundleID</key>
+		<string>some.id.2</string>
+	</dict>
+</array>
+</plist>

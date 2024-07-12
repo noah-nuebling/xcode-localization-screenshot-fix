@@ -1,0 +1,40 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "label-from-objc.1" : {
+      "comment" : "This is set in objc",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Läble aus objc 1"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Label from objc no 1"
+          }
+        }
+      }
+    },
+    "label-from-objc.2" : {
+      "comment" : "This is also set in objc",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Läble aus objc 2"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Label from objc no 2"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
