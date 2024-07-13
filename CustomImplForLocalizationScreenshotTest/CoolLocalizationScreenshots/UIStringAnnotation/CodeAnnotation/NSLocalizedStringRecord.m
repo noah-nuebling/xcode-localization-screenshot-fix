@@ -13,6 +13,22 @@
 
 #import "NSLocalizedStringRecord.h"
 #import "Swizzle.h"
+#import "objc/runtime.h"
+
+///
+/// Forward declare
+///
+
+@interface NSString (Tracking)
+
+- (void)setIsTracked:(BOOL)doTrack;
+- (BOOL)isTracked;
+
+@end
+
+///
+/// LocalizedStringRecord
+///
 
 @implementation NSLocalizedStringRecord
 
@@ -42,8 +58,10 @@ static Queue *_systemLocalizationKeyQueue;
 @end
 
 ///
-/// vvv Swizzle NSLocalizedString so that it stores any retrieved translations into the NSLocalizedStringRecord (along with the localizationKey which is what we want to annotate the UIElements with)
+/// NSBundle swizzling
 ///
+
+/// vvv Swizzle NSLocalizedString so that it stores any retrieved translations into the NSLocalizedStringRecord (along with the localizationKey which is what we want to annotate the UIElements with)
 
 @implementation NSBundle (LocalizationKeyAnnotations)
 
@@ -54,8 +72,8 @@ static Queue *_systemLocalizationKeyQueue;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         
-        swizzleMethod(self, @selector(localizedStringForKey:value:table:), @selector(swizzled_localizedStringForKey:value:table:));
-        swizzleMethod(self, @selector(localizedAttributedStringForKey:value:table:), @selector(swizzled_localizedAttributedStringForKey:value:table:));
+        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_localizedStringForKey:value:table:), nil);
+        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_localizedAttributedStringForKey:value:table:), nil);
     });
 }
 
@@ -128,4 +146,5 @@ static Queue *_systemLocalizationKeyQueue;
 }
 
 @end
+
 

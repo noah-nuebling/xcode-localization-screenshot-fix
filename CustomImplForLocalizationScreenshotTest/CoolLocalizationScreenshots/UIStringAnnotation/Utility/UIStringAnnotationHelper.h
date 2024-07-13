@@ -26,6 +26,7 @@ NS_ASSUME_NONNULL_BEGIN
                                                               mergedUIString:(NSString *_Nullable)uiString;
 
 + (void)addAnnotations:(NSArray<NSAccessibilityElement *>*)newChildren toAccessibilityElement:(id<NSAccessibility>)parent;
++ (void)forceValidation_addAnnotations:(NSArray<NSAccessibilityElement *>*)annotations toAccessibilityElement:(NSObject<NSAccessibility>*)object;
 
 @end
 

@@ -301,18 +301,6 @@
         }
       }
     },
-    "6oP-hd-g4L.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"<Set in Code 2>\"; ObjectID = \"6oP-hd-g4L\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "<Set in Code 2>"
-          }
-        }
-      }
-    },
     "6OS-m6-FJq.title" : {
       "comment" : "Class = \"NSTextFieldCell\"; title = \"<IB title for codeTableViewLabel>\"; ObjectID = \"6OS-m6-FJq\";",
       "extractionState" : "extracted_with_value",
@@ -1459,6 +1447,18 @@
         }
       }
     },
+    "Jtb-ZC-uRp.ibShadowedToolTip" : {
+      "comment" : "Class = \"NSScrollView\"; ibShadowedToolTip = \"<IB tooltip for codeTableScrollView>\"; ObjectID = \"Jtb-ZC-uRp\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for codeTableScrollView>"
+          }
+        }
+      }
+    },
     "jxT-CU-nIS.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Format\"; ObjectID = \"jxT-CU-nIS\";",
       "extractionState" : "extracted_with_value",
@@ -1597,6 +1597,42 @@
         }
       }
     },
+    "m1l-6m-Rgk.ibExternalAccessibilityDescription" : {
+      "comment" : "Class = \"NSTableView\"; ibExternalAccessibilityDescription = \"<IB ax-description of codeTableView>\"; ObjectID = \"m1l-6m-Rgk\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB ax-description of codeTableView>"
+          }
+        }
+      }
+    },
+    "m1l-6m-Rgk.ibExternalAccessibilityHelp" : {
+      "comment" : "Class = \"NSTableView\"; ibExternalAccessibilityHelp = \"<IB ax-help of codeTableView>\"; ObjectID = \"m1l-6m-Rgk\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB ax-help of codeTableView>"
+          }
+        }
+      }
+    },
+    "m1l-6m-Rgk.ibShadowedToolTip" : {
+      "comment" : "Class = \"NSTableView\"; ibShadowedToolTip = \"<IB tooltip of codeTableView>\"; ObjectID = \"m1l-6m-Rgk\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip of codeTableView>"
+          }
+        }
+      }
+    },
     "mK6-2p-4JG.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Check Grammar With Spelling\"; ObjectID = \"mK6-2p-4JG\";",
       "extractionState" : "extracted_with_value",
@@ -1634,7 +1670,7 @@
       }
     },
     "MSh-Sn-JET.placeholderString" : {
-      "comment" : "Class = \"NSTextFieldCell\"; placeholderString = \"<IB placeholder of codeTextField>\"; ObjectID = \"MSh-Sn-JET\";",
+      "comment" : "Class = \"NSTextFieldCell\"; placeholderString = \"<IB placeholder of codeTextField>\"; ObjectID = \"MSh-Sn-JET\"; Note = \"<IB localizer hint of CodeTextField>\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
@@ -1646,7 +1682,7 @@
       }
     },
     "MSh-Sn-JET.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"<IB content of codeTextField>\"; ObjectID = \"MSh-Sn-JET\";",
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"<IB content of codeTextField>\"; ObjectID = \"MSh-Sn-JET\"; Note = \"<IB localizer hint of CodeTextField>\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
@@ -1689,6 +1725,18 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "\tDefault"
+          }
+        }
+      }
+    },
+    "o2G-iu-o56.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"<IB title for codeCheckbox>\"; ObjectID = \"o2G-iu-o56\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB title for codeCheckbox>"
           }
         }
       }
@@ -2036,19 +2084,19 @@
       }
     },
     "QZC-Xv-yIU.title" : {
-      "comment" : "Class = \"NSTextFieldCell\"; title = \"<Set in Code>\"; ObjectID = \"QZC-Xv-yIU\";",
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"<IB Title for codeLabel>\"; ObjectID = \"QZC-Xv-yIU\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "<Set in Code>"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "<Set in Code>"
+            "value" : "<IB Title for codeLabel>"
           }
         }
       }
@@ -2215,8 +2263,32 @@
         }
       }
     },
+    "SiQ-9Z-oXM.ibExternalAccessibilityDescription" : {
+      "comment" : "Class = \"NSTextField\"; ibExternalAccessibilityDescription = \"<IB ax-description of CodeTextField>\"; ObjectID = \"SiQ-9Z-oXM\"; Note = \"<IB localizer hint of CodeTextField>\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB ax-description of CodeTextField>"
+          }
+        }
+      }
+    },
+    "SiQ-9Z-oXM.ibExternalAccessibilityHelp" : {
+      "comment" : "Class = \"NSTextField\"; ibExternalAccessibilityHelp = \"<IB ax-help of CodeTextField>\"; ObjectID = \"SiQ-9Z-oXM\"; Note = \"<IB localizer hint of CodeTextField>\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB ax-help of CodeTextField>"
+          }
+        }
+      }
+    },
     "SiQ-9Z-oXM.ibShadowedToolTip" : {
-      "comment" : "Class = \"NSTextField\"; ibShadowedToolTip = \"<IB tooltip of CodeTextField>\"; ObjectID = \"SiQ-9Z-oXM\";",
+      "comment" : "Class = \"NSTextField\"; ibShadowedToolTip = \"<IB tooltip of CodeTextField>\"; ObjectID = \"SiQ-9Z-oXM\"; Note = \"<IB localizer hint of CodeTextField>\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
@@ -2533,14 +2605,38 @@
         }
       }
     },
-    "VnG-hm-i03.title" : {
-      "comment" : "Class = \"NSButtonCell\"; title = \"<Set in Code 3>\"; ObjectID = \"VnG-hm-i03\";",
+    "VnG-hm-i03.alternateTitle" : {
+      "comment" : "Class = \"NSButtonCell\"; alternateTitle = \"<IB alternate title for codeButton>\"; ObjectID = \"VnG-hm-i03\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "<Set in Code 3>"
+            "value" : "<IB alternate title for codeButton>"
+          }
+        }
+      }
+    },
+    "VnG-hm-i03.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"<IB title for codeButton>\"; ObjectID = \"VnG-hm-i03\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB title for codeButton>"
+          }
+        }
+      }
+    },
+    "vNM-AA-ASA.ibShadowedToolTip" : {
+      "comment" : "Class = \"NSSwitch\"; ibShadowedToolTip = \"<IB tooltip for codeSwitch>\"; ObjectID = \"vNM-AA-ASA\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for codeSwitch>"
           }
         }
       }

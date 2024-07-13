@@ -10,46 +10,92 @@
 
 @implementation Swizzle
 
-+ (void)swizzleMethodsOnClass:(Class)class swizzlePrefix:(NSString *)swizzlePrefix swizzledSelectors:(SEL)firstSelector, ... NS_REQUIRES_NIL_TERMINATION {
+void swizzleMethods(Class class, bool includeSubclasses, NSString *swizzlePrefix, SEL firstSwizzledSelector, ...) {
     
+    /// Use this inside a custom Category (or Extension if you're using Swift) on the class `class` to replace existing methods of `class` with your own implementations.
     ///
-    /// Explanation
-    /// `...` should contain a number of objc method `swizzledSelectors`.
-    /// Each method from`swizzledSelectors` will have its implementations swapped out with the method that has the same selector but without the `swizzlePrefix`.
-    /// (All `swizzledSelectors` are expected to have the `swizzlePrefix` at the start of their name.)
+    /// Explanation for arg `class`:
+    ///     The class whose methods to swap out. Pass in a metaclass () to swap out class methods. Otherwise instance methods will be swapped out.
+    ///     You can get the metaclass of a class by calling `object_getClass()` on it.
+    /// Explanation for arg `includeSubclasses`:
+    ///     Set this to true to swap out the methods for `class` as well as *all* subclasses of `class`. If you set this to false, only subclasses which inherit the swapped out methods from `class` will be affected (And subclasses which override the swapped out methods won't be affected.). Setting this to true,might make this function slow. (Which might affect app startup time)
+    /// Explanation for args `swizzlePrefix` and `firstSwizzledSelector, ...`:
+    ///     At the end of the argument list for this method, you can pass in a number of `swizzledSelectors`.
+    ///     Each selector from`swizzledSelectors` will have its method implementation swapped out with the method that has the same selector but without the `swizzlePrefix`.
+    ///     (All `swizzledSelectors` are expected to have the `swizzlePrefix` at the start of their name.)
     ///
-    /// For example:
-    /// If `class` is `MyClass`, and `swizzlePrefix` is `swooz_` and `swizzledSelectors` is a single selector `swooz_loadImagesFromServer:`, then the implementation of `MyClass -loadImagesFromServer:` is replaced with the implementation for `MyClass -swooz_loadImagesFromServer:`
+    /// Usage example
+    ///     If `class` is `MyClass`, and `swizzlePrefix` is `swooz_` and `swizzledSelectors` is a single selector `swooz_loadImagesFromServer:`, then the   implementation of `MyClass -loadImagesFromServer:` is replaced with the implementation for `MyClass -swooz_loadImagesFromServer:`
     ///
-     
-    /// Extract selectors from vararg
     
-    NSMutableArray <NSString *>*selectors = [NSMutableArray array];
-    va_list selectorsRaw;
-    va_start(selectorsRaw, firstSelector);
+    /// Handle first selector
+    _swizzleMethodWithPrefix(class, firstSwizzledSelector, swizzlePrefix, includeSubclasses);
+    
+    /// Handle remaining selectors
+    va_list selectors;
+    va_start(selectors, firstSwizzledSelector);
     
     while (true) {
-        SEL sel = va_arg(selectorsRaw, SEL);
+        SEL sel = va_arg(selectors, SEL);
         if (sel == nil) break;
-        [selectors addObject:NSStringFromSelector(sel)];
+        _swizzleMethodWithPrefix(class, sel, swizzlePrefix, includeSubclasses);
     }
-    va_end(selectorsRaw);
+    va_end(selectors);
+}
+
+void _swizzleMethodWithPrefix(Class class, SEL swizzledSelector, NSString *swizzlePrefix, bool includeSubclasses) {
     
-    /// Assemble args
-    [selectors insertObject:NSStringFromSelector(firstSelector) atIndex:0];
+    NSString *swizzledSelectorNS = NSStringFromSelector(swizzledSelector);
     
-    /// Swizzle
-    for (NSString *swizzledSelector in selectors) {
-        
-        assert([swizzledSelector hasPrefix:swizzlePrefix]);
-        NSRange prefixRange = [swizzledSelector rangeOfString:swizzlePrefix];
-        assert(prefixRange.location == 0);
-        NSString *baseSelector = [swizzledSelector substringFromIndex:prefixRange.length];
-        swizzleMethod(class, NSSelectorFromString(baseSelector), NSSelectorFromString(swizzledSelector));
+    NSRange prefixRange = [swizzledSelectorNS rangeOfString:swizzlePrefix];
+    
+    assert(prefixRange.location != NSNotFound);
+    assert(prefixRange.location == 0);
+    
+    NSString *baseSelectorNS = [swizzledSelectorNS substringFromIndex:prefixRange.length];
+    SEL baseSelector = NSSelectorFromString(baseSelectorNS);
+    
+    _swizzleMethod_SubclassArg(class, baseSelector, swizzledSelector, includeSubclasses);
+}
+
+void _swizzleMethod_SubclassArg(Class baseClass, SEL originalSelector, SEL swizzledSelector, bool includeSubclasses) {
+    if (includeSubclasses) {
+        _swizzleMethodOnClassAndSubclasses(baseClass, originalSelector, swizzledSelector);
+    } else {
+        _swizzleMethod(baseClass, originalSelector, swizzledSelector);
     }
 }
 
-void swizzleMethod(Class class, SEL originalSelector, SEL swizzledSelector) {
+void _swizzleMethodOnClassAndSubclasses(Class baseClass, SEL originalSelector, SEL swizzledSelector) {
+    
+    /// Swizzle the method on the base class
+    _swizzleMethod(baseClass, originalSelector, swizzledSelector);
+    
+    /// Find subclasses
+    NSArray <NSString *> *subclasses = _subclassesOfClass(baseClass);
+    
+    /// Swizzle subclasses
+    for (NSString *subclassName in subclasses) {
+        
+        Class subclass = NSClassFromString(subclassName);
+        
+        /// Check if `class` overrides the method for `originalSelector`
+        Method classMethod = class_getInstanceMethod(subclass, originalSelector);
+        Method superclassMethod = class_getInstanceMethod(class_getSuperclass(subclass), originalSelector);
+        BOOL classOverridesMethod = classMethod != superclassMethod;
+        
+        /// Skip
+        ///     We only need to swizzle classes that override the implementation, otherwise the class will inherit the (already swizzled) implementation of a superclass.
+        if (!classOverridesMethod) continue;
+        
+        /// Swizzle
+        _swizzleMethod(subclass, originalSelector, swizzledSelector);
+    }
+
+}
+
+
+void _swizzleMethod(Class class, SEL originalSelector, SEL swizzledSelector) {
     
     /// Swaps out the implementations of `originalSelector` and `swizzledSelector` on `class`. Works for ObjC and Swift afaik. Written by ChatGPT.
     
@@ -57,35 +103,108 @@ void swizzleMethod(Class class, SEL originalSelector, SEL swizzledSelector) {
     BOOL useClassMethods = class_isMetaClass(class);
     
     /// Get methods
+    ///     Note: Based on my testing, we don't need to use `class_getClassMethod`, `class_getInstanceMethod` will give the same result on a meta class.
     Method originalMethod = useClassMethods ? class_getClassMethod(class, originalSelector) : class_getInstanceMethod(class, originalSelector);
     Method swizzledMethod = useClassMethods ? class_getClassMethod(class, swizzledSelector) : class_getInstanceMethod(class, swizzledSelector);
 
     /// Valdate
     assert(originalMethod != NULL);
     assert(swizzledMethod != NULL);
-    assert([class instancesRespondToSelector:originalSelector]); /// Not sure if this validation is redundant.
+    assert([class instancesRespondToSelector:originalSelector]); /// Note: This seems to work as expected on meta classes
+    assert([class instancesRespondToSelector:swizzledSelector]); /// Note: `instancesRespondToSelector:` is equivalent to `class_respondsToSelector()` from my testing.
     
-    /// Attempt to add the method with the swizzled implementation under the name of the original method.
-    /// If the class already contains a method with that name, it fails and returns NO.
-    /// Note: This seems kind of unnecessary but it works so won't change it
+    /// Add method to `class`
+    ///     So we're not replacing the implementation from the superclass, affecting all of its subclasses.
     BOOL didAddMethod = class_addMethod(class,
                                         originalSelector,
                                         method_getImplementation(swizzledMethod),
                                         method_getTypeEncoding(swizzledMethod));
-
     if (didAddMethod) {
-        /// If the original method wasn’t in the class (unlikely but possible), replace the swizzled method's entry
-        /// to ensure the swizzled method's implementation is now under the swizzled selector.
-        /// Note: This seems kind of unnecessary but it works so won't change it
+        /// Special case: Method was added (so the class didn't have its own implementation for `originalSelector` and was instead using the superclass implementation)
+        /// -> Make the swizzledSelector invoke the original method
         class_replaceMethod(class,
                             swizzledSelector,
                             method_getImplementation(originalMethod),
                             method_getTypeEncoding(originalMethod));
     } else {
-        /// If the class already contains a method with the original selector, we swap their implementations.
+        /// Default case: Swap implementations
         method_exchangeImplementations(originalMethod, swizzledMethod);
     }
 }
+
+///
+/// Other
+///
+
+static NSArray <NSString *>*_subclassesOfClass(Class baseClass) {
+        
+    /// Note: I don't think the caching as we currently do it helps performance in any way.
+    ///     Maybe if we made the cache a tree structure, that would help. But so far it's not super slow.
+    
+    /// Preprocess
+    NSString *baseClassName = NSStringFromClass(baseClass);
+    
+    /// Get cache
+    static NSMutableDictionary *_cache = nil;
+    if (_cache == nil) {
+        _cache = [NSMutableDictionary dictionary];
+    }
+    
+    /// Look up result in cache
+    NSArray *resultFromCache = _cache[baseClassName];
+    if (resultFromCache != nil) {
+        return resultFromCache;
+    }
+    
+    /// Declare result
+    NSMutableArray *subclasses = [NSMutableArray array];
+    
+    /// Get all classes
+    ///     I repeat, *all* classes
+    Class *classes = NULL; unsigned int numberOfClasses;
+    classes = objc_copyClassList(&numberOfClasses);
+    
+    /// Iterate all classes
+    ///     And fill result
+    for (unsigned int i = 0; i < numberOfClasses; i++) {
+
+        Class class = classes[i];
+
+        /// Check if `baseClass` is a superclass of `class`
+        BOOL baseClassIsSuperclass = NO;
+        Class superclass = class_getSuperclass(class);
+        while (true) {
+            if (superclass == nil) {
+                break;
+            }
+            if (baseClass == superclass) {
+                baseClassIsSuperclass = YES;
+                break;
+            }
+            superclass = class_getSuperclass(superclass);
+        }
+
+        /// Store in result
+        if (baseClassIsSuperclass) {
+            [subclasses addObject:NSStringFromClass(class)];
+        }
+    }
+    
+    /// Free all classes
+    free(classes);
+    
+    /// Store in cache
+    _cache[baseClassName] = subclasses;
+    
+    /// Return
+    return subclasses;
+}
+
+
+
+///
+/// Unused
+///
 
 + (void)swizzleAllMethodsInClass:(Class)cls {
     

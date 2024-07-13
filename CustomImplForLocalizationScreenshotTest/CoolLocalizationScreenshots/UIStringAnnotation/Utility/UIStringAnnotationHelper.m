@@ -16,6 +16,7 @@
 #import "UIStringAnnotationHelper.h"
 #import "UINibDecoderDefinitions.h"
 #import "NSLocalizedStringRecord.h"
+#import "Utility.h"
 
 @implementation UIStringAnnotationHelper
 
@@ -47,30 +48,37 @@
     return [self getUserFacingStringsFromAccessibilityElement:[[NSView alloc] init]].allKeys;
 }
 
-+ (NSDictionary *)getUserFacingStringsFromAccessibilityElement:(NSObject <NSAccessibility>*)element {
++ (NSDictionary *)getUserFacingStringsFromAccessibilityElement:(NSObject<NSAccessibility> *)element {
     
     /// Validate
     assert([element isAccessibilityElement]);
     
+    /// TEST
+    if ([element isKindOfClass:[NSTableHeaderCell class]]) {
+        
+    }
+    
     /// Special case: tooltip
     /// Explanation:
-    ///     Tooltips are usually published through the AX API under the NSAccessibilityHelpAttribute, but not always. E.g. on NSMenuItem's 
+    ///     Tooltips are usually published through the AX API under the NSAccessibilityHelpAttribute, but not always. E.g. on NSMenuItem's
     ///     the NSAccessibilityHelpAttribute is not set to the tooltip for some reason (macOS 15.0 Beta 2). Also when you manually set the
     ///     NSAccessibilityHelpAttribute in IB it will differ from the tooltip.
     ///     Since tooltips aren't consistently available through the AX API, we need to get tooltips directly from the object instead.
     
+    NSObject *toolTipHolder = [Utility getRepresentingToolTipHolderForObject:element];
+    
     NSString *toolTip = nil;
-    if ([element respondsToSelector:@selector(toolTip)]) {
-        toolTip = [(id)element toolTip];
+    if ([toolTipHolder respondsToSelector:@selector(toolTip)]) {
+        toolTip = [(id)toolTipHolder toolTip];
     }
     if (toolTip == nil) {
-        if ([element respondsToSelector:@selector(buttonToolTip)]) { /// Not sure what this is but the autocomplete suggests this selector
-            toolTip = [(id)element buttonToolTip];
+        if ([toolTipHolder respondsToSelector:@selector(buttonToolTip)]) { /// Not sure what this is but the autocomplete suggests this selector
+            toolTip = [(id)toolTipHolder buttonToolTip];
         }
     }
     if (toolTip == nil) {
-        if ([element respondsToSelector:@selector(headerToolTip)]) { /// Not sure what this is but the autocomplete suggests this selector
-            toolTip = [(id)element headerToolTip];
+        if ([toolTipHolder respondsToSelector:@selector(headerToolTip)]) { /// Not sure what this is but the autocomplete suggests this selector
+            toolTip = [(id)toolTipHolder headerToolTip];
         }
     }
     
@@ -97,8 +105,8 @@
         NSAccessibilityVerticalUnitDescriptionAttribute:        [element accessibilityVerticalUnitDescription] ?: NSNull.null,      /// Voice Over Stuff
         NSAccessibilityMarkerTypeDescriptionAttribute:          [element accessibilityMarkerTypeDescription] ?: NSNull.null,        /// Voice Over Stuff
         NSAccessibilityUnitDescriptionAttribute:                [element accessibilityUnitDescription] ?: NSNull.null,              /// Voice Over Stuff
-//        ???:                                                    [element accessibilityUserInputLabels] ?: NSNull.null,              /// Voice Over Stuff
-//        ???:                                                    [element accessibilityAttributedUserInputLabels] ?: NSNull.null,    /// Voice Over Stuff
+        //        ???:                                                    [element accessibilityUserInputLabels] ?: NSNull.null,              /// Voice Over Stuff
+        //        ???:                                                    [element accessibilityAttributedUserInputLabels] ?: NSNull.null,    /// Voice Over Stuff
     }.mutableCopy;
     
     /// Return
@@ -126,11 +134,11 @@
                                                      developmentString:(NSString *_Nullable)developmentString
                                                 translatedStringNibKey:(NSString *_Nullable)translatedStringNibKey
                                                         mergedUIString:(NSString *_Nullable)mergedUIString {
-        
+    
     /// Notes:
     ///     `mergedUIString` explanation:
     ///     The idea is that the `translatedString` is always the string exactly as it was returned by NSLocalizedString(). In simple cases, `translatedString` is *also* exactly equal to the uiString of the accessibilityElement we're annotating. However, in more complex cases, the string that was returned by NSLocalizedString() might be modified or merged with another string before being set as the uiString of an accessibiliy element. In these cases, `mergedUIString` should be set to the uiString exactly as it appears in the uiElement. That way the annotation always contains the UI String exactly as it appears in the element it is annotating. We plan to use this to validate that the annotation actually belongs to the accessibilityElement we're annotating.
-                                                                  
+    
     /// Reusable AccessibilityElement creator
     
     /// Create & init element
@@ -187,6 +195,13 @@
 }
 
 + (void)addAnnotations:(NSArray<NSAccessibilityElement *>*)annotations toAccessibilityElement:(NSObject<NSAccessibility>*)object {
+    [self _addAnnotations:annotations toAccessibilityElement:object forceValidation:NO];
+}
++ (void)forceValidation_addAnnotations:(NSArray<NSAccessibilityElement *>*)annotations toAccessibilityElement:(NSObject<NSAccessibility>*)object {
+    [self _addAnnotations:annotations toAccessibilityElement:object forceValidation:YES];
+}
+
++ (void)_addAnnotations:(NSArray<NSAccessibilityElement *>*)annotations toAccessibilityElement:(NSObject<NSAccessibility>*)object forceValidation:(BOOL)forceValidation {
     
     /// Reusable annotations adder & validator
     ///     Note: We used to try to set the stringKeys as an attribute instead of in child elements. But we can't find unused attributes, and the new AX API won't let you set values for custom keys I think. We also tried using the private NSAccessibilitySetObjectValueForAttribute but it also doesn't let you set completely custom attributes.
@@ -194,44 +209,59 @@
     /// Validate
     assert([object isAccessibilityElement]);
     
+    /// Set new parent on children
+    for (NSAccessibilityElement *annotation in annotations) {
+        [annotation setAccessibilityParent:object];
+    }
+    
+    /// Validation
     for (NSAccessibilityElement *annotation in annotations) {
         
-        /// Main Check
-        BOOL annotationMatchesObject = [self annotationElement:annotation describesSomeUIStringOnAccessibilityElement:object];
-        
-        /// Fallback check
+        /// Declare result
+        BOOL annotationMatchesObject = NO;
         __block BOOL uiStringWasProbablyOverridenBySystem = NO;
-        if (!annotationMatchesObject) {
+        
+        if (forceValidation) {
+            /// Force validation
+            annotationMatchesObject = YES;
+        } else {
             
-            /// Explanation:
-            ///     It seems that when AppKit decodes an Nib file, some of the menu items are first set to localizedStrings from the stringTables defined
-            ///     by our app, but then after the Nib file has been loaded, when a menuItem is accessed for the first time, the uiString for the menuItem is
-            ///     automatically overriden by AppKit - with a value that comes from an Apple-defined string table.
-            ///     For example, the "Show Spelling and Grammar" menu item is automatically
-            ///     translated to "Rechtschreibung und Grammatik einblenden", and this translation comes from the Apple-defined `MenuCommands` stringTable.
-            ///     For these cases, our normal validation logic won't work, so we make an exception here: when an item doesn't validate normally
-            ///     (annotationMatchesObject is false) then we check if the NSLocalizedStringRecord has recorded any string retrievals from system-defined stringTables,
-            ///     where the retrieved UI string matches any uiString of the object we're inspecting right now. If yes, then we let this annotation pass.
-            ///
-            ///     Update: We now added `_menuItemsRenamedBySystem` which could replace this validation logic, and probably make NSLocalizedStringRecord.systemSet
-            ///     and NSLocalizedStringRecord.systemQueue obsolete (We introduced those for this specific validation code)
+            /// Main Check
+            annotationMatchesObject = [self annotationElement:annotation describesSomeUIStringOnAccessibilityElement:object];
             
-
-            for (NSDictionary *record in NSLocalizedStringRecord.systemSet) {
-                [NSLocalizedStringRecord unpackRecord:record callback:^(NSString * _Nonnull key, NSString * _Nonnull value, NSString * _Nonnull table, NSString * _Nonnull retrievedSystemString) {
-                    if ([self accessibilityElement:object containsUIString:retrievedSystemString] && retrievedSystemString.length > 0) {
-                        uiStringWasProbablyOverridenBySystem = YES;
-                    }
-                }];
-                if (uiStringWasProbablyOverridenBySystem) {
-                    
-                    /// Extend annotation
-                    [self extendAnnotationElement:annotation withEntriesOfDict:@{
-                        @"probablyOverridenBySystemString": record,
+            /// Fallback check
+            if (!annotationMatchesObject) {
+                
+                /// Explanation:
+                ///     It seems that when AppKit decodes an Nib file, some of the menu items are first set to localizedStrings from the stringTables defined
+                ///     by our app, but then after the Nib file has been loaded, when a menuItem is accessed for the first time, the uiString for the menuItem is
+                ///     automatically overriden by AppKit - with a value that comes from an Apple-defined string table.
+                ///     For example, the "Show Spelling and Grammar" menu item is automatically
+                ///     translated to "Rechtschreibung und Grammatik einblenden", and this translation comes from the Apple-defined `MenuCommands` stringTable.
+                ///     For these cases, our normal validation logic won't work, so we make an exception here: when an item doesn't validate normally
+                ///     (annotationMatchesObject is false) then we check if the NSLocalizedStringRecord has recorded any string retrievals from system-defined stringTables,
+                ///     where the retrieved UI string matches any uiString of the object we're inspecting right now. If yes, then we let this annotation pass.
+                ///
+                ///     Update: We now added `_menuItemsRenamedBySystem` which could replace this validation logic, and probably make NSLocalizedStringRecord.systemSet
+                ///     and NSLocalizedStringRecord.systemQueue obsolete (We introduced those for this specific validation code)
+                
+                
+                for (NSDictionary *record in NSLocalizedStringRecord.systemSet) {
+                    [NSLocalizedStringRecord unpackRecord:record callback:^(NSString * _Nonnull key, NSString * _Nonnull value, NSString * _Nonnull table, NSString * _Nonnull retrievedSystemString) {
+                        if ([self accessibilityElement:object containsUIString:retrievedSystemString] && retrievedSystemString.length > 0) {
+                            uiStringWasProbablyOverridenBySystem = YES;
+                        }
                     }];
-                    
-                    /// Break
-                    break;
+                    if (uiStringWasProbablyOverridenBySystem) {
+                        
+                        /// Extend annotation
+                        [self extendAnnotationElement:annotation withEntriesOfDict:@{
+                            @"probablyOverridenBySystemString": record,
+                        }];
+                        
+                        /// Break
+                        break;
+                    }
                 }
             }
         }
@@ -241,9 +271,6 @@
         if (!isValid) {
             assert(false);
         }
-            
-        /// Set new parent on child
-        [annotation setAccessibilityParent:object];
     }
     
     /// Get old children

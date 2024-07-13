@@ -7,8 +7,36 @@
 
 #import <Foundation/Foundation.h>
 #import "AppKit/AppKit.h"
+@import AppKit.NSNibConnector;
 
 NS_ASSUME_NONNULL_BEGIN
+
+@interface NSNibAXRelationshipConnector : NSNibConnector
+
+/// Minimal interface
+///     Copy pasted from listMethods()
+
+- (bool)_isAXConnector;
+- (void)establishConnection;
+
+@end
+
+@interface NSNibAXAttributeConnector : NSObject
+
+/// Minimal interface
+///     Copy pasted from listMethods()
+///     It's weird that this is not a subclass of NSNibConnector?
+
+- (id)destination;
+- (id)attributeType;
+- (id)attributeValue;
+
+- (id)source;
+- (id)label;
+
+- (bool)_isAXConnector;
+
+@end
 
 @interface NSIBHelpConnector : NSObject
 

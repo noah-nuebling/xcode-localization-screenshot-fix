@@ -215,7 +215,7 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        [Swizzle swizzleMethodsOnClass:[self class] swizzlePrefix:@"swizzled_" swizzledSelectors:@selector(swizzled_accessibilityPostNotification:), nil];
+        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_accessibilityPostNotification:), nil);
     });
 }
 
@@ -236,12 +236,10 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        [Swizzle swizzleMethodsOnClass:[self class]
-                                 swizzlePrefix:@"swizzled_"
-                             swizzledSelectors:
-         @selector(swizzled_accessibilityPostNotification:withNotificationElement:),
-         @selector(swizzled_accessibilityPostNotification:),
-         nil];
+        
+        swizzleMethods([self class], true, @"swizzled_", 
+                       @selector(swizzled_accessibilityPostNotification:withNotificationElement:),
+                       @selector(swizzled_accessibilityPostNotification:), nil);
     });
 }
 
@@ -270,7 +268,7 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        [Swizzle swizzleMethodsOnClass:[self class] swizzlePrefix:@"swizzled_" swizzledSelectors:@selector(swizzled_accessibilityPostNotification:context:), nil];
+        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_accessibilityPostNotification:context:), nil);
     });
 }
 
@@ -290,7 +288,7 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        [Swizzle swizzleMethodsOnClass:[self class] swizzlePrefix:@"swizzled_" swizzledSelectors:@selector(swizzled_accessibilityPostNotification:), nil];
+        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_accessibilityPostNotification:), nil);
     });
 }
 
@@ -311,7 +309,7 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        [Swizzle swizzleMethodsOnClass:[self class] swizzlePrefix:@"swizzled_" swizzledSelectors:@selector(swizzled_postAccessibilityNotification:), nil];
+        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_postAccessibilityNotification:), nil);
     });
 }
 
@@ -338,7 +336,7 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        [Swizzle swizzleMethodsOnClass:[self class] swizzlePrefix:@"swizzled_" swizzledSelectors:@selector(swizzled_accessibilityPostNotification:), nil];
+        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_accessibilityPostNotification:), nil);
     });
 }
 
@@ -351,6 +349,70 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 
 
 @end
+
+///
+/// ------------------------------------------------------------------------------------
+///
+
+/// Other weird Ideas:
+///
+
+/// 1. Swizzle `NSObject - alloc` for classes that a localized string might be stored on. Then use alloc to keep a list of all object instances, periodically check all instances' ivars for the localized string.
+///   -> Not sure if this would be unusably slow, also if we do this, we'd still have to do a lot of swizzling on NSString, MarkdownParser, etc, to retain metadata about localizationKeys when a string is copied or another string is created based on the old string. I don't know how to make this robust.
+/// 2. Swizzle retain on NSString to see when localized string is stored on an object (Doesn't work, see below)
+/// 3. Use KV-Observation
+///   -> I thought KV-Observation might catch stuff on subclasses that our swizzler missed, but now that we added the `includeSubclasses` feature to our swizzling function, I don't think there's any benefit to KV-Observation.
+
+#if FALSE
+
+///
+/// Trackable string
+///
+
+/// Explanation:
+/// We tried to swizzle `retain` on `NSString` to see when the NSString is stored on another object. This could replace most of our NibAnnotation and CodeAnnotation logic.
+/// However, after bit of testing, I don't think this can be used for UINibDecoder. During decoding I see lots of calls to `swizzled_retain` from  `-[UINibDecoder decodeObjectForKey:]`, but not from any actual objects that the NSString is stored on. I think that -[UINibDecoder decodeObjectForKey:] first retrieves and retains the NSString, and then it stores the NSString on some object, but without calling `retain` again? Maybe it's "transferring the ownership" somehow - meaning that ARC is smart enough to just omit  `release` calls instead of introducing additional `retain` calls.
+
+@implementation NSString (Tracking)
+
++ (void)load {
+    /// Don't compile this in release builds!
+    
+    if ((NO)) { /// Turn this off as it doesn't seem to work.
+        [Swizzle swizzleMethodsOnClass:[self class] swizzlePrefix:@"swizzled_" swizzledSelectors:@selector(swizzled_retain), nil];
+    }
+}
+- (void)setIsTracked:(BOOL)doTrack {
+    assert(false);
+    const char *key = "MFTrackingStorage_IsTracked";
+    objc_setAssociatedObject(self, key, @(doTrack), OBJC_ASSOCIATION_RETAIN);
+}
+
+- (BOOL)isTracked {
+    assert(false);
+    const char *key = "MFTrackingStorage_IsTracked";
+    NSNumber *isTracked = objc_getAssociatedObject(self, key);
+    return [isTracked isEqual:@YES];
+}
+
+- (instancetype)swizzled_retain {
+    
+    if (![self isKindOfClass:[NSString class]]) {
+        assert(false);
+    }
+    
+    /// Log
+    if ([self isTracked]) {
+        NSLog(@"String %@ has been retained", self);
+    }
+    
+    /// Return
+    return [self swizzled_retain];
+}
+
+@end
+
+#endif
 
 ///
 /// ------------------------------------------------------------------------------------

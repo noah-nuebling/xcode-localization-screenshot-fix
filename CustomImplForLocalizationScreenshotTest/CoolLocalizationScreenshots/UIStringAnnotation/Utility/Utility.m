@@ -7,6 +7,7 @@
 
 #import "Utility.h"
 @import ObjectiveC.runtime;
+@import AppKit;
 
 
 @implementation Utility
@@ -126,7 +127,25 @@ void printClassHierarchy(NSObject *obj) {
     }
     
     return nil;
+}
+
++ (NSObject *)getRepresentingToolTipHolderForObject:(NSObject *)object {
     
+    /// For NSCells, return their controlView
+    ///     -> Those hold the tooltips, while the cell holds all the other UIStrings.
+    ///     -> Not sure making this a separate function makes any sense. I guess we wanted to make it symmetrical with `getRepresentingAccessibilityElementForObject:`, which is kind of the inverse of this method - on NSCells and their controlViews. 
+    NSObject *result = nil;
+    if ([object isKindOfClass:[NSCell class]]) {
+        result = [(NSCell *)object controlView];
+    }
+    
+    /// Fallback to the object itself
+    if (result == nil) {
+        result = object;
+    }
+    
+    /// Return
+    return result;
 }
 
 @end

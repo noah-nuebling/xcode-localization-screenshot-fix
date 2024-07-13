@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 void listMethods(id obj);
 void printClassHierarchy(NSObject *obj);
++ (NSObject *)getRepresentingToolTipHolderForObject:(NSObject *)object;
 + (NSObject <NSAccessibility>* _Nullable)getRepresentingAccessibilityElementForObject:(NSObject <NSAccessibility>*)object ;
 
 @end

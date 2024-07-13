@@ -11,8 +11,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface Swizzle : NSObject
 
-+ (void)swizzleMethodsOnClass:(Class)class swizzlePrefix:(NSString *)swizzlePrefix swizzledSelectors:(SEL)firstSelector, ... NS_REQUIRES_NIL_TERMINATION;
-void swizzleMethod(Class class, SEL originalSelector, SEL swizzledSelector);
+void swizzleMethods(Class class, bool includeSubclasses, NSString *swizzlePrefix, SEL firstSwizzledSelector, ...) NS_REQUIRES_NIL_TERMINATION;
 
 @end
 
