@@ -507,14 +507,6 @@
                   symbolName = "*0x19cfbce48"
                   usesParentBreakpointCondition = "Yes">
                </Location>
-               <Location
-                  uuid = "761A8693-DC10-44AD-9A12-BF71F4DD0DB0 - df5e226e7e27ffa7"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "*0x19cfbce48"
-                  usesParentBreakpointCondition = "Yes">
-               </Location>
             </Locations>
          </BreakpointContent>
       </BreakpointProxy>
@@ -1144,8 +1136,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "244"
-            endingLineNumber = "244"
+            startingLineNumber = "251"
+            endingLineNumber = "251"
             landmarkName = "-swizzled_decodeObjectForKey:"
             landmarkType = "7">
          </BreakpointContent>
@@ -1160,8 +1152,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "245"
-            endingLineNumber = "245"
+            startingLineNumber = "252"
+            endingLineNumber = "252"
             landmarkName = "-swizzled_decodeObjectForKey:"
             landmarkType = "7">
          </BreakpointContent>
@@ -1192,8 +1184,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "604"
-            endingLineNumber = "604"
+            startingLineNumber = "569"
+            endingLineNumber = "569"
             landmarkName = "+annotateUIElementsWithDecoderRecord:topLevelObjects:"
             landmarkType = "7">
          </BreakpointContent>
@@ -1208,8 +1200,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "602"
-            endingLineNumber = "602"
+            startingLineNumber = "567"
+            endingLineNumber = "567"
             landmarkName = "+annotateUIElementsWithDecoderRecord:topLevelObjects:"
             landmarkType = "7">
          </BreakpointContent>
@@ -1240,8 +1232,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "588"
-            endingLineNumber = "588"
+            startingLineNumber = "558"
+            endingLineNumber = "558"
             landmarkName = "+annotateUIElementsWithDecoderRecord:topLevelObjects:"
             landmarkType = "7">
          </BreakpointContent>
@@ -1256,8 +1248,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "578"
-            endingLineNumber = "578"
+            startingLineNumber = "552"
+            endingLineNumber = "552"
             landmarkName = "+annotateUIElementsWithDecoderRecord:topLevelObjects:"
             landmarkType = "7">
          </BreakpointContent>
@@ -1272,8 +1264,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/UIStringAnnotationHelper.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "180"
-            endingLineNumber = "180"
+            startingLineNumber = "242"
+            endingLineNumber = "242"
             landmarkName = "+addAnnotations:toAccessibilityElement:"
             landmarkType = "7">
          </BreakpointContent>
@@ -1483,8 +1475,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "176"
-            endingLineNumber = "176"
+            startingLineNumber = "178"
+            endingLineNumber = "178"
             landmarkName = "preDive()"
             landmarkType = "9">
          </BreakpointContent>
@@ -1499,8 +1491,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "162"
-            endingLineNumber = "162"
+            startingLineNumber = "164"
+            endingLineNumber = "164"
             landmarkName = "+swizzled_loadNibNamed:owner:"
             landmarkType = "7">
          </BreakpointContent>
@@ -1515,8 +1507,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "201"
-            endingLineNumber = "201"
+            startingLineNumber = "203"
+            endingLineNumber = "203"
             landmarkName = "postDive(nibName, fileName)"
             landmarkType = "9">
          </BreakpointContent>
@@ -1525,14 +1517,14 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "BA928364-30A0-487F-8E1A-D02F6A7D6222"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/UIStringAnnotationHelper.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "106"
-            endingLineNumber = "106"
+            startingLineNumber = "169"
+            endingLineNumber = "169"
             landmarkName = "+extendAnnotationElement:withEntriesOfDict:"
             landmarkType = "7">
          </BreakpointContent>
@@ -1541,14 +1533,142 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "B438BB49-BEB8-45FC-BD33-D9B3BF142985"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "562"
+            endingLineNumber = "562"
+            landmarkName = "+annotateUIElementsWithDecoderRecord:topLevelObjects:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "C099202F-A03B-4A22-8F2D-6858EBD58376"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "633"
+            endingLineNumber = "633"
+            landmarkName = "+treeFromDecoderRecord:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "44AC0E31-8387-4D33-8637-C8AA82AD856C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "654"
+            endingLineNumber = "654"
+            landmarkName = "+treeFromDecoderRecord:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "14B39743-FB39-416C-97DA-522859F5682C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/NSString+Additions.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "15"
+            endingLineNumber = "15"
+            landmarkName = "-stringByAddingIndent:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5CF7AC8C-8C2F-4594-811F-8A59F585E04B"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "531"
+            endingLineNumber = "531"
+            landmarkName = "+annotateUIElementsWithDecoderRecord:topLevelObjects:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A9D9511C-7090-485A-BBA9-325D7CF083DC"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "542"
+            endingLineNumber = "542"
+            landmarkName = "+annotateUIElementsWithDecoderRecord:topLevelObjects:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "F9C64385-D10D-41A7-9A04-9CBCBFCC7C1F"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "557"
+            endingLineNumber = "557"
+            landmarkName = "+annotateUIElementsWithDecoderRecord:topLevelObjects:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "1128804B-2D4C-4AA7-9F45-301491E17AE4"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "538"
+            endingLineNumber = "538"
+            landmarkName = "+annotateUIElementsWithDecoderRecord:topLevelObjects:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "4BBF3448-3A38-4930-BFD6-931F1264A77A"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/NibAnnotation/UINibDecoder+LocalizationKeyAnnotation.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "597"
-            endingLineNumber = "597"
+            startingLineNumber = "442"
+            endingLineNumber = "442"
             landmarkName = "+annotateUIElementsWithDecoderRecord:topLevelObjects:"
             landmarkType = "7">
          </BreakpointContent>

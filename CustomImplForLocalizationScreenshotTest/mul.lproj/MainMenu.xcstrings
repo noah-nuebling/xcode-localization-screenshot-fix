@@ -1430,13 +1430,13 @@
       }
     },
     "jCo-IJ-zbH.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"<IB title for codeMenuItemTwo>\"; ObjectID = \"jCo-IJ-zbH\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"Title for codeMenuItemTwo\"; ObjectID = \"jCo-IJ-zbH\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "<IB title for codeMenuItemTwo>"
+            "value" : "Title for codeMenuItemTwo"
           }
         }
       }
@@ -1833,18 +1833,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Stop Speaking"
-          }
-        }
-      }
-    },
-    "P2c-UE-Sys.ibShadowedToolTip" : {
-      "comment" : "Class = \"NSView\"; ibShadowedToolTip = \"<IB tooltip for customCodeView>\"; ObjectID = \"P2c-UE-Sys\";",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "<IB tooltip for customCodeView>"
           }
         }
       }

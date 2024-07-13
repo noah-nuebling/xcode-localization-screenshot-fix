@@ -12,9 +12,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface UIStringAnnotationHelper : NSObject
 
++ (NSString *)annotationDescription:(NSAccessibilityElement *)element;
+
 + (BOOL)accessibilityElement:(NSObject<NSAccessibility> *)object containsUIString:(NSString *)uiString;
 
-+ (NSDictionary *)getUIStringsFromAccessibilityElement:(NSObject <NSAccessibility>*)element;
++ (NSDictionary *)getUserFacingStringsFromAccessibilityElement:(NSObject <NSAccessibility>*)element;
 + (NSAccessibilityAttributeName)getAttributeForAccessibilityNotification:(NSAccessibilityNotificationName)notification;
 
 + (NSAccessibilityElement *)createAnnotationElementWithLocalizationKey:(NSString *_Nonnull)localizationKey

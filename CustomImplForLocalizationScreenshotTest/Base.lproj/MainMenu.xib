@@ -716,11 +716,11 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <popUpButtonCell key="cell" type="push" title="&lt;IB title for codeMenuItemThree&gt;" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="82X-qH-fUV" id="yi8-Hq-xPY">
                             <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
-                            <font key="font" metaFont="system"/>
+                            <font key="font" metaFont="message"/>
                             <menu key="menu" id="dea-Pi-BIF">
                                 <items>
                                     <menuItem title="&lt;IB title for codeMenuItemOne&gt;" toolTip="&lt;IB tooltip for codeMenuItemOne&gt;" id="z9V-dK-gVX"/>
-                                    <menuItem title="&lt;IB title for codeMenuItemTwo&gt;" toolTip="&lt;IB tooltip for codeMenuItemTwo&gt;" id="jCo-IJ-zbH">
+                                    <menuItem title="Title for codeMenuItemTwo" toolTip="&lt;IB tooltip for codeMenuItemTwo&gt;" id="jCo-IJ-zbH">
                                         <attributedString key="attributedTitle">
                                             <fragment content="Title for codeMenuItemTwo">
                                                 <attributes>
@@ -735,7 +735,7 @@
                             </menu>
                         </popUpButtonCell>
                     </popUpButton>
-                    <customView toolTip="&lt;IB tooltip for customCodeView&gt;" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="P2c-UE-Sys">
+                    <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="P2c-UE-Sys">
                         <rect key="frame" x="492" y="274" width="399" height="215"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     </customView>
@@ -760,9 +760,22 @@
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <size key="minSize" width="401" height="232"/>
-                                    <size key="maxSize" width="401" height="10000000"/>
+                                    <size key="maxSize" width="416" height="10000000"/>
                                     <attributedString key="textStorage">
-                                        <fragment content="&lt;IB tooltip for codeTextField&gt;">
+                                        <fragment content="&lt;IB ">
+                                            <attributes>
+                                                <font key="NSFont" size="12" name="Helvetica"/>
+                                                <font key="NSOriginalFont" size="12" name="Helvetica"/>
+                                                <paragraphStyle key="NSParagraphStyle" alignment="natural" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
+                                            </attributes>
+                                        </fragment>
+                                        <fragment content="text">
+                                            <attributes>
+                                                <font key="NSFont" size="12" name="Helvetica"/>
+                                                <paragraphStyle key="NSParagraphStyle" alignment="natural" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
+                                            </attributes>
+                                        </fragment>
+                                        <fragment content=" for codeTextField&gt;">
                                             <attributes>
                                                 <font key="NSFont" size="12" name="Helvetica"/>
                                                 <font key="NSOriginalFont" size="12" name="Helvetica"/>
@@ -866,7 +879,7 @@
                             </subviews>
                         </clipView>
                         <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="pi4-lj-mIn">
-                            <rect key="frame" x="1" y="119" width="223" height="15"/>
+                            <rect key="frame" x="1" y="216" width="451" height="15"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="EOZ-Y4-XiE">

@@ -37,7 +37,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NSWindowTemplate : NSObject
 
 /// Declare minimal interface for the private NSWindowTemplate class so we can inspect it it inside our NibAnnotation code
-///     (These are all the methods that don't take any arguments)
+///     (These are all of its methods that don't take any arguments)
 
 - (id)subtitle;
 - (id)title;

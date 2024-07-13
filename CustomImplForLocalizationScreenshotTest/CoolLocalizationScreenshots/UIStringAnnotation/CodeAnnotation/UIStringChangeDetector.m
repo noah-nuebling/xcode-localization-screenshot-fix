@@ -140,7 +140,7 @@
     NSArray *localizedStringsComposingThisUpdate = nil;
     
     /// Get the updated UI string from the object
-    NSDictionary *uiStrings = [UIStringAnnotationHelper getUIStringsFromAccessibilityElement:object];
+    NSDictionary *uiStrings = [UIStringAnnotationHelper getUserFacingStringsFromAccessibilityElement:object];
     NSString *updatedUIString = uiStrings[changedAttribute];
     
     /// Get NSLocalizedString()'s which make up the new UIString

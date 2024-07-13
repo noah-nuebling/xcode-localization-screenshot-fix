@@ -14,6 +14,8 @@
 #import "UIStringAnnotationHelper.h"
 #import "UINibDecoderDefinitions.h"
 #import "Utility.h"
+#import "TreeNode.h"
+#import "KVPair.h"
 
 
 #pragma mark - Track isDecoding
@@ -109,7 +111,7 @@ static void deleteUINibDecoderRecord(void) {
 }
 
 ///
-/// Forward declare Annotator
+/// Forward declares
 ///
 
 @interface Annotator : NSObject
@@ -204,6 +206,11 @@ static void postDive(NSString *nibName, NSString *fileName) {
         if (isOurBundle) {
             [Annotator annotateUIElementsWithDecoderRecord:uiNibDecoderRecord() topLevelObjects:_uiNibDecoderRecordTopLevelObjects];
         }
+        
+        /// Delete NSLocalizedStringRecord
+        ///     We only use the NSLocalizedStringRecord for our CodeAnnotation, but the Nib decoding will clutter it up.
+        [NSLocalizedStringRecord.queue._rawStorage removeAllObjects];
+        [NSLocalizedStringRecord.systemQueue._rawStorage removeAllObjects];
         
         /// Validate
         assert(MFUINibDecoderDepth() == 0 && MFLoadNibDepth() == 0);
@@ -328,7 +335,11 @@ static void postDive(NSString *nibName, NSString *fileName) {
         ///  We also take this opportunity to validate our logic.
         ///
         ///  Update:
-        ///  - We could also just disable enqueing into the NSLocalizedStringRecord while MFUINibDecoderIsDecoding() == YES - That should be simpler.
+        ///  - We're now just deleting the NSLocalizedStringRecord after the nib decoding is done.
+        ///  - The validation doesn't work anymore since we're now loading the decoder record into a tree and traversing it in a different order.
+        
+        assert(false);
+        return;
         
         for (NSDictionary *localizationKeyData in lastLocalizationKeys) {
             unpackLocalizationKeyData(localizationKeyData, ^(NSString *localizationKey, NSString *developmentString, NSString *uiString, NSString *uiStringNibKey) {
@@ -350,95 +361,132 @@ static void postDive(NSString *nibName, NSString *fileName) {
     assert(true || topLevelObjects != nil && topLevelObjects.count > 0);
     assert(accumulator != nil && accumulator.count > 0);
     
+    /// Transform decoder record into a tree
+    TreeNode<KVPair *> *treeRoot = [self treeFromDecoderRecord:accumulator];
+    NSArray *treeNodes = [treeRoot.depthFirstEnumerator allObjects];
+    
+    /// Validate
+    assert(treeNodes.count == accumulator.count);
+    
     /// Print
     NSLog(@"-------------------");
-    printf("%s", [[NSString stringWithFormat:@"LocStrings: SWOOOZLE, %@\n%@", topLevelObjects, accumulator] cStringUsingEncoding:NSUTF8StringEncoding]); /// Need to use printf since NSLog truncates the output.
+    printf("%s", [[NSString stringWithFormat:@"LocStrings: SWOOOZLE, %@\n%@", topLevelObjects, treeRoot] cStringUsingEncoding:NSUTF8StringEncoding]); /// Need to use printf since NSLog truncates the output.
     
     /// Declare state for loop
-    BOOL lastWasNSDev = NO;
-    BOOL setLastWasNSDev = NO;
-    NSMutableArray <NSMutableDictionary *> *lastLocalizationKeys = [NSMutableArray array];
-    NSMutableArray <NSMutableDictionary *> *lastMarkerLocalizationKeys = [NSMutableArray array];
-    NSMutableArray <NSMutableDictionary *> *lastWindowTitleLocalizationKeys = [NSMutableArray array];
+    BOOL lastLocalizedStringWasNotUsed = NO;
+    TreeNode<KVPair *> *lastNode_ForUnusedStringValidation = nil;
     
-    for (NSDictionary *kvPair in accumulator) {
-    
-        /// Extract
-        NSString *key = kvPair[@"key"];
-        id value = kvPair[@"value"];
+    for (TreeNode<KVPair *> *node in treeNodes) {
         
-        /// Process
-        if ([key isEqual: @"NSKey"]) {
+        /// Validate
+        if (lastLocalizedStringWasNotUsed) {
+            NSLog(@"Error The localized string %@ was not handled", lastNode_ForUnusedStringValidation.representedObject);
+            assert(false);
+        }
+        
+        /// Only look at NSKey
+        ///     NSKey elements hold localizationKeys
+        if (![node.representedObject.key isEqual: @"NSKey"]) continue;
+        
+        /// Set state
+        lastLocalizedStringWasNotUsed = YES;
+        lastNode_ForUnusedStringValidation = node;
+        
+        /// Gather values
+        NSString *localizationKey = node.representedObject.value;
+        NSString *developmentString = node.siblings[1].representedObject.value;
+        NSString *developmentStringNibKey = node.siblings[1].representedObject.key;
+        NSString *uiString = node.parentNode.representedObject.value;
+        NSString *uiStringNibKey = node.parentNode.representedObject.key;
+        
+        /// Validate
+        assert([developmentStringNibKey isEqual:@"NSDev"]);
+        for (id str in @[localizationKey, developmentString, developmentStringNibKey, uiString, uiStringNibKey]) {
+            assert([str isKindOfClass:[NSString class]]);
+        }
+        
+        /// Skip keys for entries that link elsewhere
+        ///     Not sure we need this anymore now with the new tree structure.
+        /// `[key isEqual: @"NSSuperview"] || [key isEqual: @"NSNextResponder"] || [key isEqual: @"NSNextKeyView"] || [key isEqual: @"NSSubviews"]`
+        
+        if ([uiStringNibKey isEqual:@"NSMarker"]) {
             
-            /// Collect localization keys
-            [lastLocalizationKeys addObject:@{
-                @"NSKey": value,
-            }.mutableCopy];
-            
-            
-        } else if ([key isEqual:@"NSDev"]) {
-            
-            /// Collect base-language ui-strings
-            lastLocalizationKeys.lastObject[@"NSDev"] = value;
-            setLastWasNSDev = YES;
-            
-        } else if ([key isEqual: @"NSSuperview"] || [key isEqual: @"NSNextResponder"] || [key isEqual: @"NSNextKeyView"] || [key isEqual: @"NSSubviews"]) {
-            
-            /// Skip links to other views.
-            ///     Not sure why/if this makes sense, but I think it does. -> We want the next accessibility Element we iterate over
-            ///     to be the container for last localizedStringKeys that we iterated over. I think this is the case if we skip superview.
-            
-        } else if (lastWasNSDev) {
-            
-            /// Record NSDev successor
-            ///     Note: The item after the NSDev entry always seems to hold the translated UI String for the current language - but
-            ///     the key is not always the same
-            
-            lastLocalizationKeys.lastObject[@"NSDevSuccessor"] = @{
-                @"key": key,
-                @"value": value,
-            };
-            
-            /// Validate
-            BOOL isString = [value isKindOfClass:[NSString class]];
-            assert(isString);
-            
+            /// 
             /// Special case: NSMarker
-            ///     These are then handled in the `NSConnections` case below.
+            ///
+            
+            /// -> Find the view for the NSMarker through the NSConnections array
+            
             /// Note:
             ///     The NSMarker key appears for tooltip-strings. (Maybe also elsewhere but I've only seen it on tooltips)
-            ///     We have to determine the AccessibilityElement that the tooltip-strings belong to in a special way (using the NSConnections array)
-            if ([key isEqual:@"NSMarker"]) {
-                /// Extract last key
-                NSMutableDictionary *lastKey = lastLocalizationKeys.lastObject;
-                [lastLocalizationKeys removeLastObject];
+            
+            /// Find NSConnections array
+            NSArray *connections = nil;
+            for (TreeNode<KVPair *> *topLevelNode in treeRoot.childNodes) {
+                if ([topLevelNode.representedObject.key isEqual:@"NSConnections"]) {
+                    connections = topLevelNode.representedObject.value;
+                    break;
+                }
+            }
+            assert(connections != nil);
                 
-                /// Add it to the marker list
-                [lastMarkerLocalizationKeys addObject:lastKey];
-                
-                /// Clean out annotationQueue
-                cleanOutAnnotationQueueAndValidate(@[lastKey]);
+            
+            /// Find help-connections
+            NSMutableArray <NSIBHelpConnector *>*helpConnections = [NSMutableArray array];
+            for (NSIBHelpConnector *connection in connections) {
+                if ([connection isKindOfClass:[NSIBHelpConnector class]]) {
+                    [helpConnections addObject:connection];
+                }
             }
             
+            /// Find help connector for our localizedString
+            NSIBHelpConnector *matchingConnector = nil;
+            for (NSIBHelpConnector *connector in helpConnections) {
+                NSString *connectionMarker = [connector marker];
+                if (connectionMarker == uiString) { /// Note that were using == so we're checking pointer-level equality on an NSString
+                    matchingConnector = connector;
+                    break;
+                }
+            }
+            assert(matchingConnector != nil);
+            
+            /// Extract info from matchingConnector
+            NSObject<NSAccessibility>*connectionDestination = (id)[matchingConnector destination];
+            NSObject<NSAccessibility>*axConnectionDestination = [Utility getRepresentingAccessibilityElementForObject:connectionDestination];
+        
+            if (axConnectionDestination == nil) {
+                
+                /// Error
+                NSLog(@"The tooltip %@: %@ is attached to the ui element %@, but the ui element doesn't seem to have a representation in the accessibility hierarchy. Due to this, we can't annotate the ui element with the localizedStringKey for its toolip. To solve this, remove the tooltip or represent the ui element in the accessibility hierarchy. To represent the element, set the `- isAccessibilityElement` property to true on the ui element itself or on one of its subviews.", localizationKey, uiString, connectionDestination);
+                assert(false);
+                
+            } else {
+
+                /// Add annotation
+                NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+                [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:axConnectionDestination];
+                /// Flag
+                lastLocalizedStringWasNotUsed = NO;
+            }
+            
+        } else if ([uiStringNibKey isEqual: @"NSWindowTitle"] || [uiStringNibKey isEqual: @"NSWindowSubtitle"]) {
+            
+            /// 
             /// Special case: NSWindowTitle & NSWindowSubtitle
-            ///     We handle this case below under `NSWindowView`
+            ///
             
-            BOOL isWindowTitle = [key isEqual: @"NSWindowTitle"];
-            BOOL isWindowSubtitle = [key isEqual: @"NSWindowSubtitle"];
-            if (isWindowTitle || isWindowSubtitle) {
-                
-                /// Extract last key
-                NSMutableDictionary *lastKeyData = lastLocalizationKeys.lastObject;
-                [lastLocalizationKeys removeLastObject];
-                
-                /// Add it to the windowTitle list
-                [lastWindowTitleLocalizationKeys addObject:lastKeyData];
-                
-                /// Clean out annotationQueue
-                cleanOutAnnotationQueueAndValidate(@[lastKeyData]);
-                
+            /// -> Find the window in the topLevelObjects
+            
+            /// Find windowView
+            
+            NSView *windowView = nil;
+            for (TreeNode<KVPair *> *siblingNode in node.parentNode.siblingEnumeratorForward) {
+                if ([siblingNode.representedObject.key isEqual:@"NSWindowView"]) {
+                    windowView = siblingNode.representedObject.value;
+                    break;
+                }
             }
-        } else if ([key isEqual:@"NSWindowView"]) {
+            assert(windowView != nil);
             
             /// Find windows in topLevelObjects
             ///     Sidenote: The accumulator doesn't seem to contain a reference to an NSWindow instance. But there's a
@@ -451,226 +499,183 @@ static void postDive(NSString *nibName, NSString *fileName) {
                     [windows addObject:object];
                 }
             }
-            assert(windows.count >= 1); /// We don't know how to deal with multiple windows
+            assert(windows.count >= 1);
             
             /// Find window for windowView
             NSWindow *matchingWindow = nil;
             for (NSWindow *window in windows) {
-                if ([window.contentView isEqual:(NSView *)value]) {
+                if ([window.contentView isEqual:windowView]) {
                     matchingWindow = window;
                     break;
                 }
             }
             
             /// Annotate the window
+            NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+            [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:matchingWindow];
             
-            for (NSDictionary *localizationKeyData in lastWindowTitleLocalizationKeys) {
-                
-                unpackLocalizationKeyData(localizationKeyData, ^(NSString *localizationKey, NSString *developmentString, NSString *uiString, NSString *uiStringNibKey) {
-                    NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
-                    [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:matchingWindow];
-                });
-            }
-            
-            /// Remove processed keys
-            [lastWindowTitleLocalizationKeys removeAllObjects];
-            
-            
-        } else if ([key isEqual:@"NSConnections"]) {
-            
-            /// I think there should only be a single `NSConnections` key at the very end of the accumulator. I would assert this but it's too annoying.
-            
-            /// Find help-connections
-            NSMutableArray <NSIBHelpConnector *>*helpConnections = [NSMutableArray array];
-            NSArray *connections = value;
-            for (NSIBHelpConnector *connection in connections) {
-                if ([connection isKindOfClass:[NSIBHelpConnector class]]) {
-                    [helpConnections addObject:connection];
-                }
-            }
-            
-            /// Add annotations
-            NSMutableArray <NSMutableDictionary *>*processedLocalizationKeys = [NSMutableArray array];
-            for (NSMutableDictionary *localizationKeyData in lastMarkerLocalizationKeys) {
-                
-                unpackLocalizationKeyData(localizationKeyData, ^(NSString *localizationKey, NSString *developmentString, NSString *uiString, NSString *uiStringNibKey) {
-                    
-                    for (NSIBHelpConnector *connector in helpConnections) {
-                        
-                        /// Retrieve connector attributes
-                        NSString *connectionMarker = [connector marker];
-                        NSObject <NSAccessibility>*connectionDestination = (id)[connector destination];
-                        NSObject <NSAccessibility>*axConnectionDestination = [Utility getRepresentingAccessibilityElementForObject:connectionDestination];
-                        
-                        /// Validate
-                        assert(axConnectionDestination != nil);
-                        
-                        if (connectionMarker == uiString) { /// Note that were using == so we're checking pointer-level equality
-                            
-                            /// Add annotation
-                            NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
-                            [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:axConnectionDestination];
-                            
-                            /// Mark localizationKey as processed
-                            [processedLocalizationKeys addObject:localizationKeyData];
-                        }
-                    }
-                });
-            }
-            
-            /// Remove processed keys
-            [lastMarkerLocalizationKeys removeObjectsInArray:processedLocalizationKeys];
-            
-            /// Validate
-            ///     Make sure all markerLocalizationKeys have been processed.
-            assert(lastMarkerLocalizationKeys.count == 0);
+            /// Flag
+            lastLocalizedStringWasNotUsed = NO;
             
         } else {
             
-            /// Check if `value` is an accessibility element
+            ///
+            /// Default behaviour
+            ///
             
-            BOOL isAccessibilityElement = NO;
+            /// -> Attach to first parent that is an accessibility element.
             
-            if ((NO)) {
+            /// Iterate parents
+            for (TreeNode<KVPair *> *parentNode in node.parentEnumerator) {
                 
-                /// Approach 1:
-                ///     Note: This approach catches NSTextView which doesn't actually participate in the accessibility-view-hierarchy
-                
-                NSArray *baseAccessibilityProtocols = @[@protocol(NSAccessibility), @protocol(NSAccessibilityElement), @protocol(NSAccessibilityElementLoading)];
-                for (Protocol *protocol in baseAccessibilityProtocols) {
-                    if ([[value class] conformsToProtocol:protocol]) {
-                        isAccessibilityElement = YES;
-                        break;
-                    }
-                }
-            } else {
-                
-                /// Approach 2:
-                ///     Note: `isAccessibilityElement` is the modern replacement for `accessibilityIsIgnored`. The docs for that explain it.
-                if ([value respondsToSelector:@selector(isAccessibilityElement)]) {
-                    isAccessibilityElement = [value isAccessibilityElement];
-                }
-            }
-            
-            if (isAccessibilityElement) {
-                
-                /// Attach localization keys
+                /// Check if `value` is an accessibility element
                 /// Notes:
-                /// - We assume that the first accessibilityElement we find is the container holding the strings inside the the `lastLocalizationKeys` list.
-                /// - This all depends on the order of elements in the `accumulator` (which is what we're iterating over).
-                /// - The order of the accumulator is equivalent to the order that elements are decoded by `initWithCoder:`. From my understanding, this is a depth-first-search through the object-hierarchy
-                /// - NSKeyedUnarchiver, which is the most common NSCoder subclass (the NSCoder subclass we're dealing with here is UINibDecoder) also implements this object-hierarchy stuff. Maybe its docs are helpful.
+                /// - `isAccessibilityElement` is the modern replacement for `accessibilityIsIgnored`. The docs for that explain the concept.
+                /// - We used to instead check against `protocol(NSAccessibility), protocol(NSAccessibilityElement), and protocol(NSAccessibilityElementLoading)` but that caught NSTextView which doesn't actually participate in the accessibility-view-hierarchy
+                BOOL isAccessibilityElement = NO;
+                if ([parentNode.representedObject.value respondsToSelector:@selector(isAccessibilityElement)]) {
+                    isAccessibilityElement = [parentNode.representedObject.value isAccessibilityElement];
+                }
                 
-                if (lastLocalizationKeys.count > 0) {
+                if (isAccessibilityElement) {
                     
-                    ///
-                    /// Update NSLocalizedStringRecord.queue
-                    ///
-                        
-                    cleanOutAnnotationQueueAndValidate(lastLocalizationKeys);
-//                    assert([NSLocalizedStringRecord.queue isEmpty]);
+                    /// Attach localization keys
+                    /// Notes:
+                    /// - We assume that the first accessibilityElement we find is the container holding the strings inside the the `lastLocalizationKeys` list.
+                    /// - This all depends on the order of elements in the `accumulator` (which is what we're iterating over).
+                    /// - The order of the accumulator is equivalent to the order that elements are decoded by `initWithCoder:`. From my understanding, this is a depth-first-search through the object-hierarchy
+                    /// - NSKeyedUnarchiver, which is the most common NSCoder subclass (the NSCoder subclass we're dealing with here is UINibDecoder) also implements this object-hierarchy stuff. Maybe its docs are helpful.
                     
-                    ///
                     /// Publish data for accessibility inspection
-                    ///
                     
-                    if ([key isEqual:@"NSMenu"]) {
+                    if ([parentNode.representedObject.value isKindOfClass:[NSMenu class]]) {
                         
                         /// Special case - NSMenu
-                        ///     Spread out the keys to the NSMenuItems inside the NSMenu
+                        ///     -> Assign the key to one of the NSMenuItems inside the NSMenu
+                            
+                        /// Get new ax child
+                        NSAccessibilityElement *annotationElement = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
                         
-                        for (NSDictionary *localizationKeyData in lastLocalizationKeys) {
-                         
-                            unpackLocalizationKeyData(localizationKeyData, ^(NSString *localizationKey, NSString *developmentString, NSString *uiString, NSString *uiStringNibKey) {
-                               
-                                /// Get new ax child
-                                NSAccessibilityElement *annotationElement = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
-                                
-                                /// Get menuItem
-                                NSMenuItem *item = [(NSMenu *)value itemWithTitle:uiString];
-//                                if (!item) {
-//                                    /// Fallback
-//                                    ///     I think this is necessary for some of the items that are automatically added and translated by macOS.
-//                                    item = [(NSMenu *)value itemWithTitle:developmentString];
-//                                }
-                                if (!item) {
-                                    NSDictionary *rename = _menuItemsRenamedBySystem[uiString];
-                                    if (rename != nil) {
-                                        item = rename[@"menuItem"];
-                                    }
-                                }
-                                
-                                if (!item) {
-                                    
-                                    /// Fallback: Add directly to menu
-                                    /// Notes:
-                                    /// - We can't tell apart the localizationKeys for the NSMenuTitle from the localizationKeys for the NSMenuItems.
-                                    ///     So this case will always hit for the NSMenuTitle afaik.
-                                    /// - I think this might fail in a subtle way if the NSMenuTitle is the same as the title for one of its items.
-                                    ///     Then we might associate the NSMenuTitle localizationKey with the NSMenuItem instead.
-                                    
-                                    [UIStringAnnotationHelper addAnnotations:@[annotationElement] toAccessibilityElement:value];
-
-
-                                    
-                                } else {
-                                    
-                                    /// Regular case: Add to item
-                                    [UIStringAnnotationHelper addAnnotations:@[annotationElement] toAccessibilityElement:item];
-
-                                }
-                            });
+                        /// Get menuItem
+                        NSMenuItem *item = [(NSMenu *)parentNode.representedObject.value itemWithTitle:uiString];
+                        if (!item) {
+                            NSDictionary *rename = _menuItemsRenamedBySystem[uiString];
+                            if (rename != nil) {
+                                item = rename[@"menuItem"];
+                            }
+                        }
+                        
+                        if (!item) {
+                            
+                            /// Fallback: Add directly to menu
+                            /// Notes:
+                            /// - We can't tell apart the localizationKeys for the NSMenuTitle from the localizationKeys for the NSMenuItems.
+                            ///     So this case will always hit for the NSMenuTitle afaik.
+                            /// - I think this might fail in a subtle way if the NSMenuTitle is the same as the title for one of its items.
+                            ///     Then we might associate the NSMenuTitle localizationKey with the NSMenuItem instead.
+                            [UIStringAnnotationHelper addAnnotations:@[annotationElement] toAccessibilityElement:parentNode.representedObject.value];
+                            /// Flag
+                            lastLocalizedStringWasNotUsed = NO;
+                            
+                        } else {
+                            
+                            /// Regular case: Add to item
+                            [UIStringAnnotationHelper addAnnotations:@[annotationElement] toAccessibilityElement:item];
+                            /// Flag
+                            lastLocalizedStringWasNotUsed = NO;
                             
                         }
                         
                     } else {
                         
                         /// Default case
-                        ///     Simply add the keys as direct children of the element.
+                        ///     -> Assign the key directly to the view.
                         
+                        /// Create annotation
+                        NSAccessibilityElement *annotation =
+                        [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey
+                                                                            translatedString:uiString
+                                                                           developmentString:developmentString
+                                                                      translatedStringNibKey:uiStringNibKey
+                                                                              mergedUIString:nil];
                         
-                        /// Get children
-                        NSMutableArray <NSAccessibilityElement *>*annotationElements = [NSMutableArray array];
-                        for (NSDictionary *localizationKeyData in lastLocalizationKeys) {
-                            unpackLocalizationKeyData(localizationKeyData, ^(NSString *localizationKey, NSString *developmentString, NSString *uiString, NSString *uiStringNibKey){
-                                
-                                NSAccessibilityElement *newElement =
-                                [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey
-                                                                                    translatedString:uiString
-                                                                                   developmentString:developmentString
-                                                                              translatedStringNibKey:uiStringNibKey
-                                                                                            mergedUIString:nil];
-                                
-                                [annotationElements addObject:newElement];
-                            });
-                        }
-                        
-                        /// Attach children
-                        [UIStringAnnotationHelper addAnnotations:annotationElements toAccessibilityElement:value];
+                        /// Attach annotation
+                        [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:parentNode.representedObject.value];
+                        /// Flag
+                        lastLocalizedStringWasNotUsed = NO;
                     }
                     
-                    /// Clear lastLocalizationKeys
-                    [lastLocalizationKeys removeAllObjects];
+                    /// Stop iterating parents
+                    break;
                 }
             }
         }
+    }
+}
+
++ (TreeNode *)treeFromDecoderRecord:(NSArray *)decoderRecord {
+    
+    /// Declare state
+    
+    TreeNode *root = nil;
+    TreeNode *lastNode = nil;
+    NSInteger lastDepth = -1;
+    
+    /// Build tree
+    
+    for (NSDictionary *kvPair in [decoderRecord reverseObjectEnumerator]) {
         
-        /// Handle setLastWasNSDev flag
-        ///     If setLastWasNSDev was set to YES in this iteration, then for the next iteration lastWasNSDev will be YES.
+        /// Extract values
+        NSString *key = kvPair[@"key"];
+        NSString *value = kvPair[@"value"];
+        NSInteger depth = [kvPair[@"depth"] integerValue];
         
-        if (setLastWasNSDev) {
-            lastWasNSDev = YES;
-        } else {
-            lastWasNSDev = NO;
+        /// Create node
+        TreeNode *node = [TreeNode treeNodeWithRepresentedObject:[KVPair pairWithKey:key value:value]];
+        
+        /// Init
+        if (depth == 0) {
+            root = node;
+            lastNode = node;
+            lastDepth = 0;
+            continue;
         }
-        setLastWasNSDev = NO;
+        
+        /// Find parent
+        TreeNode *parent;
+        
+        NSInteger parentDepth = depth - 1;
+        NSInteger distanceFromLastNodeToParentNode = lastDepth - parentDepth;
+        
+        if (distanceFromLastNodeToParentNode == 0) {
+            parent = lastNode;
+        } else {
+            parent = lastNode;
+            for (int i = 0; i < distanceFromLastNodeToParentNode; i++) {
+                parent = parent.parentNode;
+            }
+        }
+
+        /// Validate
+        assert(distanceFromLastNodeToParentNode >= 0);
+        assert(parent != nil);
+        
+        /// Attach child
+        ///     Note: We're inserting at index one, flipping the order of the children, so they end up chronological in the order they
+        ///     were decoded. This is necessary since we're reversing the order of the decoderRecord using `reverseObjectEnumerator`
+        ///     Too lazy to explain properly.
+        [parent.mutableChildNodes insertObject:node atIndex:0];
+        
+        /// Validate
+        assert(node.indexPath.length == depth);
+        
+        /// Update state
+        lastNode = node;
+        lastDepth = depth;
     }
     
-    /// Validate
-    /// - If our processing was successful, then all these should be empty
-    assert([NSLocalizedStringRecord.queue isEmpty]);
-    assert(lastLocalizationKeys.count == 0);
-    assert(lastMarkerLocalizationKeys.count == 0);
+    /// Return
+    return root;
 }
 
 @end

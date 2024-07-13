@@ -14,11 +14,12 @@
     
     ///
     /// Explanation
-    /// `...` should contain a number of objc method `selectors`.
-    /// The each method from`selectors` will have its implementations swapped out with the method that has the same selector but `swizzlePrefix` as a prefix.
-    /// 
+    /// `...` should contain a number of objc method `swizzledSelectors`.
+    /// Each method from`swizzledSelectors` will have its implementations swapped out with the method that has the same selector but without the `swizzlePrefix`.
+    /// (All `swizzledSelectors` are expected to have the `swizzlePrefix` at the start of their name.)
+    ///
     /// For example:
-    /// If `class` is `MyClass`, and `swizzlePrefix` is `swooz_` and `selectors` is a single selector `swooz_loadImagesFromServer:`, then the implementation of `MyClass -loadImagesFromServer:` is replaced with the implementation for `MyClass -swooz_loadImagesFromServer:`
+    /// If `class` is `MyClass`, and `swizzlePrefix` is `swooz_` and `swizzledSelectors` is a single selector `swooz_loadImagesFromServer:`, then the implementation of `MyClass -loadImagesFromServer:` is replaced with the implementation for `MyClass -swooz_loadImagesFromServer:`
     ///
      
     /// Extract selectors from vararg
@@ -88,7 +89,9 @@ void swizzleMethod(Class class, SEL originalSelector, SEL swizzledSelector) {
 
 + (void)swizzleAllMethodsInClass:(Class)cls {
     
-    /// Writte by Claude
+    /// Written by Claude. Not sure it works
+    
+    assert(false);
     
     unsigned int methodCount = 0;
     Method *methods = class_copyMethodList(cls, &methodCount);
@@ -129,6 +132,11 @@ void swizzleMethod(Class class, SEL originalSelector, SEL swizzledSelector) {
 }
 
 + (void)setInvocation:(NSInvocation *)invocation withArgs:(va_list)args {
+    
+    /// Helper for `- swizzleAllMethodsInClass`
+    
+    assert(false);
+    
     NSMethodSignature *signature = [invocation methodSignature];
     for (NSInteger i = 2; i < [signature numberOfArguments]; i++) {
         const char *type = [signature getArgumentTypeAtIndex:i];
@@ -162,6 +170,11 @@ void swizzleMethod(Class class, SEL originalSelector, SEL swizzledSelector) {
 }
 
 + (id)returnValueFromInvocation:(NSInvocation *)invocation {
+    
+    /// Helper for `- swizzleAllMethodsInClass`
+    
+    assert(false);
+    
     const char *returnType = invocation.methodSignature.methodReturnType;
     if (strcmp(returnType, @encode(void)) == 0) {
         return nil;

@@ -29,6 +29,8 @@
     ///     We can't really use this since compiler complains when we try to use these selectors.
     ///     I guess we can use `getUIStringsFromAccessibilityElement:` instead
     
+    assert(false);
+    
     NSDictionary *map = @{
         NSAccessibilityValueAttribute: NSStringFromSelector(@selector(accessibilityValue)),
         NSAccessibilityTitleAttribute: NSStringFromSelector(@selector(accessibilityTitle)),
@@ -39,9 +41,70 @@
     return map;
 }
 
-+ (NSArray *)allUIStringAttributes {
-    return [self AXUIStringAttributeToSelectorMap].allKeys;
+
++ (NSArray *)allUserFacingStringAttributes {
+    assert(false);
+    return [self getUserFacingStringsFromAccessibilityElement:[[NSView alloc] init]].allKeys;
 }
+
++ (NSDictionary *)getUserFacingStringsFromAccessibilityElement:(NSObject <NSAccessibility>*)element {
+    
+    /// Validate
+    assert([element isAccessibilityElement]);
+    
+    /// Special case: tooltip
+    /// Explanation:
+    ///     Tooltips are usually published through the AX API under the NSAccessibilityHelpAttribute, but not always. E.g. on NSMenuItem's 
+    ///     the NSAccessibilityHelpAttribute is not set to the tooltip for some reason (macOS 15.0 Beta 2). Also when you manually set the
+    ///     NSAccessibilityHelpAttribute in IB it will differ from the tooltip.
+    ///     Since tooltips aren't consistently available through the AX API, we need to get tooltips directly from the object instead.
+    
+    NSString *toolTip = nil;
+    if ([element respondsToSelector:@selector(toolTip)]) {
+        toolTip = [(id)element toolTip];
+    }
+    if (toolTip == nil) {
+        if ([element respondsToSelector:@selector(buttonToolTip)]) { /// Not sure what this is but the autocomplete suggests this selector
+            toolTip = [(id)element buttonToolTip];
+        }
+    }
+    if (toolTip == nil) {
+        if ([element respondsToSelector:@selector(headerToolTip)]) { /// Not sure what this is but the autocomplete suggests this selector
+            toolTip = [(id)element headerToolTip];
+        }
+    }
+    
+    /// Get values from AX API.
+    
+    NSMutableDictionary *result = @{
+        
+        /// Localizable strings that appear visually in the UI
+        NSAccessibilityTitleAttribute:                          [element accessibilityTitle] ?: NSNull.null,                        /// Regular UIStrings
+        NSAccessibilityValueAttribute:                          [element accessibilityValue] ?: NSNull.null,                        /// Regular UIStrings
+        NSAccessibilityPlaceholderValueAttribute:               [element accessibilityPlaceholderValue] ?: NSNull.null,             /// Placeholders
+        @"toolTip":                                             toolTip ?: NSNull.null,                                             /// Tooltips
+        
+        /// HelpAttribute
+        ///     Localizable string that usually appears visually in the UI as a tooltip, but not always
+        NSAccessibilityHelpAttribute:                           [element accessibilityHelp] ?: NSNull.null,                         /// Voice Over Stuff & Sometimes tooltips
+        
+        /// Localizable strings that only appear in Assistive Apps like VoiceOver
+        ///     (I might have missed some)
+        NSAccessibilityDescriptionAttribute:                    [element accessibilityLabel] ?: NSNull.null,                        /// Voice Over Stuff
+        NSAccessibilityValueDescriptionAttribute:               [element accessibilityValueDescription] ?: NSNull.null,             /// Voice Over Stuff
+        NSAccessibilityRoleDescriptionAttribute:                [element accessibilityRoleDescription] ?: NSNull.null,              /// Voice Over Stuff
+        NSAccessibilityHorizontalUnitDescriptionAttribute:      [element accessibilityHorizontalUnitDescription] ?: NSNull.null,    /// Voice Over Stuff
+        NSAccessibilityVerticalUnitDescriptionAttribute:        [element accessibilityVerticalUnitDescription] ?: NSNull.null,      /// Voice Over Stuff
+        NSAccessibilityMarkerTypeDescriptionAttribute:          [element accessibilityMarkerTypeDescription] ?: NSNull.null,        /// Voice Over Stuff
+        NSAccessibilityUnitDescriptionAttribute:                [element accessibilityUnitDescription] ?: NSNull.null,              /// Voice Over Stuff
+//        ???:                                                    [element accessibilityUserInputLabels] ?: NSNull.null,              /// Voice Over Stuff
+//        ???:                                                    [element accessibilityAttributedUserInputLabels] ?: NSNull.null,    /// Voice Over Stuff
+    }.mutableCopy;
+    
+    /// Return
+    return result;
+}
+
 
 + (NSAccessibilityAttributeName)getAttributeForAccessibilityNotification:(NSAccessibilityNotificationName)notification {
     
@@ -66,7 +129,7 @@
         
     /// Notes:
     ///     `mergedUIString` explanation:
-    ///     The idea is that the `translatedString` is always the string exactly as it was returned by NSLocalizedString(). In simple cases, `translatedString` is *also* exactly equal to the uiString of the accessibilityElement we're annotating. However, in more complex cases, the string that was returned by NSLocalizedString() might be modified or merged with another string before being set as the uiString of an accessibiliy element. In these cases, `mergedUIString` should be set to the uiString exactly as it appears in the uiElement. That way the annotation always contains the UI String exactly as it appears in the element it is annotating. We use this to validate that the annotation actually belongs to the accessibilityElement we're annotating.
+    ///     The idea is that the `translatedString` is always the string exactly as it was returned by NSLocalizedString(). In simple cases, `translatedString` is *also* exactly equal to the uiString of the accessibilityElement we're annotating. However, in more complex cases, the string that was returned by NSLocalizedString() might be modified or merged with another string before being set as the uiString of an accessibiliy element. In these cases, `mergedUIString` should be set to the uiString exactly as it appears in the uiElement. That way the annotation always contains the UI String exactly as it appears in the element it is annotating. We plan to use this to validate that the annotation actually belongs to the accessibilityElement we're annotating.
                                                                   
     /// Reusable AccessibilityElement creator
     
@@ -125,13 +188,12 @@
 
 + (void)addAnnotations:(NSArray<NSAccessibilityElement *>*)annotations toAccessibilityElement:(NSObject<NSAccessibility>*)object {
     
-    /// Reusable accessibilityChildren adder
-    ///     Note: We used to try to set the stringKeys as an attribute instead of in child elements. But weI can't find unused attributes, and the new AX API won't let you set values for custom keys I think. We also tried using the private NSAccessibilitySetObjectValueForAttribute but it also doesn't let you set completely custom attributes.
+    /// Reusable annotations adder & validator
+    ///     Note: We used to try to set the stringKeys as an attribute instead of in child elements. But we can't find unused attributes, and the new AX API won't let you set values for custom keys I think. We also tried using the private NSAccessibilitySetObjectValueForAttribute but it also doesn't let you set completely custom attributes.
     
     /// Validate
     assert([object isAccessibilityElement]);
     
-
     for (NSAccessibilityElement *annotation in annotations) {
         
         /// Main Check
@@ -210,7 +272,7 @@
     /// Main logic
     BOOL objectContainsUIString = NO;
     
-    NSDictionary *uiStringsFromObject = [self getUIStringsFromAccessibilityElement:object];
+    NSDictionary *uiStringsFromObject = [self getUserFacingStringsFromAccessibilityElement:object];
     for (NSAccessibilityAttributeName attributeName in uiStringsFromObject.allKeys) {
         NSString *uiStringFromObject = uiStringsFromObject[attributeName];
         if ([uiStringFromObject isEqual:uiString] && uiStringFromObject.length > 0) {
@@ -236,6 +298,30 @@
             objectContainsUIString = uiStringIsTitle;
         }
     }
+    
+    if (!objectContainsUIString) {
+        
+        /// Special case: NSWindow titles
+        /// Explanation:
+        ///     NSWindow have both their `title` and their `subtitle` inside their `AXTitle` attribute. But the `title` and `subtitle` have separate
+        ///     localizedStrings. So we check the `title` and `subtitle` properties directly.
+        
+        if ([object isKindOfClass:[NSWindow class]]) {
+            BOOL uiStringIsTitle = [[((NSWindow *)object) title] isEqual:uiString];
+            BOOL uiStringIsSubtitle = [[((NSWindow *)object) subtitle] isEqual:uiString];
+            objectContainsUIString = uiStringIsTitle || uiStringIsSubtitle;
+        }
+        
+    }
+    
+    if (!objectContainsUIString) {
+        
+        /// Special case: tooltips
+        /// Explanation:
+        ///     Usually, the tooltip is published in the `AXHelp` attribute, but
+        
+    }
+    
     
     if (NO && !objectContainsUIString) {
         
@@ -285,37 +371,6 @@
 + (NSString *)annotationDescription:(NSAccessibilityElement *)element {
     NSDictionary *elementData = [element accessibilityValue];
     return [elementData description];
-}
-
-+ (NSDictionary *)getUIStringsFromAccessibilityElement:(NSObject <NSAccessibility>*)element {
-    
-    /// Get result
-    NSMutableDictionary *result = @{
-        NSAccessibilityTitleAttribute:              [element accessibilityTitle] ?: NSNull.null,                        /// Regular UIStrings
-        NSAccessibilityValueAttribute:              [element accessibilityValue] ?: NSNull.null,                        /// Regular UIStrings
-        NSAccessibilityPlaceholderValueAttribute:   [element accessibilityPlaceholderValue] ?: NSNull.null,             /// Placeholders
-        NSAccessibilityHelpAttribute:               [element accessibilityHelp] ?: NSNull.null,                         /// Tooltips
-    }.mutableCopy;
-    
-    if ([result[NSAccessibilityHelpAttribute] isEqual:NSNull.null]) {
-        
-        /// Special case: NSMenuItem tooltips
-        /// Explanation:
-        ///     For some reason, NSMenuItem tooltips do not seem to be published through the AX API under macOS 15.0 Beta 2
-        ///     (Normally tooltips are published through the AXHelp attribute)
-        ///     So we get the UIString from the `toolTip` property instead.
-        
-        if ([element isKindOfClass:[NSMenuItem class]]) {
-            result[NSAccessibilityHelpAttribute] = [(NSMenuItem *)element toolTip] ?: NSNull.null;
-        }
-    }
-    
-    /// Validate
-    assert([element isAccessibilityElement]);
-    assert([result.allKeys isEqual:[self allUIStringAttributes]]);
-    
-    /// Return
-    return result;
 }
 
 @end

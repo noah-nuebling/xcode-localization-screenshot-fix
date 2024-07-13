@@ -22,6 +22,9 @@
 		4F5A284E2C3C563600F95211 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F5A284C2C3C49EF00F95211 /* AppKit.framework */; };
 		4F746D112C4073B40031DA27 /* UINibDecoder+LocalizationKeyAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F5A28182C3B4D3700F95211 /* UINibDecoder+LocalizationKeyAnnotation.m */; };
 		4F746D122C4074F60031DA27 /* UIStringAnnotationHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FB7E9E82C3E9CF900A36F3B /* UIStringAnnotationHelper.m */; };
+		4F966AB22C414C3E003226B2 /* TreeNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F966AB12C414C3E003226B2 /* TreeNode.m */; };
+		4F966AB52C414DCE003226B2 /* NSString+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F966AB42C414DCE003226B2 /* NSString+Additions.m */; };
+		4F966AB82C415ECD003226B2 /* KVPair.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F966AB72C415ECD003226B2 /* KVPair.m */; };
 		4FB7E9E32C3DD61800A36F3B /* accessibilityNotificationPostingSymbolsFromLLDB.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4FB7E9E22C3DD61800A36F3B /* accessibilityNotificationPostingSymbolsFromLLDB.txt */; };
 		4FB7E9ED2C3EACD200A36F3B /* UIStringChangeDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FB7E9EC2C3EACD200A36F3B /* UIStringChangeDetector.m */; };
 		4FE8396F2C3D7C0900AFCA6D /* Queue.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FE8396E2C3D7C0900AFCA6D /* Queue.m */; };
@@ -91,6 +94,12 @@
 		4F5A28492C3C49AB00F95211 /* AccessibilityUtilities.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AccessibilityUtilities.framework; path = ../../../../../../System/Library/PrivateFrameworks/AccessibilityUtilities.framework; sourceTree = "<group>"; };
 		4F5A284C2C3C49EF00F95211 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		4F7585352C3F1870006EE36A /* UINibDecoderDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UINibDecoderDefinitions.h; sourceTree = "<group>"; };
+		4F966AB02C414C3E003226B2 /* TreeNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TreeNode.h; sourceTree = "<group>"; };
+		4F966AB12C414C3E003226B2 /* TreeNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TreeNode.m; sourceTree = "<group>"; };
+		4F966AB32C414DCE003226B2 /* NSString+Additions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSString+Additions.h"; sourceTree = "<group>"; };
+		4F966AB42C414DCE003226B2 /* NSString+Additions.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSString+Additions.m"; sourceTree = "<group>"; };
+		4F966AB62C415ECD003226B2 /* KVPair.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KVPair.h; sourceTree = "<group>"; };
+		4F966AB72C415ECD003226B2 /* KVPair.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KVPair.m; sourceTree = "<group>"; };
 		4FB7E9E22C3DD61800A36F3B /* accessibilityNotificationPostingSymbolsFromLLDB.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = accessibilityNotificationPostingSymbolsFromLLDB.txt; sourceTree = "<group>"; };
 		4FB7E9E72C3E9CF900A36F3B /* UIStringAnnotationHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UIStringAnnotationHelper.h; sourceTree = "<group>"; };
 		4FB7E9E82C3E9CF900A36F3B /* UIStringAnnotationHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UIStringAnnotationHelper.m; sourceTree = "<group>"; };
@@ -276,6 +285,12 @@
 			children = (
 				4FB7E9E72C3E9CF900A36F3B /* UIStringAnnotationHelper.h */,
 				4FB7E9E82C3E9CF900A36F3B /* UIStringAnnotationHelper.m */,
+				4F966AB02C414C3E003226B2 /* TreeNode.h */,
+				4F966AB12C414C3E003226B2 /* TreeNode.m */,
+				4F966AB62C415ECD003226B2 /* KVPair.h */,
+				4F966AB72C415ECD003226B2 /* KVPair.m */,
+				4F966AB32C414DCE003226B2 /* NSString+Additions.h */,
+				4F966AB42C414DCE003226B2 /* NSString+Additions.m */,
 				4FE8396D2C3D7C0900AFCA6D /* Queue.h */,
 				4FE8396E2C3D7C0900AFCA6D /* Queue.m */,
 				4F5A28112C3B443D00F95211 /* Swizzle.h */,
@@ -447,8 +462,11 @@
 				4FE839722C3D7C3100AFCA6D /* NSLocalizedStringRecord.m in Sources */,
 				4F53EBD22C3AF1CA00843320 /* main.m in Sources */,
 				4F53EBCB2C3AF1C800843320 /* AppDelegate.m in Sources */,
+				4F966AB22C414C3E003226B2 /* TreeNode.m in Sources */,
 				4F1382E42C3FEDFF007E0C03 /* UINibDecoderDefinitions.m in Sources */,
 				4F5A280D2C3B401900F95211 /* NSIBObjectData+LocalizedStringKey.m in Sources */,
+				4F966AB52C414DCE003226B2 /* NSString+Additions.m in Sources */,
+				4F966AB82C415ECD003226B2 /* KVPair.m in Sources */,
 				4F746D122C4074F60031DA27 /* UIStringAnnotationHelper.m in Sources */,
 				4FB7E9ED2C3EACD200A36F3B /* UIStringChangeDetector.m in Sources */,
 				4F5A281C2C3B596800F95211 /* Utility.m in Sources */,
@@ -641,7 +659,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.nuebling.CustomImplForLocalizationScreenshotTest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -673,7 +691,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.nuebling.CustomImplForLocalizationScreenshotTest;
 				PRODUCT_NAME = "$(TARGET_NAME)";

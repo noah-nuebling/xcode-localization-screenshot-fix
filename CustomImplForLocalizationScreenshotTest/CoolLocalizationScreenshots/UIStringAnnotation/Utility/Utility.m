@@ -102,7 +102,7 @@ void printClassHierarchy(NSObject *obj) {
     }
 }
 
-+ (NSObject <NSAccessibility>* _Nullable)getRepresentingAccessibilityElementForObject:(NSObject <NSAccessibility>*)object {
++ (NSObject <NSAccessibility> * _Nullable)getRepresentingAccessibilityElementForObject:(NSObject<NSAccessibility> *)object {
     
     /// This function tries to to find the object that represents `object` in the accessibility hierarchy. This can be `object` itself or a related object.
     /// Explanation:
@@ -118,9 +118,11 @@ void printClassHierarchy(NSObject *obj) {
     }
     
     NSArray *children = [object accessibilityChildren];
-    
-    if (children.count == 1) {
-        return [self getRepresentingAccessibilityElementForObject:children[0]];
+    for (NSObject<NSAccessibility> *child in children) {
+        NSObject<NSAccessibility> *childRepresenter = [self getRepresentingAccessibilityElementForObject:child];
+        if (childRepresenter != nil) {
+            return childRepresenter;
+        }
     }
     
     return nil;
