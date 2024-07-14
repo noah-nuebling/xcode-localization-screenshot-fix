@@ -14,9 +14,10 @@
 ///
 
 #import "UIStringAnnotationHelper.h"
-#import "UINibDecoderDefinitions.h"
+#import "UINibDecoderIntrospection.h"
 #import "NSLocalizedStringRecord.h"
 #import "Utility.h"
+#import "NSString+Additions.h"
 
 @implementation UIStringAnnotationHelper
 
@@ -109,19 +110,30 @@
         //        ???:                                                    [element accessibilityAttributedUserInputLabels] ?: NSNull.null,    /// Voice Over Stuff
     }.mutableCopy;
     
+    /// Special case: NSSegmentedControl
+    ///     The segmented control holds labels and tooltips for each of its segments.
+    if ([element isKindOfClass:[NSSegmentedCell class]]) {
+        NSInteger segmentCount = [(NSSegmentedCell *)element segmentCount];
+        for (int i = 0; i < segmentCount; i++) {
+            NSString *label = [(NSSegmentedCell *)element labelForSegment:i];
+            NSString *toolTip = [(NSSegmentedCell *)element toolTipForSegment:i];
+            result[stringf(@"segment.%d.label", i)] = label;
+            result[stringf(@"segment.%d.toolTip", i)] = toolTip;
+        }
+    }   
+    
     /// Return
     return result;
 }
 
 
-+ (NSAccessibilityAttributeName)getAttributeForAccessibilityNotification:(NSAccessibilityNotificationName)notification {
++ (NSAccessibilityAttributeName _Nullable)getAttributeForAccessibilityNotification:(NSAccessibilityNotificationName)notification {
     
     NSDictionary *map = @{
         NSAccessibilityValueChangedNotification: NSAccessibilityValueAttribute,
         NSAccessibilityTitleChangedNotification: NSAccessibilityTitleAttribute,
     };
     NSAccessibilityAttributeName result = map[notification];
-    assert(result != nil);
     return result;
 }
 
@@ -269,6 +281,8 @@
         /// Validate
         BOOL isValid = annotationMatchesObject || uiStringWasProbablyOverridenBySystem;
         if (!isValid) {
+            NSLog(@"UIStringAnnotation: Error: Annotation %@ describes a uiString that was not found on the object we wanted to attach it to (uiStrings found on object: %@). There might be a bug in the code. Sometimes this also happens because the uiString that the annotation describes isn't settable on the object.",
+                  [UIStringAnnotationHelper annotationDescription:annotation], [UIStringAnnotationHelper getUserFacingStringsFromAccessibilityElement:object]);
             assert(false);
         }
     }
@@ -340,15 +354,6 @@
         }
         
     }
-    
-    if (!objectContainsUIString) {
-        
-        /// Special case: tooltips
-        /// Explanation:
-        ///     Usually, the tooltip is published in the `AXHelp` attribute, but
-        
-    }
-    
     
     if (NO && !objectContainsUIString) {
         

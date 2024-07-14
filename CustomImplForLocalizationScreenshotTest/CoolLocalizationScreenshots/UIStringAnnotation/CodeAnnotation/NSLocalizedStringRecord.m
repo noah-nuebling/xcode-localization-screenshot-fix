@@ -10,6 +10,8 @@
 /// The idea is that whenever translated-string-retrieval-functions such as NSLocalizedString() are called from our code, we record the localized-string-key into the AnnotationQueue.
 /// Then, whenever a UIString is set on an object, we want to take take all the localized-string-keys inside the AnnotationQueue and annotate the object with those keys.
 ///
+/// NOTE: Found the method `un_localizedStringKey` key by calling listMethods() on NSString instance inside NSLocalizedString [initWithCoder:]:
+///     But I couldn't get any info by calling it. 
 
 #import "NSLocalizedStringRecord.h"
 #import "Swizzle.h"
@@ -72,8 +74,8 @@ static Queue *_systemLocalizationKeyQueue;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         
-        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_localizedStringForKey:value:table:), nil);
-        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_localizedAttributedStringForKey:value:table:), nil);
+        swizzleMethods([self class], false, nil /*@"Foundation"*/, @"swizzled_", @selector(swizzled_localizedStringForKey:value:table:), nil);
+        swizzleMethods([self class], false, nil /*@"Foundation"*/, @"swizzled_", @selector(swizzled_localizedAttributedStringForKey:value:table:), nil);
     });
 }
 

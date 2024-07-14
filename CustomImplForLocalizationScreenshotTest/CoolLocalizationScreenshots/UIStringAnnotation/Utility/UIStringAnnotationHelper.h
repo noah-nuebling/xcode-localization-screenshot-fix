@@ -17,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (BOOL)accessibilityElement:(NSObject<NSAccessibility> *)object containsUIString:(NSString *)uiString;
 
 + (NSDictionary *)getUserFacingStringsFromAccessibilityElement:(NSObject <NSAccessibility>*)element;
-+ (NSAccessibilityAttributeName)getAttributeForAccessibilityNotification:(NSAccessibilityNotificationName)notification;
++ (NSAccessibilityAttributeName _Nullable)getAttributeForAccessibilityNotification:(NSAccessibilityNotificationName)notification;
 
 + (NSAccessibilityElement *)createAnnotationElementWithLocalizationKey:(NSString *_Nonnull)localizationKey
                                                       translatedString:(NSString *_Nonnull)translatedString

@@ -5,132 +5,22 @@
 //  Created by Noah Nübling on 09.07.24.
 //
 
-/**
- 
- In this file we're trying to get a callback that fires whenever any UI Strings are changed throughout the app.
- 
- Explanation:
- 
-    We found that AppKit seems to publish all UI Strings in the AXTitle or AXValue accessibility attributes, so if we can detect changes of those attributes, we can detect all UI String changes (as long as the UI Strings are handled by AppKit)! We tried to swizzle the getters and setters but that didn't work. However, AppKit conveniently sends NSAccessibilityValueChangedNotification and NSAccessibilityTitleChangedNotification whenever these values change, so if we can intercept those, we can detect UIString changes!
-    -  The best way we found to do this is to swizzle private `- accessibilityPostNotification:` methods which are found throughout AppKit. I'm not entirely sure this works in all cases but it seems to be pretty good from what I can tell.
-        
-    Approach 1:
-    The most robust and straightforward way of monitoring the AXTitle and AXValue change-notifications would be using the standard AXObserverAddNotification() API to receive the notifications after AppKit sends them. 
-    However, these notificaitons are meant for Assistive Apps as a way to control an app, not for apps to introspect themselves (what we're trying to do) and I think the notifications don't contain a reference back to the underlying object but only to the accessibiltyElement that is representing the underlying object. Now what we're ultimately trying to do is to publish to the AXUI API, the localization keys for each AXUIElement that contains a localizable string - and for that we might not need a reference to the underlying NSObject represented by the AXUIElement at all. We could also probably somehow reconstruct the reference by recursively traversing the `[NSObject<NSAccessibility> accessibilityChildren]` until we somehow find and identify the child that is represented by the AXUIElement which we received a notification for, so I don't think this would really be an issue.
-    The other hypothetical issue I thought of is that, when we programmatically set a UIString on an NSObject right after the object is loaded, but before that object is added to the view hierarchy, then perhaps the AXTitle- and AXValue-changed-notifications won't be sent, because the NSObject isn't observed by the AXUI API, yet. I haven't tested this so I'm not sure it's an issue. But this hypothetical problem and the complicated nature of this approach has lead me to try another approach first:
- 
-    Approach 2:
-    Instead of trying to observe the AXUI notifications that are being sent, we could instead try to intercept that code that sends the notifications. From playing around in LLDB, I found these functions which seem to be internally used by AppKit to send the notifications:
-        NSAccessibilityPostNotification
-        NSAccessibilityPostNotificationWithUserInfo
-        NSAccessibilityPostNotificationForObservedElementWithUserInfo
-    However, these are C functions which we cannot intercept as far as I know. Also I saw that NSCell doesn't seem to invoke these functions at all, if it finds that there are no AX observers trying to inspect the app.
-    However, what we found is that NSCell seem to be handling the text in all the basic macOS UI elements that we tested at the time of writing (NSTextField, NSButton, NSMenuItem) and when the UIString changes, it always Consistently seems to call `- accessibilityPostNotification:`! So by just intercepting that, we should be able to catch most UI String updates. Then we regexed around in the AppKit symbol table using LLDB and found all the swizzable methods (not pure C functions) containing the words 'accessibility' and 'post' or 'send'. 
- 
- Methods:
- 
-     Methods we might want to intercept
-     (To detect any UIString updates)
-     ([x] means we are intercepting, [-] means we're not intercepting, [?] means we might want to intercept this in the future)
-     
-     These are from accessibilityNotificationPostingSymbolsFromLLDB.txt
-     ```
-     [x] -[NSCell(NSCellAccessibility) accessibilityPostNotification:]
-     [x] -[NSText(NSTextAccessibilityPrivate) accessibilityPostNotification:]
-     [x] -[NSText(NSTextAccessibilityPrivate) accessibilityPostNotification:withNotificationElement:]
-     [x] -[NSControl(NSControlAccessibilityAdditions) accessibilityPostNotification:context:]
-     [x] -[NSWindow(NSWindowAccessibility) accessibilityPostNotification:]
-     [x] -[NSMenu postAccessibilityNotification:]
-     [?] -[NSMenu _performActionWithHighlightingForItemAtIndex:sendAccessibilityNotification:]
-     [x] -[NSSecureTextView(NSTextAccessibilityPrivate) accessibilityPostNotification:]
-     [?] -[NSSecureTextView(NSTextAccessibilityPrivate) _accessibilityPostValueChangeNotificationAfterDelay]
-     [?] -[NSWindow(NSRemoteWindowAccessibility) accessibilitySendDeferredNotifications]
-     [?] -[NSWindow(NSRemoteWindowAccessibility) accessibilityAddDeferredNotification:]
-     [?] -[NSObject(NSAccessibilityNotifications) accessibilitySupportsNotifications]
-     [?] -[NSObject(NSAccessibilityNotifications) accessibilityShouldSendNotification:]     NOTE: I've seen this be called when AXApplicationDeactivated maybe we should intercept this.
-     [?] -[NSCell(NSCellAccessibility) accessibilityShouldSendNotification:]
-     [?] -[NSView(NSViewAccessibility) accessibilityShouldSendNotification:]
-     
-     [-] NSAccessibilityPostNotification
-     [-] NSAccessibilityPostNotificationWithUserInfo
-     [-] NSAccessibilityPostNotificationForObservedElementWithUserInfo
-     [-] NSAccessibilityPostApplicationActivated
-     [-] _NSAccessibilityPostDragTrackingNotificationForObject
-     [-] _NSAccessibilityUnregisterUniqueIdForUIElementAndSendDestroyedNotification
-     [-] _NSAccessibilityRemoveAllObserversAndSendDestroyedNotification
-     ```
- */
-
 #import "UIStringChangeDetector.h"
 #import "Swizzle.h"
 #import "NSLocalizedStringRecord.h"
 #import "UIStringAnnotationHelper.h"
 #import "UINibDecoder+LocalizationKeyAnnotation.h"
+#import "NSString+Additions.h"
+#import "SystemRenameTracker.h"
+#import "AppKitIntrospection.h"
+#import "Utility.h"
+#import "NSString+Additions.h"
+#import "objc/runtime.h"
 
 @interface UIStringChangeInterceptor : NSObject
 @end
 
 @implementation UIStringChangeInterceptor
-
-+ (void)onNotification:(NSAccessibilityNotificationName)notification postedBy:(id)object result:(void *)result {
-    [self onNotification:notification postedBy:object context:nil element:nil result:result];
-}
-
-+ (void)onNotification:(NSAccessibilityNotificationName)notification postedBy:(id<NSAccessibility>)object context:(id)context element:(id)element result:(void *)result {
-    
-    /// TODO: Implement change-detection for tooltips and placeholders
-    
-    /// Validate
-    ///     I'm pretty sure the notification-posting-methods all return void, we're just catching the `result` to double check.
-    assert(true || result == 0); /// On AXMoved notifs I've seen the result be non-zero
-    assert([object isKindOfClass:[NSObject class]]);
-    assert(true || [object isAccessibilityElement]); /// This doesn't always hold true, not sure why
-    assert(context == 0 || [context isKindOfClass:[NSObject class]]);
-    assert(element == 0 || [element isKindOfClass:[NSObject class]]);
-    
-    /// Extract
-    BOOL isUIStringChange = [notification isEqual:NSAccessibilityTitleChangedNotification] || [notification isEqual:NSAccessibilityValueChangedNotification];
-    
-    if (isUIStringChange) {
-        
-        /// Check if we're currently decoding an Nib file
-        BOOL isDecodingNibFile = MFIsLoadingNib();
-        
-        /// Log
-        if (context == 0 && element == 0 && result == 0) {
-            NSLog(@"UIStringChangeInterceptor: %@ postedNotification: %@ - isDecodingNibFile: %d", object, notification, isDecodingNibFile);
-        } else {
-            NSLog(@"UIStringChangeInterceptor: %@ postedNotification: %@ (context: %@, element %@ return: %lld) - isDecodingNibFile: %d", object, notification, context, element, (int64_t)result, isDecodingNibFile);
-        }
-        
-        if (isDecodingNibFile) {
-            /// In this case our UINibDecoder code is handling string annotations, and we don't want to annotate ui elements here.
-        } else {
-            
-            /// Publish localization keys on the changed element:
-            ///     (aka `annotate` the elements)
-            NSAccessibilityAttributeName changedAttribute = [UIStringAnnotationHelper getAttributeForAccessibilityNotification:notification];
-            NSArray *records = [self extractBestElementsFromLocalizedStringRecordForObject:object withChangedAttribute:changedAttribute];
-            
-            if (records.count > 0) {
-                NSLog(@"UIStringChangeInterceptor: publishing keys: %@ on object: %@", records, object);
-            } else {
-                NSLog(@"UIStringChangeInterceptor: not publishing keys on object: %@ since queue is empty", object);
-            }
-        
-            for (NSDictionary *r in records) {
-                [NSLocalizedStringRecord unpackRecord:r callback:^(NSString * _Nonnull key, NSString * _Nonnull value, NSString * _Nonnull table, NSString * _Nonnull result) {
-                    
-                    NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:key translatedString:result developmentString:value translatedStringNibKey:nil mergedUIString:nil];
-                    [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:object];
-                }];
-                
-                
-            }
-        }
-        
-    }
-}
 
 + (NSArray <NSDictionary *>*)extractBestElementsFromLocalizedStringRecordForObject:(id<NSAccessibility>)object withChangedAttribute:(NSAccessibilityAttributeName)changedAttribute {
     
@@ -206,6 +96,471 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 
 @end
 
+#pragma mark - Idea: Swizzle setters
+
+/**
+ 
+ Placeholder setters from lldb:
+    (I found these by using `breakpoint set -n setPlaceholderString:` and `breakpoint set -n setPlaceholderAttributedString:`
+    and then seeing where lldb put the breakpoints in the Breakpoints Navigator.)
+ 
+ ```
+ Cells:
+ -[NSTextFieldCell setPlaceholderString:]
+ -[NSTextFieldCell setPlaceholderAttributedString:]
+ -[NSFormCell setPlaceholderString:]
+ -[NSFormCell setPlaceholderAttributedString:]
+ -[NSPathCell setPlaceholderString:]
+ -[NSPathCell setPlaceholderAttributedString:]
+ 
+ NSTextView:
+ -[NSTextView(NSPrivate) setPlaceholderString:]
+ -[NSTextView (NSPrivate) setPlaceholderAttributedString:]
+ 
+ Cell-backed views:
+ -[NSTextField setPlaceholderString:]
+ -[NSTextField setPlaceholderAttributedString:]
+ -[NSPathControl setPlaceholderString:]
+ -[NSPathControl setPlaceholderAttributedString:]
+ 
+ Private stuff for specific apps:
+ -[ABCollectionViewltem setPlaceholderString:]
+ -[NSSearchToolbarltem(NSSearchToolbarPrivateForNews) setPlaceholderString]
+ ```
+ 
+ ToolTip setters from lldb:
+    (Found these with `breakpoint set -n setPlaceholderString:` and `image lookup --regex --name ".*[Ss]et.*[Tt]ool[Tt]ip.*" -- AppKit`
+ 
+ ```
+
+ NSObject subclasses:
+ -[NSMenuItem setToolTip:]
+ -[NSStatusItem setToolTip:]
+ -[NSWindowTab setToolTip:]
+ -[NSTabBarItem setToolTip:]
+ -[NSTabViewItem setToolTip:]
+ -[NSToolbarItem setToolTip:] 
+ -[NSSegmentItem setToolTip:] x redundant due to `NSSegmentItemLabelCell`
+ 
+ NSView:
+ -[NSView setToolTip:]
+ 
+ NSView subclasses:
+ -[NSTableView setToolTip:]
+ -[NSTabButton setToolTip:]
+ 
+ Special names:
+
+ -[NSTableColumn setHeaderToolTip:]
+ -[NSSegmentedControl setToolTip:forSegment:]
+ -[NSSegmentedCell setToolTip:forSegment:]      /// Strange that there's a tooltip setter for a cell
+ -[NSSegmentItem setToolTipTag:]                /// This is probably not a string
+ 
+ Apple Internal stuff:
+ -[NSSuggestionItem setToolTip:]
+ 
+ Special names (Apple Internal stuff):
+ -[QLControlSegment setToolTip:]
+ -[NSRolloverButton setToolTipString:]
+ -[NSRolloverButton setAlternateToolTipString:]
+ -[NSToolTipPanel setToolTipString:]
+ 
+ Legacy stuff:
+ -[NSMatrix setToolTip:forCell:]
+ 
+ ```
+ 
+ */
+
+@implementation NSButton (MFUIStringChangeDetection)
+
+@end
+
+@implementation NSObject (MFUIStringChangeDetection)
+
+
++ (void)uiStringHasChangedFrom:(id)oldValue toValue:(id)newValue onObject:(id)object {
+    
+    BOOL isString = newValue == nil || [newValue isKindOfClass:[NSString class]] || [newValue isKindOfClass:[NSAttributedString class]];
+    
+    if (!isString) {
+        NSLog(@"UIStringChangeDetector: New value %@ is not a string", newValue);
+        return;
+    }
+    
+    oldValue = pureString(oldValue);
+    newValue = pureString(newValue);
+
+    if (MFIsLoadingNib() || MFSystemIsChangingUIStrings()) {
+        
+    } else {
+        
+        if (oldValue != newValue && ![oldValue isEqual:newValue]) {
+            NSLog(@"UIStringChangeDetector: Changed from \"%@\" -> \"%@\" (on %@)", oldValue, newValue, object);
+        }
+        
+    }
+}
+
++ (void)load {
+    swizzleMethods([NSObject class], true, @"AppKit", @"swizzled_", 
+                   @selector(swizzled_setToolTip:),
+//                   @selector(swizzled_setStringValue:), 
+//                   @selector(swizzled_setAttributedStringValue:),
+//                   @selector(swizzled_setObjectValue:),
+//                   @selector(swizzled_setPlaceholderString:),
+//                   @selector(swizzled_setPlaceholderAttributedString:),
+//                   @selector(swizzled_setTitle:),
+//                   @selector(swizzled_setAttributedTitle:),
+//                   @selector(swizzled_setAlternateTitle:),
+//                   @selector(swizzled_setAttributedAlternateTitle:),
+                   nil);
+}
+
+- (void)swizzled_setToolTip:(NSString *)newValue {
+    
+    subclassSwizzleBodyWrapper(self, _cmd, ^(IMP ogImpl, NSInteger depth) {
+        void (*originalImplementation)(id, SEL, NSString *) = (void *)ogImpl;
+        
+        if (depth == 0) {
+            
+            NSString *before = [(id)self toolTip];
+            originalImplementation(self, _cmd, newValue);
+            id after = [(id)self toolTip];
+            [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+            
+        } else {
+            originalImplementation(self, _cmd, newValue);
+        }
+        
+    });
+}
+- (void)swizzled_setStringValue:(NSString *)newValue {
+        [self swizzled_setStringValue:newValue];
+        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+}
+
+- (void)swizzled_setAttributedStringValue:(NSString *)newValue {
+        [self swizzled_setAttributedStringValue:newValue];
+        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+}
+- (void)swizzled_setObjectValue:(NSObject *)newValue {
+        [self swizzled_setObjectValue:newValue];
+        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+}
+- (void)swizzled_setPlaceholderString:(NSString *)newValue {
+        [self swizzled_setPlaceholderString:newValue];
+        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+}
+- (void)swizzled_setPlaceholderAttributedString:(NSAttributedString *)newValue {
+        [self swizzled_setPlaceholderAttributedString:newValue];
+        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+}
+- (void)swizzled_setTitle:(NSAttributedString *)newValue {
+        [self swizzled_setTitle:newValue];
+        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+}
+- (void)swizzled_setAttributedTitle:(NSAttributedString *)newValue {
+        [self swizzled_setAttributedTitle:newValue];
+        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+}
+- (void)swizzled_setAlternateTitle:(NSAttributedString *)newValue {
+        [self swizzled_setAlternateTitle:newValue];
+        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+}
+- (void)swizzled_setAttributedAlternateTitle:(NSAttributedString *)newValue {
+        [self swizzled_setAttributedAlternateTitle:newValue];
+        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+}
+
+
+@end
+
+@implementation NSSegmentedControl (MFUIStringChangeDetection)
+
++ (void)load {
+    swizzleMethods([self class], true, @"AppKit", @"swizzled_", 
+//                   @selector(swizzled_setToolTip:forSegment:),
+                   nil);
+}
+
+- (void)swizzled_setToolTip:(NSString *)newValue forSegment:(NSInteger)segment {
+    NSString *before = [self toolTipForSegment:segment];
+    [self swizzled_setToolTip:newValue forSegment:segment];
+    id after = [self toolTipForSegment:segment];
+    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+}
+
+@end
+
+@implementation NSTableColumn (MFUIStringChangeDetection)
+
++ (void)load {
+    swizzleMethods([self class], true, @"AppKit", @"swizzled_", 
+//                   @selector(swizzled_setHeaderToolTip:),
+                   nil);
+}
+
+- (void)swizzled_setHeaderToolTip:(NSString *)newValue {
+    NSString *before = [self headerToolTip];
+    [self swizzled_setHeaderToolTip:newValue];
+    id after = [self headerToolTip];
+    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+}
+
+@end
+
+@implementation NSTextView (MFUIStringChangeDetection)
+
++ (void)load {
+
+    
+    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
+//                   @selector(swizzled_didChangeText), 
+                   nil);
+}
+
+//- (void)swizzled_setPlaceholderString:(NSString *)newValue {
+//    NSString *before = [(id)self placeholderString];
+//    [self swizzled_setPlaceholderString:newValue];
+//    NSString *after = [(id)self placeholderString];
+//    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+//}
+//- (void)swizzled_setPlaceholderAttributedString:(NSAttributedString *)newValue {
+//    NSAttributedString *before = [(id)self placeholderAttributedString];
+//    [self swizzled_setPlaceholderAttributedString:newValue];
+//    NSAttributedString *after = [(id)self placeholderAttributedString];
+//    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+//}
+- (void)swizzled_didChangeText {
+    NSAttributedString *before = nil;
+    [self swizzled_didChangeText];
+    NSAttributedString *after = [self textStorage];
+    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+}
+
+@end
+
+@implementation NSSearchFieldCell (MFUIStringChangeDetection)
+
++ (void)load {
+    swizzleMethods([self class], false, nil, @"swizzled_", /// We really don't have to be editing subclasses here
+//                   @selector(swizzled_setObjectValue:), /// TEST - this should automaticlly be swizzled if we swizzle it on NSCell, but doesn't work currently
+                   nil);
+}
+
+//- (void)swizzled_setObjectValue:(id)newValue {
+//    NSString *before = [self rawContents];
+//    [self swizzled_setObjectValue:newValue];
+//    id after = [self rawContents];
+//    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+//}
+
+@end
+
+@implementation NSCell (MFUIStringChangeDetection)
+
++ (void)load {
+    
+    
+    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
+//                   @selector(swizzled_setObjectValue:),
+//                   @selector(swizzled_setAttributedStringValue:),
+                   nil);
+
+//    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
+//                   @selector(swizzled_setPlaceholderString:),
+//                   @selector(swizzled_setPlaceholderAttributedString:), 
+//                   nil);
+}
+
+//- (void)swizzled_setObjectValue:(id)newValue {
+//    NSString *before = [self rawContents];
+//    [self swizzled_setObjectValue:newValue];
+//    id after = [self rawContents];
+//    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+//}
+
+//- (void)swizzled_setAttributedStringValue:(NSAttributedString *)attributedStringValue {
+//    NSString *before = [self rawContents];
+//    [self swizzled_setAttributedStringValue:attributedStringValue];
+//    id after = [self rawContents];
+//    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+//}
+
+//- (void)swizzled_setPlaceholderString:(NSString *)placeholder {
+//    NSString *before = [(id)self placeholderString];
+//    [self swizzled_setPlaceholderString:placeholder];
+//    NSString *after = [(id)self placeholderString];
+//    if ((YES)) { /// When changing the placeholder on an NSTextField, apparently an NSTextView instance also changes its placeholder, so this is redundant
+//        [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+//    }
+//}
+//- (void)swizzled_setPlaceholderAttributedString:(NSAttributedString *)placeholder {
+//    NSAttributedString *before = [(id)self placeholderAttributedString];
+//    [self swizzled_setPlaceholderAttributedString:placeholder];
+//    NSAttributedString *after = [(id)self placeholderAttributedString];
+//    if ((YES)) { /// When changing the placeholder on an NSCell, apparently an NSTextView instance also changes its placeholder, so this is redundant
+//        [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+//    }
+//}
+
+@end
+
+
+
+#pragma mark - Idea: Swizzle `accessibilityPostNotification:`
+ 
+///
+/// This was a decent idea in principle, but the way that macOS sends the accessibility notifications seemed too buggy and unreliable.
+/// So we'll try swizzling setters instead.
+/// (Also the NSNotifications are only sent for changes of the main UIStrings anyways (AXTitleChanged and AXValueChanged). Therefore, tooltips, placeholders and more obscure localizable properties such as NSAccessibilityDescriptionAttribute don't have any change notifications anyways and therefore we would have to rely on swizzling setters for those anyways.)
+///
+/// Here are some problems I saw with the NSAccessibilty Notifications when testing them:
+/// - For NSWindowTitle and NSWindowSubtitle, 10 notifications are sent in a row.
+/// - For NSCheckbox, NSButton, NSTextView, NSMenuItem title/stringValue changes, the notifications don't seem to be sent at all. (I've definitely seen the NSMenuItem changes produce AXNotifications before but during the last test I ran they didn't)
+/// - For NSTextFieldCell the notification seems to be sent before the value actually changed. But for NSSearchFieldCell the notification is sent after the value is changed. The docs say the notifications should be sent after the value is changed.
+///
+
+
+/// Old notes from the top of the file
+
+/**
+ 
+ In this file we're trying to get a callback that fires whenever any UI Strings are changed throughout the app.
+ 
+ Explanation:
+ 
+    We found that AppKit seems to publish all UI Strings in the AXTitle or AXValue accessibility attributes, so if we can detect changes of those attributes, we can detect all UI String changes (as long as the UI Strings are handled by AppKit)! We tried to swizzle the getters and setters but that didn't work. However, AppKit conveniently sends NSAccessibilityValueChangedNotification and NSAccessibilityTitleChangedNotification whenever these values change, so if we can intercept those, we can detect UIString changes!
+    -  The best way we found to do this is to swizzle private `- accessibilityPostNotification:` methods which are found throughout AppKit. I'm not entirely sure this works in all cases but it seems to be pretty good from what I can tell.
+        
+    Approach 1:
+    The most robust and straightforward way of monitoring the AXTitle and AXValue change-notifications would be using the standard AXObserverAddNotification() API to receive the notifications after AppKit sends them.
+    However, these notificaitons are meant for Assistive Apps as a way to control an app, not for apps to introspect themselves (what we're trying to do) and I think the notifications don't contain a reference back to the underlying object but only to the accessibiltyElement that is representing the underlying object. Now what we're ultimately trying to do is to publish to the AXUI API, the localization keys for each AXUIElement that contains a localizable string - and for that we might not need a reference to the underlying NSObject represented by the AXUIElement at all. We could also probably somehow reconstruct the reference by recursively traversing the `[NSObject<NSAccessibility> accessibilityChildren]` until we somehow find and identify the child that is represented by the AXUIElement which we received a notification for, so I don't think this would really be an issue.
+    The other hypothetical issue I thought of is that, when we programmatically set a UIString on an NSObject right after the object is loaded, but before that object is added to the view hierarchy, then perhaps the AXTitle- and AXValue-changed-notifications won't be sent, because the NSObject isn't observed by the AXUI API, yet. I haven't tested this so I'm not sure it's an issue. But this hypothetical problem and the complicated nature of this approach has lead me to try another approach first:
+ 
+    Approach 2:
+    Instead of trying to observe the AXUI notifications that are being sent, we could instead try to intercept that code that sends the notifications. From playing around in LLDB, I found these functions which seem to be internally used by AppKit to send the notifications:
+        NSAccessibilityPostNotification
+        NSAccessibilityPostNotificationWithUserInfo
+        NSAccessibilityPostNotificationForObservedElementWithUserInfo
+    However, these are C functions which we cannot intercept as far as I know. Also I saw that NSCell doesn't seem to invoke these functions at all, if it finds that there are no AX observers trying to inspect the app.
+    However, what we found is that NSCell seem to be handling the text in all the basic macOS UI elements that we tested at the time of writing (NSTextField, NSButton, NSMenuItem) and when the UIString changes, it always Consistently seems to call `- accessibilityPostNotification:`! So by just intercepting that, we should be able to catch most UI String updates. Then we regexed around in the AppKit symbol table using LLDB and found all the swizzable methods (not pure C functions) containing the words 'accessibility' and 'post' or 'send'.
+ 
+ Methods:
+ 
+     Methods we might want to intercept
+     (To detect any UIString updates)
+     ([x] means we are intercepting, [-] means we're not intercepting, [?] means we might want to intercept this in the future)
+     
+     These are from accessibilityNotificationPostingSymbolsFromLLDB.txt
+     ```
+     [x] -[NSCell(NSCellAccessibility) accessibilityPostNotification:]
+     [x] -[NSText(NSTextAccessibilityPrivate) accessibilityPostNotification:]
+     [x] -[NSText(NSTextAccessibilityPrivate) accessibilityPostNotification:withNotificationElement:]
+     [x] -[NSControl(NSControlAccessibilityAdditions) accessibilityPostNotification:context:]
+     [x] -[NSWindow(NSWindowAccessibility) accessibilityPostNotification:]
+     [x] -[NSMenu postAccessibilityNotification:]
+     [?] -[NSMenu _performActionWithHighlightingForItemAtIndex:sendAccessibilityNotification:]
+     [x] -[NSSecureTextView(NSTextAccessibilityPrivate) accessibilityPostNotification:]
+     [?] -[NSSecureTextView(NSTextAccessibilityPrivate) _accessibilityPostValueChangeNotificationAfterDelay]
+     [?] -[NSWindow(NSRemoteWindowAccessibility) accessibilitySendDeferredNotifications]
+     [?] -[NSWindow(NSRemoteWindowAccessibility) accessibilityAddDeferredNotification:]
+     [?] -[NSObject(NSAccessibilityNotifications) accessibilitySupportsNotifications]
+     [?] -[NSObject(NSAccessibilityNotifications) accessibilityShouldSendNotification:]     NOTE: I've seen this be called when AXApplicationDeactivated maybe we should intercept this.
+     [?] -[NSCell(NSCellAccessibility) accessibilityShouldSendNotification:]
+     [?] -[NSView(NSViewAccessibility) accessibilityShouldSendNotification:]
+     
+     [-] NSAccessibilityPostNotification
+     [-] NSAccessibilityPostNotificationWithUserInfo
+     [-] NSAccessibilityPostNotificationForObservedElementWithUserInfo
+     [-] NSAccessibilityPostApplicationActivated
+     [-] _NSAccessibilityPostDragTrackingNotificationForObject
+     [-] _NSAccessibilityUnregisterUniqueIdForUIElementAndSendDestroyedNotification
+     [-] _NSAccessibilityRemoveAllObserversAndSendDestroyedNotification
+     ```
+ */
+
+#if FALSE
+
++ (void)onNotification:(NSAccessibilityNotificationName)notification postedBy:(id)object result:(void *)result {
+    [self onNotification:notification postedBy:object context:nil element:nil result:result];
+}
+
++ (void)onNotification:(NSAccessibilityNotificationName)notification postedBy:(id<NSAccessibility>)object context:(id)context element:(id)element result:(void *)result {
+    
+    /// TODO: Implement change-detection for tooltips and placeholders
+    
+    /// Validate
+    ///     I'm pretty sure the notification-posting-methods all return void, we're just catching the `result` to double check.
+    assert(true || result == 0); /// On AXMoved notifs I've seen the result be non-zero
+    assert([object isKindOfClass:[NSObject class]]);
+    assert(true || [object isAccessibilityElement]); /// This doesn't always hold true, not sure why
+    assert(context == 0 || [context isKindOfClass:[NSObject class]]);
+    assert(element == 0 || [element isKindOfClass:[NSObject class]]);
+    
+    /// Extract
+    
+    BOOL isNotUIStringChange =
+    [notification isEqual:NSAccessibilityResizedNotification]
+    || [notification isEqual:NSAccessibilityMovedNotification]
+    || [notification isEqual:NSAccessibilityWindowMovedNotification]
+    || [notification isEqual:NSAccessibilitySelectedChildrenMovedNotification]
+    || [notification isEqual:NSAccessibilityFocusedWindowChangedNotification]
+    || [notification isEqual:NSAccessibilityMainWindowChangedNotification]
+    || [notification isEqual:NSAccessibilitySelectedTextChangedNotification];
+    
+    BOOL isUIStringChange = [notification isEqual:NSAccessibilityTitleChangedNotification] || [notification isEqual:NSAccessibilityValueChangedNotification];
+    
+    if ((YES || isUIStringChange) && !isNotUIStringChange) {
+        
+        if (MFIsLoadingNib() || MFSystemIsChangingUIStrings()) {
+            /// Explanation:
+            /// - If we're loading an Nib file, the UINibDecoder code is handling string annotations, and we don't want to annotate ui elements here.
+            /// - If the system's menuItemValidation is changing uiStrings, we don't want to annotate that since the UIStrings don't come from our app.
+        } else {
+            
+            /// Get newUIString
+            NSAccessibilityAttributeName changedAttribute = [UIStringAnnotationHelper getAttributeForAccessibilityNotification:notification] ?: stringf(@"(unhandled: %@)", notification);
+            NSString *newUIString = [UIStringAnnotationHelper getUserFacingStringsFromAccessibilityElement:object]; //changedAttribute ? [UIStringAnnotationHelper getUserFacingStringsFromAccessibilityElement:object][changedAttribute] : NSNull.null;
+            
+            /// Log
+            NSString *logMessage = stringf(@"UIStringChangeInterceptor: %@ changedAttribute: %@ toNewValue: %@", object, changedAttribute, newUIString);
+            if (context != 0 || element != 0 || result != 0) {
+                logMessage = [logMessage stringByAppendingString:stringf(@" (context: %@, element %@ return: %lld)", context, element, (int64_t)result)];
+            }
+            if (MFIsLoadingNib()) {
+                logMessage = [@"(isDecodingNib) " stringByAppendingString:logMessage];
+            }
+            if (MFSystemIsChangingUIStrings()) {
+                logMessage = [@"(systemIsRenamingUIStrings) " stringByAppendingString:logMessage];
+            }
+            NSLog(@"%@", logMessage);
+            
+            /// Publish localization keys on the changed element:
+            ///     (aka `annotate` the elements)
+            NSArray *records = [self extractBestElementsFromLocalizedStringRecordForObject:object withChangedAttribute:changedAttribute];
+            
+//            if (records.count > 0) {
+//                NSLog(@"UIStringChangeInterceptor: publishing keys: %@ on object: %@", records, object);
+//            } else {
+//                NSLog(@"UIStringChangeInterceptor: not publishing keys on object: %@ since queue is empty", object);
+//            }
+        
+            for (NSDictionary *r in records) {
+                [NSLocalizedStringRecord unpackRecord:r callback:^(NSString * _Nonnull key, NSString * _Nonnull value, NSString * _Nonnull table, NSString * _Nonnull result) {
+                    
+                    NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:key translatedString:result developmentString:value translatedStringNibKey:nil mergedUIString:nil];
+                    [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:object];
+                }];
+                
+                
+            }
+        }
+        
+    }
+}
+
 ///
 /// Intercept NSCell
 ///
@@ -215,7 +570,7 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_accessibilityPostNotification:), nil);
+        swizzleMethods([self class], true, @"AppKit", @"swizzled_", @selector(swizzled_accessibilityPostNotification:), nil);
     });
 }
 
@@ -237,7 +592,7 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         
-        swizzleMethods([self class], true, @"swizzled_", 
+        swizzleMethods([self class], true, @"AppKit", @"swizzled_", 
                        @selector(swizzled_accessibilityPostNotification:withNotificationElement:),
                        @selector(swizzled_accessibilityPostNotification:), nil);
     });
@@ -268,7 +623,7 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_accessibilityPostNotification:context:), nil);
+        swizzleMethods([self class], true, @"AppKit", @"swizzled_", @selector(swizzled_accessibilityPostNotification:context:), nil);
     });
 }
 
@@ -283,12 +638,14 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 
 /// Intercept NSWindow
 
+/// Update: Seems like this is not necessary. The title of the window is stored in an nscell
+
 @implementation NSWindow (MFUIStringInterception)
 
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_accessibilityPostNotification:), nil);
+        swizzleMethods([self class], true, @"AppKit", @"swizzled_", @selector(swizzled_accessibilityPostNotification:), nil);
     });
 }
 
@@ -309,7 +666,7 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_postAccessibilityNotification:), nil);
+        swizzleMethods([self class], true, @"AppKit", @"swizzled_", @selector(swizzled_postAccessibilityNotification:), nil);
     });
 }
 
@@ -336,7 +693,7 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_accessibilityPostNotification:), nil);
+        swizzleMethods([self class], true, @"AppKit", @"swizzled_", @selector(swizzled_accessibilityPostNotification:), nil);
     });
 }
 
@@ -350,18 +707,13 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 
 @end
 
+#endif
+
 ///
 /// ------------------------------------------------------------------------------------
 ///
 
-/// Other weird Ideas:
-///
-
-/// 1. Swizzle `NSObject - alloc` for classes that a localized string might be stored on. Then use alloc to keep a list of all object instances, periodically check all instances' ivars for the localized string.
-///   -> Not sure if this would be unusably slow, also if we do this, we'd still have to do a lot of swizzling on NSString, MarkdownParser, etc, to retain metadata about localizationKeys when a string is copied or another string is created based on the old string. I don't know how to make this robust.
-/// 2. Swizzle retain on NSString to see when localized string is stored on an object (Doesn't work, see below)
-/// 3. Use KV-Observation
-///   -> I thought KV-Observation might catch stuff on subclasses that our swizzler missed, but now that we added the `includeSubclasses` feature to our swizzling function, I don't think there's any benefit to KV-Observation.
+#pragma mark - Idea: Trackable String
 
 #if FALSE
 
@@ -414,15 +766,9 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 
 #endif
 
-///
-/// ------------------------------------------------------------------------------------
-///
+#pragma mark - Idea: Swizzle accessibiliy setters
 
 #if FALSE
-
-///
-/// Old stuff
-///
 
 /// We tried to swizzle methods such as `setAccessibilityTitle:` but they are not consistently called when the title changes.
 ///
@@ -469,3 +815,14 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 @end
 
 #endif
+
+#pragma mark - Other weird ideas
+
+/// Other weird Ideas:
+///
+
+/// 1. Swizzle `NSObject - alloc` for classes that a localized string might be stored on. Then use alloc to keep a list of all object instances, periodically check all instances' ivars for the localized string.
+///   -> Not sure if this would be unusably slow, also if we do this, we'd still have to do a lot of swizzling on NSString, MarkdownParser, etc, to retain metadata about localizationKeys when a string is copied or another string is created based on the old string. I don't know how to make this robust.
+/// 2. Swizzle retain on NSString to see when localized string is stored on an object (Doesn't work, see below)
+/// 3. Use KV-Observation
+///   -> I thought KV-Observation might catch stuff on subclasses that our swizzler missed, but now that we added the `includeSubclasses` feature to our swizzling function, I don't think there's any benefit to KV-Observation.

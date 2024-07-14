@@ -11,6 +11,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface NSString (Additions)
 
+
+#define stringf(format, ...) \
+    [NSString stringWithFormat:format, __VA_ARGS__]
+
+- (NSAttributedString *)attributed;
 - (NSString *)stringByAddingIndent:(NSInteger)indent;
 - (NSString *)stringByPrependingWhitespace:(NSInteger)spaces;
 

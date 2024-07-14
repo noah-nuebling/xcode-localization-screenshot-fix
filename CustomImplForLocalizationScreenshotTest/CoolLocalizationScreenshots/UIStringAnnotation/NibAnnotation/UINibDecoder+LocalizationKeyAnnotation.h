@@ -11,8 +11,6 @@
 NS_ASSUME_NONNULL_BEGIN
 
 BOOL MFIsLoadingNib(void);
-NSInteger MFLoadNibDepth(void);
-
 @interface UINibDecoder (LocalizationKeyAnnotation)
 
 @end

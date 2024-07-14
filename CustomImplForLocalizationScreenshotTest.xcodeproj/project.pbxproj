@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4F1382E42C3FEDFF007E0C03 /* UINibDecoderDefinitions.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F1382E32C3FEDFF007E0C03 /* UINibDecoderDefinitions.m */; };
+		4F1382E42C3FEDFF007E0C03 /* UINibDecoderIntrospection.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F1382E32C3FEDFF007E0C03 /* UINibDecoderIntrospection.m */; };
 		4F53EBCB2C3AF1C800843320 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F53EBCA2C3AF1C800843320 /* AppDelegate.m */; };
 		4F53EBCD2C3AF1CA00843320 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4F53EBCC2C3AF1CA00843320 /* Assets.xcassets */; };
 		4F53EBD22C3AF1CA00843320 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F53EBD12C3AF1CA00843320 /* main.m */; };
@@ -22,6 +22,9 @@
 		4F5A284E2C3C563600F95211 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F5A284C2C3C49EF00F95211 /* AppKit.framework */; };
 		4F746D112C4073B40031DA27 /* UINibDecoder+LocalizationKeyAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F5A28182C3B4D3700F95211 /* UINibDecoder+LocalizationKeyAnnotation.m */; };
 		4F746D122C4074F60031DA27 /* UIStringAnnotationHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FB7E9E82C3E9CF900A36F3B /* UIStringAnnotationHelper.m */; };
+		4F8738102C43E348001F95DE /* SystemRenameTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F87380F2C43E348001F95DE /* SystemRenameTracker.m */; };
+		4F8738132C4414A6001F95DE /* AppKitIntrospection.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F8738122C4414A6001F95DE /* AppKitIntrospection.m */; };
+		4F87381D2C443669001F95DE /* toolTipSettersFromLLDB.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4F87381C2C443669001F95DE /* toolTipSettersFromLLDB.txt */; };
 		4F966AB22C414C3E003226B2 /* TreeNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F966AB12C414C3E003226B2 /* TreeNode.m */; };
 		4F966AB52C414DCE003226B2 /* NSString+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F966AB42C414DCE003226B2 /* NSString+Additions.m */; };
 		4F966AB82C415ECD003226B2 /* KVPair.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F966AB72C415ECD003226B2 /* KVPair.m */; };
@@ -49,7 +52,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		4F1382E32C3FEDFF007E0C03 /* UINibDecoderDefinitions.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UINibDecoderDefinitions.m; sourceTree = "<group>"; };
+		4F1382E32C3FEDFF007E0C03 /* UINibDecoderIntrospection.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UINibDecoderIntrospection.m; sourceTree = "<group>"; };
 		4F53EBC62C3AF1C800843320 /* CustomImplForLocalizationScreenshotTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CustomImplForLocalizationScreenshotTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F53EBC92C3AF1C800843320 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		4F53EBCA2C3AF1C800843320 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -93,7 +96,12 @@
 		4F5A28462C3C49A800F95211 /* AccessibilitySupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AccessibilitySupport.framework; path = ../../../../../../System/Library/PrivateFrameworks/AccessibilitySupport.framework; sourceTree = "<group>"; };
 		4F5A28492C3C49AB00F95211 /* AccessibilityUtilities.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AccessibilityUtilities.framework; path = ../../../../../../System/Library/PrivateFrameworks/AccessibilityUtilities.framework; sourceTree = "<group>"; };
 		4F5A284C2C3C49EF00F95211 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		4F7585352C3F1870006EE36A /* UINibDecoderDefinitions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UINibDecoderDefinitions.h; sourceTree = "<group>"; };
+		4F7585352C3F1870006EE36A /* UINibDecoderIntrospection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UINibDecoderIntrospection.h; sourceTree = "<group>"; };
+		4F87380E2C43E348001F95DE /* SystemRenameTracker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SystemRenameTracker.h; sourceTree = "<group>"; };
+		4F87380F2C43E348001F95DE /* SystemRenameTracker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SystemRenameTracker.m; sourceTree = "<group>"; };
+		4F8738112C4414A6001F95DE /* AppKitIntrospection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppKitIntrospection.h; sourceTree = "<group>"; };
+		4F8738122C4414A6001F95DE /* AppKitIntrospection.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppKitIntrospection.m; sourceTree = "<group>"; };
+		4F87381C2C443669001F95DE /* toolTipSettersFromLLDB.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = toolTipSettersFromLLDB.txt; sourceTree = "<group>"; };
 		4F966AB02C414C3E003226B2 /* TreeNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TreeNode.h; sourceTree = "<group>"; };
 		4F966AB12C414C3E003226B2 /* TreeNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TreeNode.m; sourceTree = "<group>"; };
 		4F966AB32C414DCE003226B2 /* NSString+Additions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSString+Additions.h"; sourceTree = "<group>"; };
@@ -166,9 +174,9 @@
 			children = (
 				4F53EBC92C3AF1C800843320 /* AppDelegate.h */,
 				4F53EBCA2C3AF1C800843320 /* AppDelegate.m */,
+				4F58C23F2C3AFFBB0047F651 /* MainMenu.xib */,
 				4F53EBF82C3AF64C00843320 /* Localizable.xcstrings */,
 				4F5A280A2C3B3FC400F95211 /* CoolLocalizationScreenshots */,
-				4F58C23F2C3AFFBB0047F651 /* MainMenu.xib */,
 				4F53EBF62C3AF4A900843320 /* SupportFiles */,
 			);
 			path = CustomImplForLocalizationScreenshotTest;
@@ -254,6 +262,7 @@
 			isa = PBXGroup;
 			children = (
 				4FB7E9E22C3DD61800A36F3B /* accessibilityNotificationPostingSymbolsFromLLDB.txt */,
+				4F87381C2C443669001F95DE /* toolTipSettersFromLLDB.txt */,
 				4FE839732C3D8C8800AFCA6D /* UIStringChangeDetector.h */,
 				4FB7E9EC2C3EACD200A36F3B /* UIStringChangeDetector.m */,
 				4FE839702C3D7C3100AFCA6D /* NSLocalizedStringRecord.h */,
@@ -285,6 +294,8 @@
 			children = (
 				4FB7E9E72C3E9CF900A36F3B /* UIStringAnnotationHelper.h */,
 				4FB7E9E82C3E9CF900A36F3B /* UIStringAnnotationHelper.m */,
+				4F87380E2C43E348001F95DE /* SystemRenameTracker.h */,
+				4F87380F2C43E348001F95DE /* SystemRenameTracker.m */,
 				4F966AB02C414C3E003226B2 /* TreeNode.h */,
 				4F966AB12C414C3E003226B2 /* TreeNode.m */,
 				4F966AB62C415ECD003226B2 /* KVPair.h */,
@@ -306,8 +317,10 @@
 			children = (
 				4F5A28202C3BDB5600F95211 /* UIFoundation-Structs.h */,
 				4F5A281D2C3BDA2C00F95211 /* UINibDecoder.h */,
-				4F7585352C3F1870006EE36A /* UINibDecoderDefinitions.h */,
-				4F1382E32C3FEDFF007E0C03 /* UINibDecoderDefinitions.m */,
+				4F7585352C3F1870006EE36A /* UINibDecoderIntrospection.h */,
+				4F1382E32C3FEDFF007E0C03 /* UINibDecoderIntrospection.m */,
+				4F8738112C4414A6001F95DE /* AppKitIntrospection.h */,
+				4F8738122C4414A6001F95DE /* AppKitIntrospection.m */,
 			);
 			path = External;
 			sourceTree = "<group>";
@@ -433,6 +446,7 @@
 				4F53EBCD2C3AF1CA00843320 /* Assets.xcassets in Resources */,
 				4F53EBF92C3AF64C00843320 /* Localizable.xcstrings in Resources */,
 				4F58C2402C3AFFBB0047F651 /* MainMenu.xib in Resources */,
+				4F87381D2C443669001F95DE /* toolTipSettersFromLLDB.txt in Resources */,
 				4FB7E9E32C3DD61800A36F3B /* accessibilityNotificationPostingSymbolsFromLLDB.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -463,11 +477,13 @@
 				4F53EBD22C3AF1CA00843320 /* main.m in Sources */,
 				4F53EBCB2C3AF1C800843320 /* AppDelegate.m in Sources */,
 				4F966AB22C414C3E003226B2 /* TreeNode.m in Sources */,
-				4F1382E42C3FEDFF007E0C03 /* UINibDecoderDefinitions.m in Sources */,
+				4F1382E42C3FEDFF007E0C03 /* UINibDecoderIntrospection.m in Sources */,
 				4F5A280D2C3B401900F95211 /* NSIBObjectData+LocalizedStringKey.m in Sources */,
 				4F966AB52C414DCE003226B2 /* NSString+Additions.m in Sources */,
 				4F966AB82C415ECD003226B2 /* KVPair.m in Sources */,
 				4F746D122C4074F60031DA27 /* UIStringAnnotationHelper.m in Sources */,
+				4F8738132C4414A6001F95DE /* AppKitIntrospection.m in Sources */,
+				4F8738102C43E348001F95DE /* SystemRenameTracker.m in Sources */,
 				4FB7E9ED2C3EACD200A36F3B /* UIStringChangeDetector.m in Sources */,
 				4F5A281C2C3B596800F95211 /* Utility.m in Sources */,
 				4F5A28132C3B443D00F95211 /* Swizzle.m in Sources */,

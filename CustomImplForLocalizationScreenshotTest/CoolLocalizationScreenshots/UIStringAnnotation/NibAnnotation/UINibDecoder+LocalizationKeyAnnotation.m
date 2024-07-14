@@ -12,12 +12,23 @@
 #import "AppKit/NSMenu.h"
 #import "NSLocalizedStringRecord.h"
 #import "UIStringAnnotationHelper.h"
-#import "UINibDecoderDefinitions.h"
+#import "UINibDecoderIntrospection.h"
 #import "Utility.h"
 #import "TreeNode.h"
 #import "KVPair.h"
 #import "NSString+Additions.h"
+#import "SystemRenameTracker.h"
+#import "AppKitIntrospection.h"
 
+#pragma mark - Overview
+
+///
+/// Overview:
+///
+/// This code intercepts loading of nib files and and annotates the loaded uiElements with the localizationKeys for the uiStrings that appear in the respective uiElement.
+/// These annotations are published through the accessibility API, so you can see them with Accessibility Inspector or with XCUI tests.
+///
+///
 
 #pragma mark - Track depth
 
@@ -52,9 +63,6 @@
 
 #define MFLoadNibDepthKey @"MFLoadNibDepth"
 
-BOOL MFIsLoadingNib(void) {
-    return MFLoadNibDepth() > 0;
-}
 NSInteger MFLoadNibDepth(void) {
     return [NSThread.currentThread.threadDictionary[MFLoadNibDepthKey] integerValue];
 }
@@ -66,6 +74,10 @@ static void MFLoadNibDepthDecrement(void) {
     NSInteger d = MFLoadNibDepth() - 1;
     assert(d >= 0);
     NSThread.currentThread.threadDictionary[MFLoadNibDepthKey] = @(d);
+}
+
+BOOL MFIsLoadingNib(void) {
+    return MFLoadNibDepth() > 0;
 }
 
 #define MFUINibDecoderDepthKey @"MFUINibDecoderDepth"
@@ -83,7 +95,6 @@ static void MFUINibDecoderDepthDecrement(void) {
     NSThread.currentThread.threadDictionary[MFUINibDecoderDepthKey] = @(d);
 }
 
-
 #pragma mark - DecoderRecord storage
 
 /// Notes:
@@ -99,14 +110,10 @@ static NSMutableArray<NSMutableDictionary *>* uiNibDecoderRecord(void) {
 /// Top level objects
 static NSArray *_uiNibDecoderRecordTopLevelObjects = nil;                   /// These are returned by `NSNBundle loadNib...:` after the UINibDecoder finishes.
 
-/// Renamed menuItems
-static NSMutableDictionary *_menuItemsRenamedBySystem = nil;
-
 /// Delete storage
 static void deleteUINibDecoderRecord(void) {
     _uiNibDecoderRecordStorage = nil;
     _uiNibDecoderRecordTopLevelObjects = nil;
-    _menuItemsRenamedBySystem = nil; /// We don't really need to delete this, I think?
 }
 
 #pragma mark - Forward declares
@@ -126,11 +133,11 @@ static void deleteUINibDecoderRecord(void) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         
-        swizzleMethods([self class], true, @"swizzled_",
+        swizzleMethods([self class], false, nil /*@"Foundation"*/, @"swizzled_",
                        @selector(swizzled_loadNibNamed:owner:topLevelObjects:),
                        @selector(swizzled_loadNibFile:externalNameTable:withZone:), nil);
         
-        swizzleMethods(object_getClass([NSBundle class]), true, @"swizzled_",
+        swizzleMethods(object_getClass([NSBundle class]), false, nil /*@"Foundation"*/, @"swizzled_",
                        @selector(swizzled_loadNibNamed:owner:),
                        @selector(swizzled_loadNibFile:externalNameTable:withZone:), nil);
     });
@@ -228,7 +235,7 @@ static void postDive(NSString *nibName, NSString *fileName) {
     
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_decodeObjectForKey:), nil);
+        swizzleMethods([self class], false, nil /*@"UIFoundation"*/, @"swizzled_", @selector(swizzled_decodeObjectForKey:), nil);
     });
 }
 
@@ -256,38 +263,6 @@ static void postDive(NSString *nibName, NSString *fileName) {
     /// Return
     return result;
 }
-@end
-
-#pragma mark - NSApplication swizzling
-
-///
-/// At the time of writing we're only doing this to keep track of `_menuItemsRenamedBySystem`
-///
-
-@implementation NSApplication (MFNibAnnotation)
-
-+ (void)load {
-    swizzleMethods([self class], true, @"swizzled_", @selector(swizzled_validateMenuItem:), nil);
-}
-
-- (BOOL)swizzled_validateMenuItem:(NSMenuItem *)menuItem {
-    
-    NSString *beforeTitle = [menuItem title];
-    BOOL result = [self swizzled_validateMenuItem:menuItem];
-    NSString *afterTitle = [menuItem title];
-    
-    if (![beforeTitle isEqual:afterTitle]) {
-        if (_menuItemsRenamedBySystem == nil) _menuItemsRenamedBySystem = [NSMutableDictionary dictionary];
-        afterTitle = [NSString stringWithCString:[afterTitle cStringUsingEncoding:NSUTF8StringEncoding] encoding:NSUTF8StringEncoding]; /// afterTitle is a weird `_NSBPlistMappedString`, this turns it into a normal NSString
-        _menuItemsRenamedBySystem[beforeTitle] = @{
-            @"newTitle": afterTitle,
-            @"menuItem": menuItem,
-        };
-    }
-    
-    return result;
-}
-
 @end
 
 
@@ -662,6 +637,36 @@ static void postDive(NSString *nibName, NSString *fileName) {
                     break;
                 }
                 
+                /// Special case: NSTabViewItems
+                
+                if ([relatedNode.representedObject.key isEqual:@"NSTabViewItems"]) {
+                    
+                    NSTabViewItem *matchingItem = nil;
+                    for (NSTabViewItem *item in relatedNode.representedObject.value) {
+                        if ([item.label isEqual:uiString] || [item.toolTip isEqual:uiString]) {
+                            matchingItem = item;
+                            break;
+                        }
+                    }
+                    assert(matchingItem != nil);
+                    
+                    /// Attach annotation to tabView
+                    ///     Each single tabViewButton is selectable in the Accessibility Inspector. It would be ideal to set our annotation to that.
+                    ///     But I can't find the corresponding elements in the view hierarchy or the accessibility hierarchy.
+                    ///     So we just assign the annotation to the tabView.
+                    ///     We `forceValidation_` since the `matchingItem` code already serves as validation that the uiString occurs in the tabView.
+                    NSTabView *tabView = matchingItem.tabView;
+                    NSAccessibilityElement *annotation =
+                    [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+                    [UIStringAnnotationHelper forceValidation_addAnnotations:@[annotation] toAccessibilityElement:tabView];
+                    
+                    /// Flag
+                    validation_lastLocalizedStringWasNotUsed = NO;
+                    /// Stop iterating relatedNodes
+                    break;
+                    
+                }
+                
                 /// Special case: NSMenu & NSMenuItem
                 
                 /// Check isMenu
@@ -674,7 +679,7 @@ static void postDive(NSString *nibName, NSString *fileName) {
                     ///     -> If we find an `NSMenu` or an array with key `NSMenuItems` then the `uiString`
                     ///         seems to belong to one of the NSMenuItems inside the object we found.
                     ///         (Or the `uiString` is the title of the `NSMenu` itself.)
-
+                    
                     /// Get itemArray
                     NSArray<NSMenuItem *> *items = nil;
                     if (isNSMenu) {
@@ -693,7 +698,7 @@ static void postDive(NSString *nibName, NSString *fileName) {
                     
                     /// Fall back: System renames
                     if (matchingItem == nil) {
-                        NSDictionary *rename = _menuItemsRenamedBySystem[uiString];
+                        NSDictionary *rename = MFMenuItemsRenamedBySystem()[uiString];
                         if (rename != nil) {
                             matchingItem = rename[@"menuItem"];
                         }

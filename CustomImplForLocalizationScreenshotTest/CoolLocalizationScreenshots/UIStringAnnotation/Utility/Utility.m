@@ -8,9 +8,29 @@
 #import "Utility.h"
 @import ObjectiveC.runtime;
 @import AppKit;
+#import "NSString+Additions.h"
 
 
 @implementation Utility
+
+NSString *pureString(id value) {
+    
+    /// Pass in an NSString or an NSAttributedString and get a simple NSString
+    
+    NSString *result = nil;
+    
+    if ([value isKindOfClass:[NSString class]]) {
+        result = value;
+    } else if ([value isKindOfClass:[NSAttributedString class]]) {
+        result = [(NSAttributedString *)value string];
+    } else if (value == nil) {
+        result = nil;
+    } else {
+        assert(false);
+    }
+    
+    return result;
+}
 
 NSString *typeNameFromEncoding(const char *typeEncoding) { /// Credit ChatGPT & Claude
     

@@ -9,6 +9,10 @@
 
 @implementation NSString (Additions)
 
+- (NSAttributedString *)attributed {
+    return [[NSAttributedString alloc] initWithString:self];
+}
+
 - (NSString *)stringByAddingIndent:(NSInteger)indent {
     
     NSArray *lines = [self componentsSeparatedByString:@"\n"];

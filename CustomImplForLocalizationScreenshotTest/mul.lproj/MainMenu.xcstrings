@@ -37,6 +37,30 @@
         }
       }
     },
+    "1u7-k0-3n6.headerCell.title" : {
+      "comment" : "Class = \"NSTableColumn\"; headerCell.title = \"<IB title for codeOutlineColumnOne>\"; ObjectID = \"1u7-k0-3n6\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB title for codeOutlineColumnOne>"
+          }
+        }
+      }
+    },
+    "1u7-k0-3n6.headerToolTip" : {
+      "comment" : "Class = \"NSTableColumn\"; headerToolTip = \"<IB tooltip for codeOutlineColumnOne>\"; ObjectID = \"1u7-k0-3n6\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for codeOutlineColumnOne>"
+          }
+        }
+      }
+    },
     "1UK-8n-QPP.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Customize Toolbar…\"; ObjectID = \"1UK-8n-QPP\";",
       "extractionState" : "extracted_with_value",
@@ -229,20 +253,56 @@
         }
       }
     },
+    "5kV-Vb-QxS.ibExternalAccessibilityDescription" : {
+      "comment" : "Class = \"NSMenuItem\"; ibExternalAccessibilityDescription = \"<IB ax-description for aboutMenuItem>\"; ObjectID = \"5kV-Vb-QxS\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB ax-description for aboutMenuItem>"
+          }
+        }
+      }
+    },
+    "5kV-Vb-QxS.ibExternalAccessibilityHelp" : {
+      "comment" : "Class = \"NSMenuItem\"; ibExternalAccessibilityHelp = \"<IB ax-help for aboutMenuItem>\"; ObjectID = \"5kV-Vb-QxS\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB ax-help for aboutMenuItem>"
+          }
+        }
+      }
+    },
+    "5kV-Vb-QxS.ibShadowedToolTip" : {
+      "comment" : "Class = \"NSMenuItem\"; ibShadowedToolTip = \"<IB tooltip for aboutMenuItem>\"; ObjectID = \"5kV-Vb-QxS\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for aboutMenuItem>"
+          }
+        }
+      }
+    },
     "5kV-Vb-QxS.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"About CustomImplForLocalizationScreenshotTest\"; ObjectID = \"5kV-Vb-QxS\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"<IB title for aboutMenuItem>\"; ObjectID = \"5kV-Vb-QxS\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "About CustomImplForLocalizationScreenshotTest"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "About CustomImplForLocalizationScreenshotTest"
+            "value" : "<IB title for aboutMenuItem>"
           }
         }
       }
@@ -393,6 +453,18 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Tighten"
+          }
+        }
+      }
+    },
+    "71H-1C-FVN.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"<IB title for codeOutlineTextCellOne>\"; ObjectID = \"71H-1C-FVN\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB title for codeOutlineTextCellOne>"
           }
         }
       }
@@ -584,19 +656,19 @@
       }
     },
     "BOF-NM-1cW.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"Preferences…\"; ObjectID = \"BOF-NM-1cW\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"<IB attributedTitle for preferencesMenuItem>\"; ObjectID = \"BOF-NM-1cW\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Preferences…"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Preferences…"
+            "value" : "<IB attributedTitle for preferencesMenuItem>"
           }
         }
       }
@@ -733,6 +805,18 @@
         }
       }
     },
+    "D6a-G7-Cpr.label" : {
+      "comment" : "Class = \"NSTabViewItem\"; label = \"<IB label for codeTabViewItemOne>\"; ObjectID = \"D6a-G7-Cpr\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB label for codeTabViewItemOne>"
+          }
+        }
+      }
+    },
     "d9c-me-L2H.title" : {
       "comment" : "Class = \"NSMenu\"; title = \"Text\"; ObjectID = \"d9c-me-L2H\";",
       "extractionState" : "extracted_with_value",
@@ -789,6 +873,18 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "<IB title of codeSearchField>"
+          }
+        }
+      }
+    },
+    "da2-Pt-Olh.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"<IB title for codeOutlineCellTwo>\"; ObjectID = \"da2-Pt-Olh\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB title for codeOutlineCellTwo>"
           }
         }
       }
@@ -1075,6 +1171,18 @@
         }
       }
     },
+    "GJv-Tu-T0c.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"<IB title for codeOutlineCellOne>\"; ObjectID = \"GJv-Tu-T0c\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB title for codeOutlineCellOne>"
+          }
+        }
+      }
+    },
     "GUa-eO-cwY.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Use Default\"; ObjectID = \"GUa-eO-cwY\";",
       "extractionState" : "extracted_with_value",
@@ -1093,6 +1201,18 @@
         }
       }
     },
+    "gUs-73-W4A.ibShadowedToolTip" : {
+      "comment" : "Class = \"NSTextField\"; ibShadowedToolTip = \"<IB tooltip for codeOutlineCellTwo>\"; ObjectID = \"gUs-73-W4A\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for codeOutlineCellTwo>"
+          }
+        }
+      }
+    },
     "gVA-U4-sdL.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Paste\"; ObjectID = \"gVA-U4-sdL\";",
       "extractionState" : "extracted_with_value",
@@ -1107,6 +1227,78 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Paste"
+          }
+        }
+      }
+    },
+    "gWg-rL-Icg.ibShadowedLabels[0]" : {
+      "comment" : "Class = \"NSSegmentedCell\"; gWg-rL-Icg.ibShadowedLabels[0] = \"<IB label for codeSegmentOne>\"; ObjectID = \"gWg-rL-Icg\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB label for codeSegmentOne>"
+          }
+        }
+      }
+    },
+    "gWg-rL-Icg.ibShadowedLabels[1]" : {
+      "comment" : "Class = \"NSSegmentedCell\"; gWg-rL-Icg.ibShadowedLabels[1] = \"<IB label for codeSegmentTwo>\"; ObjectID = \"gWg-rL-Icg\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB label for codeSegmentTwo>"
+          }
+        }
+      }
+    },
+    "gWg-rL-Icg.ibShadowedLabels[2]" : {
+      "comment" : "Class = \"NSSegmentedCell\"; gWg-rL-Icg.ibShadowedLabels[2] = \"<IB label for codSegmentThree>\"; ObjectID = \"gWg-rL-Icg\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB label for codSegmentThree>"
+          }
+        }
+      }
+    },
+    "gWg-rL-Icg.ibShadowedToolTips[0]" : {
+      "comment" : "Class = \"NSSegmentedCell\"; gWg-rL-Icg.ibShadowedToolTips[0] = \"<IB tooltip for codeSegmentOne>\"; ObjectID = \"gWg-rL-Icg\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for codeSegmentOne>"
+          }
+        }
+      }
+    },
+    "gWg-rL-Icg.ibShadowedToolTips[1]" : {
+      "comment" : "Class = \"NSSegmentedCell\"; gWg-rL-Icg.ibShadowedToolTips[1] = \"<IB tooltip for codeSegmentTwo>\"; ObjectID = \"gWg-rL-Icg\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for codeSegmentTwo>"
+          }
+        }
+      }
+    },
+    "gWg-rL-Icg.ibShadowedToolTips[2]" : {
+      "comment" : "Class = \"NSSegmentedCell\"; gWg-rL-Icg.ibShadowedToolTips[2] = \"<IB tooltip for codSegmentThree>\"; ObjectID = \"gWg-rL-Icg\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for codSegmentThree>"
           }
         }
       }
@@ -1202,13 +1394,13 @@
       }
     },
     "Hsa-1a-MWA.ibShadowedToolTip" : {
-      "comment" : "Class = \"NSScrollView\"; ibShadowedToolTip = \"<IB tooltip for codeTextFieldScrollView>\"; ObjectID = \"Hsa-1a-MWA\";",
+      "comment" : "Class = \"NSScrollView\"; ibShadowedToolTip = \"<IB tooltip for codeTextScrollView>\"; ObjectID = \"Hsa-1a-MWA\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "<IB tooltip for codeTextFieldScrollView>"
+            "value" : "<IB tooltip for codeTextScrollView>"
           }
         }
       }
@@ -1418,13 +1610,13 @@
       }
     },
     "jCo-IJ-zbH.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"Title for codeMenuItemTwo\"; ObjectID = \"jCo-IJ-zbH\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"<IB title for codeMenuItemTwo>\"; ObjectID = \"jCo-IJ-zbH\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Title for codeMenuItemTwo"
+            "value" : "<IB title for codeMenuItemTwo>"
           }
         }
       }
@@ -1561,6 +1753,18 @@
         }
       }
     },
+    "lDc-aU-ytG.label" : {
+      "comment" : "Class = \"NSTabViewItem\"; label = \"<IB label for codeTabViewItemTwo>\"; ObjectID = \"lDc-aU-ytG\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB label for codeTabViewItemTwo>"
+          }
+        }
+      }
+    },
     "LE2-aR-0XJ.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Bring All to Front\"; ObjectID = \"LE2-aR-0XJ\";",
       "extractionState" : "extracted_with_value",
@@ -1693,6 +1897,18 @@
         }
       }
     },
+    "Nkc-dN-yhM.ibShadowedToolTip" : {
+      "comment" : "Class = \"NSTableHeaderView\"; ibShadowedToolTip = \"<IB title for codeOutlineHeader>\"; ObjectID = \"Nkc-dN-yhM\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB title for codeOutlineHeader>"
+          }
+        }
+      }
+    },
     "NMo-om-nkz.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Services\"; ObjectID = \"NMo-om-nkz\";",
       "extractionState" : "extracted_with_value",
@@ -1813,6 +2029,18 @@
         }
       }
     },
+    "ohN-fY-zbs.ibShadowedToolTip" : {
+      "comment" : "Class = \"NSTabView\"; ibShadowedToolTip = \"<IB tooltip for codeTabView>\"; ObjectID = \"ohN-fY-zbs\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for codeTabView>"
+          }
+        }
+      }
+    },
     "Olw-nP-bQN.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Hide CustomImplForLocalizationScreenshotTest\"; ObjectID = \"Olw-nP-bQN\";",
       "extractionState" : "extracted_with_value",
@@ -1827,6 +2055,30 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Hide CustomImplForLocalizationScreenshotTest"
+          }
+        }
+      }
+    },
+    "Omh-3v-jbZ.headerCell.title" : {
+      "comment" : "Class = \"NSTableColumn\"; headerCell.title = \"<IB title for codeOutlineColumnTwo>\"; ObjectID = \"Omh-3v-jbZ\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB title for codeOutlineColumnTwo>"
+          }
+        }
+      }
+    },
+    "Omh-3v-jbZ.headerToolTip" : {
+      "comment" : "Class = \"NSTableColumn\"; headerToolTip = \"<IB tooltip for codeOutlineColumnTwo>\"; ObjectID = \"Omh-3v-jbZ\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for codeOutlineColumnTwo>"
           }
         }
       }
@@ -2007,6 +2259,18 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Find Next"
+          }
+        }
+      }
+    },
+    "QG7-gp-EhQ.ibShadowedToolTip" : {
+      "comment" : "Class = \"NSOutlineView\"; ibShadowedToolTip = \"<IB tooltip for codeOutlineView>\"; ObjectID = \"QG7-gp-EhQ\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for codeOutlineView>"
           }
         }
       }
@@ -2245,6 +2509,18 @@
         }
       }
     },
+    "rym-D9-hym.ibShadowedToolTip" : {
+      "comment" : "Class = \"NSTextField\"; ibShadowedToolTip = \"<IB tooltip for codeOutlineCellOne>\"; ObjectID = \"rym-D9-hym\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for codeOutlineCellOne>"
+          }
+        }
+      }
+    },
     "S0p-oC-mLd.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Jump to Selection\"; ObjectID = \"S0p-oC-mLd\";",
       "extractionState" : "extracted_with_value",
@@ -2318,25 +2594,25 @@
       }
     },
     "suu-N2-pHo.ibExternalAccessibilityHelp" : {
-      "comment" : "Class = \"NSTextView\"; ibExternalAccessibilityHelp = \"<IB help for codeTextField>\"; ObjectID = \"suu-N2-pHo\";",
+      "comment" : "Class = \"NSTextView\"; ibExternalAccessibilityHelp = \"<IB help for codeTextView>\"; ObjectID = \"suu-N2-pHo\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "<IB help for codeTextField>"
+            "value" : "<IB help for codeTextView>"
           }
         }
       }
     },
     "suu-N2-pHo.ibShadowedToolTip" : {
-      "comment" : "Class = \"NSTextView\"; ibShadowedToolTip = \"<IB tooltip for codeTextField>\"; ObjectID = \"suu-N2-pHo\";",
+      "comment" : "Class = \"NSTextView\"; ibShadowedToolTip = \"<IB tooltip for codeTextView>\"; ObjectID = \"suu-N2-pHo\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "<IB tooltip for codeTextField>"
+            "value" : "<IB tooltip for codeTextView>"
           }
         }
       }
@@ -2677,6 +2953,18 @@
         }
       }
     },
+    "Vvj-FJ-wY9.ibShadowedToolTip" : {
+      "comment" : "Class = \"NSSegmentedControl\"; ibShadowedToolTip = \"<IB tooltip for codeSegmentedControl>\"; ObjectID = \"Vvj-FJ-wY9\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB tooltip for codeSegmentedControl>"
+          }
+        }
+      }
+    },
     "w0m-vy-SC9.title" : {
       "comment" : "Class = \"NSMenu\"; title = \"Ligatures\"; ObjectID = \"w0m-vy-SC9\";",
       "extractionState" : "extracted_with_value",
@@ -2821,6 +3109,18 @@
         }
       }
     },
+    "X6V-1R-orX.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"<IB title for codeOutlineTextCellTwo>\"; ObjectID = \"X6V-1R-orX\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB title for codeOutlineTextCellTwo>"
+          }
+        }
+      }
+    },
     "xQD-1f-W4t.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Use All\"; ObjectID = \"xQD-1f-W4t\";",
       "extractionState" : "extracted_with_value",
@@ -2943,6 +3243,30 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Show Substitutions"
+          }
+        }
+      }
+    },
+    "z9V-dK-gVX.ibExternalAccessibilityDescription" : {
+      "comment" : "Class = \"NSMenuItem\"; ibExternalAccessibilityDescription = \"<IB ax-description for codeMenuItemOne>\"; ObjectID = \"z9V-dK-gVX\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB ax-description for codeMenuItemOne>"
+          }
+        }
+      }
+    },
+    "z9V-dK-gVX.ibExternalAccessibilityHelp" : {
+      "comment" : "Class = \"NSMenuItem\"; ibExternalAccessibilityHelp = \"<IB ax-help for codeMenuItemOne>\"; ObjectID = \"z9V-dK-gVX\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "<IB ax-help for codeMenuItemOne>"
           }
         }
       }
