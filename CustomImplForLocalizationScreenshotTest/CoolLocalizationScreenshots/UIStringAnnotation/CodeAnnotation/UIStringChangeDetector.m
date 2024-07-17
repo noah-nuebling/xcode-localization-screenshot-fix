@@ -203,85 +203,57 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 }
 
 + (void)load {
-    swizzleMethods([NSObject class], true, @"AppKit", @"swizzled_", 
-                   @selector(swizzled_setToolTip:),
-//                   @selector(swizzled_setStringValue:), 
-//                   @selector(swizzled_setAttributedStringValue:),
-//                   @selector(swizzled_setObjectValue:),
-//                   @selector(swizzled_setPlaceholderString:),
-//                   @selector(swizzled_setPlaceholderAttributedString:),
-//                   @selector(swizzled_setTitle:),
-//                   @selector(swizzled_setAttributedTitle:),
-//                   @selector(swizzled_setAlternateTitle:),
-//                   @selector(swizzled_setAttributedAlternateTitle:),
-                   nil);
-}
-
-- (void)swizzled_setToolTip:(NSString *)newValue {
     
-    subclassSwizzleBodyWrapper(self, _cmd, ^(IMP ogImpl, NSInteger depth) {
-        void (*originalImplementation)(id, SEL, NSString *) = (void *)ogImpl;
-        
-        if (depth == 0) {
-            
-            NSString *before = [(id)self toolTip];
-            originalImplementation(self, _cmd, newValue);
-            id after = [(id)self toolTip];
-            [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
-            
-        } else {
-            originalImplementation(self, _cmd, newValue);
-        }
-        
-    });
-}
-- (void)swizzled_setStringValue:(NSString *)newValue {
-        [self swizzled_setStringValue:newValue];
+    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setToolTip:), MakeInterceptorFactory(void, (, NSString *newValue), {
+        OGImpl((newValue));
         [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
-}
-
-- (void)swizzled_setAttributedStringValue:(NSString *)newValue {
-        [self swizzled_setAttributedStringValue:newValue];
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setStringValue:), MakeInterceptorFactory(void, (, NSString *newValue), {
+        OGImpl((newValue));
         [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
-}
-- (void)swizzled_setObjectValue:(NSObject *)newValue {
-        [self swizzled_setObjectValue:newValue];
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setAttributedStringValue:), MakeInterceptorFactory(void, (, NSAttributedString *newValue), {
+        OGImpl((newValue));
         [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
-}
-- (void)swizzled_setPlaceholderString:(NSString *)newValue {
-        [self swizzled_setPlaceholderString:newValue];
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setObjectValue:), MakeInterceptorFactory(void, (, NSObject *newValue), {
+        OGImpl((newValue));
         [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
-}
-- (void)swizzled_setPlaceholderAttributedString:(NSAttributedString *)newValue {
-        [self swizzled_setPlaceholderAttributedString:newValue];
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setPlaceholderString:), MakeInterceptorFactory(void, (, NSString *newValue), {
+        OGImpl((newValue));
         [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
-}
-- (void)swizzled_setTitle:(NSAttributedString *)newValue {
-        [self swizzled_setTitle:newValue];
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setPlaceholderAttributedString:), MakeInterceptorFactory(void, (, NSAttributedString *newValue), {
+        OGImpl((newValue));
         [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
-}
-- (void)swizzled_setAttributedTitle:(NSAttributedString *)newValue {
-        [self swizzled_setAttributedTitle:newValue];
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setTitle:), MakeInterceptorFactory(void, (, NSString *newValue), {
+        OGImpl((newValue));
         [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
-}
-- (void)swizzled_setAlternateTitle:(NSAttributedString *)newValue {
-        [self swizzled_setAlternateTitle:newValue];
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setAttributedTitle:), MakeInterceptorFactory(void, (, NSAttributedString *newValue), {
+        OGImpl((newValue));
         [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
-}
-- (void)swizzled_setAttributedAlternateTitle:(NSAttributedString *)newValue {
-        [self swizzled_setAttributedAlternateTitle:newValue];
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setAlternateTitle:), MakeInterceptorFactory(void, (, NSString *newValue), {
+        OGImpl((newValue));
         [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setAttributedAlternateTitle:), MakeInterceptorFactory(void, (, NSAttributedString *newValue), {
+        OGImpl((newValue));
+        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+    }));
 }
-
 
 @end
 
 @implementation NSSegmentedControl (MFUIStringChangeDetection)
 
 + (void)load {
-    swizzleMethods([self class], true, @"AppKit", @"swizzled_", 
+//    swizzleMethods([self class], true, @"AppKit", @"swizzled_", 
 //                   @selector(swizzled_setToolTip:forSegment:),
-                   nil);
+//                   nil);
 }
 
 - (void)swizzled_setToolTip:(NSString *)newValue forSegment:(NSInteger)segment {
@@ -296,9 +268,9 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 @implementation NSTableColumn (MFUIStringChangeDetection)
 
 + (void)load {
-    swizzleMethods([self class], true, @"AppKit", @"swizzled_", 
+//    swizzleMethods([self class], true, @"AppKit", @"swizzled_", 
 //                   @selector(swizzled_setHeaderToolTip:),
-                   nil);
+//                   nil);
 }
 
 - (void)swizzled_setHeaderToolTip:(NSString *)newValue {
@@ -315,9 +287,9 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
 
     
-    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
+//    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
 //                   @selector(swizzled_didChangeText), 
-                   nil);
+//                   nil);
 }
 
 //- (void)swizzled_setPlaceholderString:(NSString *)newValue {
@@ -344,9 +316,9 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 @implementation NSSearchFieldCell (MFUIStringChangeDetection)
 
 + (void)load {
-    swizzleMethods([self class], false, nil, @"swizzled_", /// We really don't have to be editing subclasses here
+//    swizzleMethods([self class], false, nil, @"swizzled_", /// We really don't have to be editing subclasses here
 //                   @selector(swizzled_setObjectValue:), /// TEST - this should automaticlly be swizzled if we swizzle it on NSCell, but doesn't work currently
-                   nil);
+//                   nil);
 }
 
 //- (void)swizzled_setObjectValue:(id)newValue {
@@ -363,10 +335,10 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     
     
-    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
+//    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
 //                   @selector(swizzled_setObjectValue:),
 //                   @selector(swizzled_setAttributedStringValue:),
-                   nil);
+//                   ni+l);
 
 //    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
 //                   @selector(swizzled_setPlaceholderString:),

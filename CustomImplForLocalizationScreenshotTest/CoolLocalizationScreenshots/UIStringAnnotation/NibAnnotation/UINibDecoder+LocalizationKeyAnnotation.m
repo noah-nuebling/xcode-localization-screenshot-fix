@@ -130,49 +130,37 @@ static void deleteUINibDecoderRecord(void) {
 
 + (void)load {
     
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        
-        swizzleMethods([self class], false, nil /*@"Foundation"*/, @"swizzled_",
-                       @selector(swizzled_loadNibNamed:owner:topLevelObjects:),
-                       @selector(swizzled_loadNibFile:externalNameTable:withZone:), nil);
-        
-        swizzleMethods(object_getClass([NSBundle class]), false, nil /*@"Foundation"*/, @"swizzled_",
-                       @selector(swizzled_loadNibNamed:owner:),
-                       @selector(swizzled_loadNibFile:externalNameTable:withZone:), nil);
-    });
-}
-
-- (BOOL)swizzled_loadNibNamed:(NSNibName)nibName owner:(id)owner topLevelObjects:(NSArray * _Nullable __autoreleasing *)topLevelObjects {
-    preDive();
-    BOOL result = [self swizzled_loadNibNamed:nibName owner:owner topLevelObjects:topLevelObjects];
-    assert(_uiNibDecoderRecordTopLevelObjects == nil); 
-    if (topLevelObjects != nil && *topLevelObjects != nil) {
-        _uiNibDecoderRecordTopLevelObjects = *topLevelObjects;
-    }
-    postDive(nibName, nil);
-    return result;
-}
-
-- (BOOL)swizzled_loadNibFile:(NSString *)fileName externalNameTable:(NSDictionary *)context withZone:(NSZone *)zone {
-    preDive();
-    BOOL result = [self swizzled_loadNibFile:fileName externalNameTable:context withZone:zone];
-    postDive(nil, fileName);
-    return result;
-}
-
-+ (BOOL)swizzled_loadNibNamed:(NSString *)nibName owner:(id)owner {
-    preDive();
-    BOOL result = [self swizzled_loadNibNamed:nibName owner:owner];
-    postDive(nibName, nil);
-    return result;
-}
-
-+ (BOOL)swizzled_loadNibFile:(NSString *)fileName externalNameTable:(NSDictionary *)context withZone:(NSZone *)zone {
-    preDive();
-    BOOL result = [self swizzled_loadNibFile:fileName externalNameTable:context withZone:zone];
-    postDive(nil, fileName);
-    return result;
+    swizzleMethod([self class], @selector(loadNibNamed:owner:topLevelObjects:), MakeInterceptorFactory(BOOL, (, NSNibName nibName, id owner, NSArray * _Nullable __autoreleasing *topLevelObjects), {
+        preDive();
+        BOOL result = OGImpl((nibName, owner, topLevelObjects));
+        assert(_uiNibDecoderRecordTopLevelObjects == nil);
+        if (topLevelObjects != nil && *topLevelObjects != nil) {
+            _uiNibDecoderRecordTopLevelObjects = *topLevelObjects;
+        }
+        postDive(nibName, nil);
+        return result;
+    }));
+    
+    swizzleMethod([self class], @selector(loadNibFile:externalNameTable:withZone:), MakeInterceptorFactory(BOOL, (, NSString *fileName, NSDictionary *context, NSZone *zone), {
+        preDive();
+        BOOL result = OGImpl((fileName, context, zone));
+        postDive(nil, fileName);
+        return result;
+    }));
+    
+    swizzleMethod(object_getClass([self class]), @selector(loadNibNamed:owner:), MakeInterceptorFactory(BOOL, (, NSString *nibName, id owner), {
+        preDive();
+        BOOL result = OGImpl((nibName, owner));
+        postDive(nibName, nil);
+        return result;
+    }));
+    swizzleMethod(object_getClass([self class]), @selector(loadNibFile:externalNameTable:withZone:), MakeInterceptorFactory(BOOL, (, NSString *fileName, NSDictionary *context, NSZone *zone), {
+        preDive();
+        BOOL result = OGImpl((fileName, context, zone));
+        postDive(nil, fileName);
+        return result;
+    }));
+    
 }
 
 static void preDive(void) {
@@ -233,36 +221,31 @@ static void postDive(NSString *nibName, NSString *fileName) {
     /// Notes:
     ///     We're only swizzling `decodeObjectForKey:` atm because that's where the localized string keys appear. There are many other `decode<...>ForKey:` methods though, which perhaps contain info we're missing.
     
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        swizzleMethods([self class], false, nil /*@"UIFoundation"*/, @"swizzled_", @selector(swizzled_decodeObjectForKey:), nil);
-    });
+    swizzleMethod([self class], @selector(decodeObjectForKey:), MakeInterceptorFactory(id, (, NSString *key), {
+        
+        /// Increase depth
+        MFUINibDecoderDepthIncrement();
+        
+        /// Call original implementation
+        /// Notes:
+        /// - This will recursively call this method over and over for all the child objects.
+        id result = originalImplementation(self, _cmd, key);
+        
+        /// Decrease depth
+        MFUINibDecoderDepthDecrement();
+        
+        /// Record
+        [uiNibDecoderRecord() addObject:@{
+            @"key": key,
+            @"value": result != nil ? result : NSNull.null,
+            @"depth": @(MFUINibDecoderDepth()),
+        }.mutableCopy];
+        
+        /// Return
+        return result;
+    }));
 }
 
-
-- (id)swizzled_decodeObjectForKey:(NSString *)key {
-    
-    /// Increase depth
-    MFUINibDecoderDepthIncrement();
-    
-    /// Call original implementation
-    /// Notes:
-    /// - This will recursively call this method over and over for all the child objects.
-    id result = [self swizzled_decodeObjectForKey:key];
-    
-    /// Decrease depth
-    MFUINibDecoderDepthDecrement();
-    
-    /// Record
-    [uiNibDecoderRecord() addObject:@{
-        @"key": key,
-        @"value": result != nil ? result : NSNull.null,
-        @"depth": @(MFUINibDecoderDepth()),
-    }.mutableCopy];
-    
-    /// Return
-    return result;
-}
 @end
 
 
@@ -834,219 +817,3 @@ static void postDive(NSString *nibName, NSString *fileName) {
 }
 
 @end
-
-///
-/// --------------------------------------
-///
-
-
-///
-/// Test stuff
-///
-/// Conclusion:
-///     The localization string keys are inside UINibDecoder instances, but NSCoders have this weird 'scoping' mechanism where if they decode a hierarchy of objects, each object can only access the keys for itself inside the coder. This prevents naming conflicts between the keys which is nice, however, I have no clue how to shift the 'scope' around to objects deeper in the hierarchy. I can only manage to access top level keys.
-///
-///     So Instead, what we'll do, is we'll let outside objects methods pass an NSDictionary to an UINibCoder instance, and then have the coder record (some of) the kv-pairs its decoding into that NSDictionary, so that initWithCoder: can then later inspect those kv-pairs.
-
-#if FALSE
-//- (Class)swizzled_classForClassName:(NSString *)codedName {
-//    
-//    /// Print
-//    NSLog(@"Decoding %@  object ...", codedName);
-//    
-//    /// Call og
-//    return [self swizzled_classForClassName:codedName];
-//}
-
-- (id)swizzled_decodeObjectForKey:(NSString *)key {
-    
-    /// Call og
-    id result = [self swizzled_decodeObjectForKey:key];
-    
-    /// Print
-    NSLog(@"Decoding object for key %@ -> %@ (%llx)", key, result, (int64_t)self);
-    
-    
-    /// Pause
-    
-    if ([key isEqual:@"NSDrawMatrix"]) {
-        
-    }
-    
-    if ([key isEqual:@"NSContents"]) {
-        
-    }
-    
-    if ([key isEqual:@"NSObjectsValues"]) {
-        
-    }
-    if ([key isEqual:@"NSSubviews"]) {
-        
-    }
-    
-    if ([key isEqual:@"NSKey"]) { /// NSDev and NSKey are used by [NSLocalizedString initWithCoder:]
-        
-    }
-    
-    if ([key isEqual:@"NSWindowRect"]) { /// test
-        
-    }
-    
-    /// Return
-    return result;
-}
-
-- (BOOL)swizzled_containsValueForKey:(NSString *)key {
-    
-    /// Print
-    /// Note: Disabling bc not that interesting (for now)
-//    NSLog(@"Decoder checking for key %@", key);
-    
-    /// Call og
-    return [self swizzled_containsValueForKey:key];
-}
-
-- (id)swizzled_decodePropertyListForKey:(NSString *)key {
-    
-    /// Print
-    NSLog(@"Decoding property list for key: %@", key);
-    
-    /// Call og
-    return [self swizzled_decodePropertyListForKey:key];
-}
-
-- (id)swizzled_decodeObjectOfClass:(Class)aClass forKey:(NSString *)key {
-    
-    
-    /// Print
-    /// This just calls decodeObjectOfClasses:
-//    NSLog(@"Decoding object of type %@ for key %@", [aClass className], key);
-    
-    /// Call og
-    return [self swizzled_decodeObjectOfClass:aClass forKey:key];
-}
-
-- (id)swizzled_decodeObjectOfClasses:(NSSet<Class> *)classes forKey:(NSString *)key {
-    
-    /// Call og
-    id result = [self swizzled_decodeObjectOfClasses:classes forKey:key];
-    
-    /// Print
-    if (classes.count == 1) {
-        NSLog(@"Decoding object of type %@ for key %@ -> %@ (%llx)", classes.anyObject, key, result, (int64_t)self);
-    } else {
-        NSLog(@"Decoding objects of types %@ for key %@ -> %@ (%llx)", classes.description, key, result, (int64_t)self);
-    }
-    
-    
-    
-    /// Return
-    return result;
-    
-}
-
-- (NSArray *)swizzled_decodeArrayOfObjectsOfClasses:(NSSet<Class> *)classes forKey:(NSString *)key {
-    
-    /// Print
-    NSLog(@"Decoding array of objects of type %@ for key %@", classes.debugDescription, key);
-    
-    /// Call og
-    return [self swizzled_decodeArrayOfObjectsOfClasses:classes forKey:key];
-}
-
-- (void)swizzled_decodeValueOfObjCType:(const char *)type at:(void *)data size:(NSUInteger)size {
-    
-    /// Call og
-    [self swizzled_decodeValueOfObjCType:type at:data size:size];
-    
-    /// Print
-    NSLog(@"Decoding value of objc type: %s, size: %lu", type, (unsigned long)size);
-    
-}
-
-
-- (id)swizzled_nextGenericKey {
-    
-    id result = [self swizzled_nextGenericKey];
-    NSLog(@"Decoder queried nextGenericKey: %@", result);
-    return result;
-}
-
-- (id)swizzled_decodeObject {
-    
-    id result = [self swizzled_decodeObject];
-    NSLog(@"Decoding non-keyed object -> %@", result);
-    return result;
-}
-
-- (void)swizzled_replaceObject:(id)arg1 withObject:(id)arg2 {
-    
-    NSLog(@"Decoder replacing object %@ -> %@", arg1, arg2);
-    [self swizzled_replaceObject:arg1 withObject:arg2];
-}
-
-- (void)swizzled_finishDecoding {
-    NSLog(@"Decoder finishing (%llx)", (int64_t)self);
-    [self swizzled_finishDecoding];
-}
-
-- (BOOL)swizzled_validateAndIndexData:(id)arg1 error:(id*)arg2 {
-    NSLog(@"Decoder validate & index (data)");
-    BOOL result = [self swizzled_validateAndIndexData:arg1 error:arg2];
-    return result;
-}
-- (BOOL)swizzled_validateAndIndexClasses:(const void*)arg1 length:(unsigned long long)arg2 {
-    NSLog(@"Decoder validate & index (classes)");
-    BOOL result = [self swizzled_validateAndIndexClasses:arg1 length:arg2];
-    return result;
-}
-- (BOOL)swizzled_validateAndIndexObjects:(const void*)arg1 length:(unsigned long long)arg2 {
-    NSLog(@"Decoder validate & index (objects)");
-    BOOL result = [self swizzled_validateAndIndexObjects:arg1 length:arg2];
-    return result;
-}
-- (BOOL)swizzled_validateAndIndexKeys:(const void*)arg1 length:(unsigned long long)arg2 {
-    NSLog(@"Decoder validate & index (keys)");
-    BOOL result = [self swizzled_validateAndIndexKeys:arg1 length:arg2];
-    return result;
-}
-- (BOOL)swizzled_validateAndIndexValues:(const void*)arg1 length:(unsigned long long)arg2 {
-    NSLog(@"Decoder validate & index (values)");
-    BOOL result = [self swizzled_validateAndIndexValues:arg1 length:arg2];
-    return result;
-}
-
-+ (void)load {
-    
-    /// This approach is from here: https://stackoverflow.com/a/19631868/10601702
-    
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        
-        swizzleMethod([self class], @selector(decodeObjectForKey:), @selector(swizzled_decodeObjectForKey:));
-//        swizzleMethod([self class], @selector(classForClassName:), @selector(swizzled_classForClassName:));
-        swizzleMethod([self class], @selector(containsValueForKey:), @selector(swizzled_containsValueForKey:));
-//        swizzleMethod([self class], @selector(decodeObjectOfClass:forKey:), @selector(swizzled_decodeObjectOfClass:forKey:));
-        swizzleMethod([self class], @selector(decodePropertyListForKey:), @selector(swizzled_decodePropertyListForKey:));
-        swizzleMethod([self class], @selector(decodeArrayOfObjectsOfClasses:forKey:), @selector(swizzled_decodeArrayOfObjectsOfClasses:forKey:));
-        swizzleMethod([self class], @selector(decodeObjectOfClasses:forKey:), @selector(swizzled_decodeObjectOfClasses:forKey:));
-        swizzleMethod([self class], @selector(decodeValueOfObjCType:at:size:), @selector(swizzled_decodeValueOfObjCType:at:size:));
-        swizzleMethod([self class], @selector(nextGenericKey), @selector(swizzled_nextGenericKey));
-        swizzleMethod([self class], @selector(decodeObject), @selector(swizzled_decodeObject));
-        swizzleMethod([self class], @selector(replaceObject:withObject:), @selector(swizzled_replaceObject:withObject:));
-        swizzleMethod([self class], @selector(finishDecoding), @selector(swizzled_finishDecoding));
-        
-        swizzleMethod([self class], @selector(validateAndIndexData:error:), @selector(swizzled_validateAndIndexData:error:));
-        swizzleMethod([self class], @selector(validateAndIndexClasses:length:), @selector(swizzled_validateAndIndexClasses:length:));
-        swizzleMethod([self class], @selector(validateAndIndexObjects:length:), @selector(swizzled_validateAndIndexObjects:length:));
-        swizzleMethod([self class], @selector(validateAndIndexKeys:length:), @selector(swizzled_validateAndIndexKeys:length:));
-        swizzleMethod([self class], @selector(validateAndIndexValues:length:), @selector(swizzled_validateAndIndexValues:length:));
-        
-//        [Swizzle swizzleAllMethodsInClass:[self class]];
-    });
-    
-}
-
-@end
-
-#endif

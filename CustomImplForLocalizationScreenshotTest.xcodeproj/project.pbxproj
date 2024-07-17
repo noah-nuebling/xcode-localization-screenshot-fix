@@ -16,7 +16,6 @@
 		4F53EBE92C3AF1CA00843320 /* CustomImplForLocalizationScreenshotTestUITestsLaunchTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F53EBE82C3AF1CA00843320 /* CustomImplForLocalizationScreenshotTestUITestsLaunchTests.m */; };
 		4F53EBF92C3AF64C00843320 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 4F53EBF82C3AF64C00843320 /* Localizable.xcstrings */; };
 		4F58C2402C3AFFBB0047F651 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4F58C23F2C3AFFBB0047F651 /* MainMenu.xib */; };
-		4F5A280D2C3B401900F95211 /* NSIBObjectData+LocalizedStringKey.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F5A280C2C3B401900F95211 /* NSIBObjectData+LocalizedStringKey.m */; };
 		4F5A28132C3B443D00F95211 /* Swizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F5A28122C3B443D00F95211 /* Swizzle.m */; };
 		4F5A281C2C3B596800F95211 /* Utility.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F5A281B2C3B596800F95211 /* Utility.m */; };
 		4F5A284E2C3C563600F95211 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F5A284C2C3C49EF00F95211 /* AppKit.framework */; };
@@ -74,8 +73,6 @@
 		4F58C2492C3B08AC0047F651 /* CleanShot 2024-07-07 at 19.31.59@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "CleanShot 2024-07-07 at 19.31.59@2x.png"; sourceTree = "<group>"; };
 		4F58C24A2C3B0B920047F651 /* de-manual-edit.xcloc */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = "de-manual-edit.xcloc"; sourceTree = "<group>"; };
 		4F5A28062C3B330D00F95211 /* TakeScreenshots.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TakeScreenshots.xctestplan; sourceTree = "<group>"; };
-		4F5A280B2C3B401900F95211 /* NSIBObjectData+LocalizedStringKey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSIBObjectData+LocalizedStringKey.h"; sourceTree = "<group>"; };
-		4F5A280C2C3B401900F95211 /* NSIBObjectData+LocalizedStringKey.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSIBObjectData+LocalizedStringKey.m"; sourceTree = "<group>"; };
 		4F5A28112C3B443D00F95211 /* Swizzle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swizzle.h; sourceTree = "<group>"; };
 		4F5A28122C3B443D00F95211 /* Swizzle.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Swizzle.m; sourceTree = "<group>"; };
 		4F5A28172C3B4D3700F95211 /* UINibDecoder+LocalizationKeyAnnotation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UINibDecoder+LocalizationKeyAnnotation.h"; sourceTree = "<group>"; };
@@ -283,8 +280,6 @@
 		4FE839672C3D6F8400AFCA6D /* Old */ = {
 			isa = PBXGroup;
 			children = (
-				4F5A280B2C3B401900F95211 /* NSIBObjectData+LocalizedStringKey.h */,
-				4F5A280C2C3B401900F95211 /* NSIBObjectData+LocalizedStringKey.m */,
 			);
 			path = Old;
 			sourceTree = "<group>";
@@ -478,7 +473,6 @@
 				4F53EBCB2C3AF1C800843320 /* AppDelegate.m in Sources */,
 				4F966AB22C414C3E003226B2 /* TreeNode.m in Sources */,
 				4F1382E42C3FEDFF007E0C03 /* UINibDecoderIntrospection.m in Sources */,
-				4F5A280D2C3B401900F95211 /* NSIBObjectData+LocalizedStringKey.m in Sources */,
 				4F966AB52C414DCE003226B2 /* NSString+Additions.m in Sources */,
 				4F966AB82C415ECD003226B2 /* KVPair.m in Sources */,
 				4F746D122C4074F60031DA27 /* UIStringAnnotationHelper.m in Sources */,

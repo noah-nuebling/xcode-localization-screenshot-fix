@@ -71,80 +71,73 @@ static Queue *_systemLocalizationKeyQueue;
     
     /// TODO: Only swizzle, when some special 'MF_AX_INSPECTABLE_LOCALIZATION_KEYS' flag is set
     
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
+    swizzleMethod([self class], @selector(localizedStringForKey:value:table:), MakeInterceptorFactory(NSString *, (, NSString *key, NSString *value, NSString *tableName), {
         
-        swizzleMethods([self class], false, nil /*@"Foundation"*/, @"swizzled_", @selector(swizzled_localizedStringForKey:value:table:), nil);
-        swizzleMethods([self class], false, nil /*@"Foundation"*/, @"swizzled_", @selector(swizzled_localizedAttributedStringForKey:value:table:), nil);
-    });
+        /// Call og
+        NSString *result = originalImplementation(self, _cmd, key, value, tableName);
+        
+        /// Create element
+        NSDictionary *newElement = @{
+            @"key": key,
+            @"value": value ?: @"",
+            @"table": tableName ?: @"",
+            @"result": result ?: @"",
+        };
+        /// Enqueue
+        BOOL isSystemString = [[self systemTables] containsObject: tableName];
+        if (!isSystemString) {
+            [NSLocalizedStringRecord.queue enqueue:newElement];
+        } else {
+            [NSLocalizedStringRecord.systemQueue enqueue:newElement];
+        }
+        
+        /// TESTING
+        if ([result containsString:@"tooltip"]) {
+            
+        }
+        if ([result isEqual:@"Rechtschreibung und Grammatik einblenden"]) {
+            
+        }
+        
+        
+        /// Return
+        return result;
+    }));
+                  
+    swizzleMethod([self class], @selector(localizedAttributedStringForKey:value:table:), MakeInterceptorFactory(NSAttributedString *, (, NSString *key, NSString *value, NSString *tableName), {
+        
+        assert(false); /// This is untested
+        
+        /// Call og
+        NSAttributedString *result = originalImplementation(self, _cmd, key, value, tableName);
+        
+        /// Create element
+        NSDictionary *newElement = @{
+            @"key": key,
+            @"value": value ?: @"",
+            @"table": tableName ?: @"",
+            @"result": result ?: @"",
+        };
+        
+        /// Enqueue
+        BOOL isSystemString = [[self systemTables] containsObject:tableName];
+        
+        if (!isSystemString) {
+            [NSLocalizedStringRecord.queue enqueue:newElement];
+        } else {
+            [NSLocalizedStringRecord.systemQueue enqueue:newElement];
+        }
+        
+        /// Return
+        return result;
+        
+    }));
 }
 
 - (NSArray <NSString *>*)systemTables {
     
     /// These string tables are defined by macOS
     return @[@"FunctionKeyNames", @"Common", @"InputManager", @"DictationManager", @"MenuCommands", @"WindowTabs", @"NSColorPanelExtras", @"FontManager", @"Services", @"Accessibility"];
-}
-
-- (NSString *)swizzled_localizedStringForKey:(NSString *)key value:(NSString *)value table:(NSString *)tableName {
-    
-    /// Call og
-    NSString *result = [self swizzled_localizedStringForKey:key value:value table:tableName];
-    
-    /// Create element
-    NSDictionary *newElement = @{
-        @"key": key,
-        @"value": value ?: @"",
-        @"table": tableName ?: @"",
-        @"result": result ?: @"",
-    };
-    /// Enqueue
-    BOOL isSystemString = [[self systemTables] containsObject: tableName];
-    if (!isSystemString) {
-        [NSLocalizedStringRecord.queue enqueue:newElement];
-    } else {
-        [NSLocalizedStringRecord.systemQueue enqueue:newElement];
-    }
-    
-    /// TESTING
-    if ([result containsString:@"tooltip"]) {
-        
-    }
-    if ([result isEqual:@"Rechtschreibung und Grammatik einblenden"]) {
-        
-    }
-    
-    
-    /// Return
-    return result;
-}
-
-- (NSAttributedString *)swizzled_localizedAttributedStringForKey:(NSString *)key value:(NSString *)value table:(NSString *)tableName {
-    
-    assert(false); /// This is untested
-    
-    /// Call og
-    NSAttributedString *result = [self swizzled_localizedAttributedStringForKey:key value:value table:tableName];
-    
-    /// Create element
-    NSDictionary *newElement = @{
-        @"key": key,
-        @"value": value ?: @"",
-        @"table": tableName ?: @"",
-        @"result": result ?: @"",
-    };
-    
-    /// Enqueue
-    BOOL isSystemString = [[self systemTables] containsObject:tableName];
-    
-    if (!isSystemString) {
-        [NSLocalizedStringRecord.queue enqueue:newElement];
-    } else {
-        [NSLocalizedStringRecord.systemQueue enqueue:newElement];
-    }
-    
-    /// Return
-    return result;
-    
 }
 
 @end

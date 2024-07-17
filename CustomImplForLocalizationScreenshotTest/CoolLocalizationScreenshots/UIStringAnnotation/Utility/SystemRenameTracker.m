@@ -56,28 +56,27 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 @implementation NSApplication (MFNibAnnotation)
 
 + (void)load {
-    swizzleMethods([self class], false, nil /*@"AppKit"*/, @"swizzled_", @selector(swizzled_validateMenuItem:), nil);
-}
-
-- (BOOL)swizzled_validateMenuItem:(NSMenuItem *)menuItem {
     
-    
-    NSString *beforeTitle = [menuItem title];
-    MFSystemRenameDepthIncrement();
-    BOOL result = [self swizzled_validateMenuItem:menuItem];
-    MFSystemRenameDepthDecrement();
-    NSString *afterTitle = [menuItem title];
-    
-    if (![beforeTitle isEqual:afterTitle]) {
-        if (_menuItemsRenamedBySystem == nil) _menuItemsRenamedBySystem = [NSMutableDictionary dictionary];
-        afterTitle = [NSString stringWithCString:[afterTitle cStringUsingEncoding:NSUTF8StringEncoding] encoding:NSUTF8StringEncoding]; /// afterTitle is a weird `_NSBPlistMappedString`, this turns it into a normal NSString
-        _menuItemsRenamedBySystem[beforeTitle] = @{
-            @"newTitle": afterTitle,
-            @"menuItem": menuItem,
-        };
-    }
-    
-    return result;
+    swizzleMethod([self class], @selector(validateMenuItem:), MakeInterceptorFactory(BOOL, (, NSMenuItem *menuItem), {
+        
+        NSString *beforeTitle = [menuItem title];
+        MFSystemRenameDepthIncrement();
+        BOOL result = originalImplementation(self, _cmd, menuItem);
+        MFSystemRenameDepthDecrement();
+        NSString *afterTitle = [menuItem title];
+        
+        if (![beforeTitle isEqual:afterTitle]) {
+            if (_menuItemsRenamedBySystem == nil) _menuItemsRenamedBySystem = [NSMutableDictionary dictionary];
+            afterTitle = [NSString stringWithCString:[afterTitle cStringUsingEncoding:NSUTF8StringEncoding] encoding:NSUTF8StringEncoding]; /// afterTitle is a weird `_NSBPlistMappedString`, this turns it into a normal NSString
+            _menuItemsRenamedBySystem[beforeTitle] = @{
+                @"newTitle": afterTitle,
+                @"menuItem": menuItem,
+            };
+        }
+        
+        return result;
+        
+    }));
 }
 
 @end
@@ -95,14 +94,13 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 @implementation NSButtonAppearanceBasedVisualProvider (MFUIStringAnnotation)
 
 + (void)load {
-    swizzleMethods([self class], false, nil, @"swizzled_", @selector(swizzled_updateTextFieldIfNecessary), nil);
-}
-
-- (void *)swizzled_updateTextFieldIfNecessary {
-    MFSystemRenameDepthIncrement();
-    void *result = [self swizzled_updateTextFieldIfNecessary];
-    MFSystemRenameDepthDecrement();
-    return result;
+    
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(updateTextFieldIfNecessary), MakeInterceptorFactory(void *, (), {
+        MFSystemRenameDepthIncrement();
+        void *result = originalImplementation(self, _cmd);
+        MFSystemRenameDepthDecrement();
+        return result;
+    }));
 }
 
 @end
@@ -116,14 +114,12 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 @implementation NSTextFieldCell (MFUIStringAnnotation)
 
 + (void)load {
-    swizzleMethods([self class], true, @"AppKit", @"swizzled_", @selector(swizzled_init), nil);
-}
-
-- (instancetype)swizzled_init {
-    MFSystemRenameDepthIncrement();
-    NSTextFieldCell *result = [self swizzled_init];
-    MFSystemRenameDepthDecrement();
-    return result;
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(init), MakeInterceptorFactory(NSTextFieldCell *, (), {
+        MFSystemRenameDepthIncrement();
+        NSTextFieldCell *result = originalImplementation(self, _cmd);
+        MFSystemRenameDepthDecrement();
+        return result;
+    }));
 }
 
 @end
@@ -138,14 +134,13 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 @implementation NSTableHeaderView (MFUIStringAnnotation)
 
 + (void)load {
-    swizzleMethods([self class], true, @"AppKit", @"swizzled_", @selector(swizzled__preparedHeaderFillerCell), nil);
-}
-
-- (void *)swizzled__preparedHeaderFillerCell {
-    MFSystemRenameDepthIncrement();
-    void *result = [self swizzled__preparedHeaderFillerCell];
-    MFSystemRenameDepthDecrement();
-    return result;
+    
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(_preparedHeaderFillerCell), MakeInterceptorFactory(void *, (), {
+        MFSystemRenameDepthIncrement();
+        void *result = originalImplementation(self, _cmd);
+        MFSystemRenameDepthDecrement();
+        return result;
+    }));
 }
 
 @end
