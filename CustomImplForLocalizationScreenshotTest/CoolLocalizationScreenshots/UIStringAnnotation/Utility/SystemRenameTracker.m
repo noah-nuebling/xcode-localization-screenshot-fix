@@ -61,7 +61,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
         
         NSString *beforeTitle = [menuItem title];
         MFSystemRenameDepthIncrement();
-        BOOL result = originalImplementation(self, _cmd, menuItem);
+        BOOL result = OGImpl(, menuItem);
         MFSystemRenameDepthDecrement();
         NSString *afterTitle = [menuItem title];
         
@@ -97,7 +97,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
     
     swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(updateTextFieldIfNecessary), MakeInterceptorFactory(void *, (), {
         MFSystemRenameDepthIncrement();
-        void *result = originalImplementation(self, _cmd);
+        void *result = OGImpl();
         MFSystemRenameDepthDecrement();
         return result;
     }));
@@ -116,7 +116,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 + (void)load {
     swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(init), MakeInterceptorFactory(NSTextFieldCell *, (), {
         MFSystemRenameDepthIncrement();
-        NSTextFieldCell *result = originalImplementation(self, _cmd);
+        NSTextFieldCell *result = OGImpl();
         MFSystemRenameDepthDecrement();
         return result;
     }));
@@ -137,7 +137,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
     
     swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(_preparedHeaderFillerCell), MakeInterceptorFactory(void *, (), {
         MFSystemRenameDepthIncrement();
-        void *result = originalImplementation(self, _cmd);
+        void *result = OGImpl();
         MFSystemRenameDepthDecrement();
         return result;
     }));

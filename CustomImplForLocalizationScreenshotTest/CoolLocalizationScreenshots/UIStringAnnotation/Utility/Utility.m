@@ -13,6 +13,58 @@
 
 @implementation Utility
 
+#define MFRecursionCounterBaseKey @"MFRecursionCounterBaseKey"
+
+NSMutableDictionary *_recursionCounterDict(void) {
+    /// Get/init base dict
+    NSMutableDictionary *counterDict = NSThread.currentThread.threadDictionary[MFRecursionCounterBaseKey];
+    if (counterDict == nil) {
+        counterDict = [NSMutableDictionary dictionary];
+        NSThread.currentThread.threadDictionary[MFRecursionCounterBaseKey] = counterDict;
+    }
+    return counterDict;
+}
+
+NSInteger recursionCounterBegin(id key) {
+    NSMutableDictionary *counterDict = _recursionCounterDict();
+    NSInteger recursionDepth = [counterDict[key] integerValue]; /// This resolves to 0 if `counterDict[key]` is nil
+    counterDict[key] = @(recursionDepth + 1);
+    return recursionDepth;
+    
+}
+
+void recursionCounterEnd(id key) {
+    NSMutableDictionary *counterDict = _recursionCounterDict();
+    NSInteger recursionDepth = [counterDict[key] integerValue];
+    assert(recursionDepth > 0);
+    counterDict[key] = @(recursionDepth - 1);
+}
+
+void countRecursions(id recursionDepthKey, void (^workload)(NSInteger recursionDepth)) {
+    NSInteger depth = recursionCounterBegin(recursionDepthKey);
+    workload(depth);
+    recursionCounterEnd(recursionDepthKey);
+}
+
+void _recursionSwitch(id selfKey, SEL _cmdKey, void (^onFirstRecursion)(void), void (^onOtherRecursions)(void)) {
+    
+    assert(false);
+    
+    id key = stringf(@"%p|%s", selfKey, sel_getName(_cmdKey));
+    
+    countRecursions(key, ^(NSInteger recursionDepth) {
+        if (recursionDepth == 0) {
+            onFirstRecursion();
+        } else {
+            onOtherRecursions();
+        }
+    });
+}
+
+void BREAKPOINT(id context) { /// Be able to break inside c macros
+    
+}
+
 NSString *pureString(id value) {
     
     /// Pass in an NSString or an NSAttributedString and get a simple NSString

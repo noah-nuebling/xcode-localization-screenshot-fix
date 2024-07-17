@@ -52,6 +52,7 @@
 
 /* Begin PBXFileReference section */
 		4F1382E32C3FEDFF007E0C03 /* UINibDecoderIntrospection.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UINibDecoderIntrospection.m; sourceTree = "<group>"; };
+		4F1E09072C47FBE6005569B7 /* PreprocessorMagic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PreprocessorMagic.h; sourceTree = "<group>"; };
 		4F53EBC62C3AF1C800843320 /* CustomImplForLocalizationScreenshotTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CustomImplForLocalizationScreenshotTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F53EBC92C3AF1C800843320 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		4F53EBCA2C3AF1C800843320 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -316,6 +317,7 @@
 				4F1382E32C3FEDFF007E0C03 /* UINibDecoderIntrospection.m */,
 				4F8738112C4414A6001F95DE /* AppKitIntrospection.h */,
 				4F8738122C4414A6001F95DE /* AppKitIntrospection.m */,
+				4F1E09072C47FBE6005569B7 /* PreprocessorMagic.h */,
 			);
 			path = External;
 			sourceTree = "<group>";

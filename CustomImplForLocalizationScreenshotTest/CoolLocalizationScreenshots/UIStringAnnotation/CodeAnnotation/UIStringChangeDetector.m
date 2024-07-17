@@ -179,12 +179,12 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 @implementation NSObject (MFUIStringChangeDetection)
 
 
-+ (void)uiStringHasChangedFrom:(id)oldValue toValue:(id)newValue onObject:(id)object {
++ (void)uiStringHasChangedFrom:(id)oldValue toValue:(id)newValue onObject:(id)object selector:(SEL)selector recursionDepth:(NSInteger)recursionDepth {
     
     BOOL isString = newValue == nil || [newValue isKindOfClass:[NSString class]] || [newValue isKindOfClass:[NSAttributedString class]];
     
     if (!isString) {
-        NSLog(@"UIStringChangeDetector: New value %@ is not a string", newValue);
+        NSLog(@"    UIStringChangeDetector: New value %@ is not a string", newValue);
         return;
     }
     
@@ -196,7 +196,12 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
     } else {
         
         if (oldValue != newValue && ![oldValue isEqual:newValue]) {
-            NSLog(@"UIStringChangeDetector: Changed from \"%@\" -> \"%@\" (on %@)", oldValue, newValue, object);
+            if (recursionDepth == 0) {
+                NSLog(@"    UIStringChangeDetector: [%s \"%@\"] (recursionDepth %ld) (on %@)", sel_getName(selector), newValue, (long)recursionDepth, object);
+            } else {
+                
+            }
+                
         }
         
     }
@@ -205,44 +210,64 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     
     swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setToolTip:), MakeInterceptorFactory(void, (, NSString *newValue), {
-        OGImpl((newValue));
-        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(, newValue);
+            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+        });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setStringValue:), MakeInterceptorFactory(void, (, NSString *newValue), {
-        OGImpl((newValue));
-        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(, newValue);
+            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+        });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setAttributedStringValue:), MakeInterceptorFactory(void, (, NSAttributedString *newValue), {
-        OGImpl((newValue));
-        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(, newValue);
+            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+        });
     }));
-    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setObjectValue:), MakeInterceptorFactory(void, (, NSObject *newValue), {
-        OGImpl((newValue));
-        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
-    }));
+//    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setObjectValue:), MakeInterceptorFactory(void, (, NSObject *newValue), {
+//        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+//            OGImpl(, newValue);
+//            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+//        });
+//    }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setPlaceholderString:), MakeInterceptorFactory(void, (, NSString *newValue), {
-        OGImpl((newValue));
-        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(, newValue);
+            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+        });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setPlaceholderAttributedString:), MakeInterceptorFactory(void, (, NSAttributedString *newValue), {
-        OGImpl((newValue));
-        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(, newValue);
+            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+        });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setTitle:), MakeInterceptorFactory(void, (, NSString *newValue), {
-        OGImpl((newValue));
-        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(, newValue);
+            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+        });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setAttributedTitle:), MakeInterceptorFactory(void, (, NSAttributedString *newValue), {
-        OGImpl((newValue));
-        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(, newValue);
+            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+        });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setAlternateTitle:), MakeInterceptorFactory(void, (, NSString *newValue), {
-        OGImpl((newValue));
-        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(, newValue);
+            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+        });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setAttributedAlternateTitle:), MakeInterceptorFactory(void, (, NSAttributedString *newValue), {
-        OGImpl((newValue));
-        [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:self];
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(, newValue);
+            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+        });
     }));
 }
 
@@ -252,15 +277,21 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 
 + (void)load {
 //    swizzleMethods([self class], true, @"AppKit", @"swizzled_", 
-//                   @selector(swizzled_setToolTip:forSegment:),
+//                   @selector(swizzled_),
 //                   nil);
+    
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(setToolTip:forSegment:), MakeInterceptorFactory(void,  (, NSString *newValue, NSInteger segment), {
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            NSString *before = [m_self toolTipForSegment:segment];
+            OGImpl(, newValue, segment);
+            id after = [m_self toolTipForSegment:segment];
+            [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+        });
+    }));
 }
 
 - (void)swizzled_setToolTip:(NSString *)newValue forSegment:(NSInteger)segment {
-    NSString *before = [self toolTipForSegment:segment];
-    [self swizzled_setToolTip:newValue forSegment:segment];
-    id after = [self toolTipForSegment:segment];
-    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+    
 }
 
 @end
@@ -268,16 +299,14 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 @implementation NSTableColumn (MFUIStringChangeDetection)
 
 + (void)load {
-//    swizzleMethods([self class], true, @"AppKit", @"swizzled_", 
-//                   @selector(swizzled_setHeaderToolTip:),
-//                   nil);
-}
-
-- (void)swizzled_setHeaderToolTip:(NSString *)newValue {
-    NSString *before = [self headerToolTip];
-    [self swizzled_setHeaderToolTip:newValue];
-    id after = [self headerToolTip];
-    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(setHeaderToolTip:), MakeInterceptorFactory(void, (, NSString *newValue), {
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            NSString *before = [m_self headerToolTip];
+            OGImpl(, newValue);
+            id after = [m_self headerToolTip];
+            [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+        });
+    }));
 }
 
 @end
@@ -287,9 +316,14 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
 
     
-//    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
-//                   @selector(swizzled_didChangeText), 
-//                   nil);
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", /*@selector(setPlaceholderString:)*/ /*@selector(setPlaceholderAttributedString:) */ @selector(didChangeText), MakeInterceptorFactory(void, (), {
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            NSAttributedString *before = nil;
+            OGImpl();
+            NSAttributedString *after = [m_self textStorage];
+            [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+        });
+    }));
 }
 
 //- (void)swizzled_setPlaceholderString:(NSString *)newValue {
@@ -304,12 +338,6 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 //    NSAttributedString *after = [(id)self placeholderAttributedString];
 //    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
 //}
-- (void)swizzled_didChangeText {
-    NSAttributedString *before = nil;
-    [self swizzled_didChangeText];
-    NSAttributedString *after = [self textStorage];
-    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
-}
 
 @end
 

@@ -90,21 +90,21 @@
     
     #define _TEST_UISTRING(propertyName, setter) \
         do { \
-        NSLog(@"--- Test: Toggling %s (\"%@\") ... ---", #propertyName, thisCharString); \
+        NSLog(@"--- TEST: Toggling %s (\"%@\") ... ---", #propertyName, thisCharString); \
         setter(thisCharString); \
         thisCharString = nextCharString(thisCharString); \
     } while(0)
     
     #define TEST_UISTRING(property) \
         do { \
-            NSLog(@"--- Test: Toggling %s (\"%@\") ... ---", #property, thisCharString); \
+            NSLog(@"--- TEST: Toggling %s (\"%@\") ... ---", #property, thisCharString); \
             property = thisCharString; \
             thisCharString = nextCharString(thisCharString); \
         } while(0)
         
     #define TEST_ATTRIBUTED_UISTRING(property) \
         do { \
-            NSLog(@"--- Test: Toggling %s (\"%@\") ... ---", #property, thisCharString); \
+            NSLog(@"--- TEST: Toggling %s (\"%@\") ... ---", #property, thisCharString); \
             property = thisCharString.attributed; \
             thisCharString = nextCharString(thisCharString); \
         } while(0)

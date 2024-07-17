@@ -16,6 +16,7 @@
 #import "NSLocalizedStringRecord.h"
 #import "Swizzle.h"
 #import "objc/runtime.h"
+#import "Utility.h"
 
 ///
 /// Forward declare
@@ -74,7 +75,7 @@ static Queue *_systemLocalizationKeyQueue;
     swizzleMethod([self class], @selector(localizedStringForKey:value:table:), MakeInterceptorFactory(NSString *, (, NSString *key, NSString *value, NSString *tableName), {
         
         /// Call og
-        NSString *result = originalImplementation(self, _cmd, key, value, tableName);
+        NSString *result = OGImpl(, key, value, tableName);
         
         /// Create element
         NSDictionary *newElement = @{
@@ -83,8 +84,9 @@ static Queue *_systemLocalizationKeyQueue;
             @"table": tableName ?: @"",
             @"result": result ?: @"",
         };
+        
         /// Enqueue
-        BOOL isSystemString = [[self systemTables] containsObject: tableName];
+        BOOL isSystemString = [[m_self systemTables] containsObject:tableName];
         if (!isSystemString) {
             [NSLocalizedStringRecord.queue enqueue:newElement];
         } else {
@@ -93,10 +95,10 @@ static Queue *_systemLocalizationKeyQueue;
         
         /// TESTING
         if ([result containsString:@"tooltip"]) {
-            
+            BREAKPOINT(result);
         }
         if ([result isEqual:@"Rechtschreibung und Grammatik einblenden"]) {
-            
+            BREAKPOINT(result);
         }
         
         
@@ -109,7 +111,7 @@ static Queue *_systemLocalizationKeyQueue;
         assert(false); /// This is untested
         
         /// Call og
-        NSAttributedString *result = originalImplementation(self, _cmd, key, value, tableName);
+        NSAttributedString *result = OGImpl(, key, value, tableName);
         
         /// Create element
         NSDictionary *newElement = @{
@@ -120,7 +122,7 @@ static Queue *_systemLocalizationKeyQueue;
         };
         
         /// Enqueue
-        BOOL isSystemString = [[self systemTables] containsObject:tableName];
+        BOOL isSystemString = [[m_self systemTables] containsObject:tableName];
         
         if (!isSystemString) {
             [NSLocalizedStringRecord.queue enqueue:newElement];

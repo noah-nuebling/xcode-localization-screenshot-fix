@@ -10,6 +10,7 @@
 #import "NSString+Additions.h"
 @import AppKit;
 #import "stdarg.h"
+#import "Utility.h"
 
 @implementation Swizzle
 
@@ -107,7 +108,7 @@ void swizzleMethod(Class class, SEL originalSelector, InterceptorFactory interce
 static NSArray<NSDictionary<NSString *, id> *> *_subclassesOfClass(Class baseClass, NSString *framework, BOOL includeBaseClass) {
         
     /// Notes:
-    /// - I'm not sur the caching as we currently do it helps performance? Might be slowing things down.
+    /// - I'm not sure the caching as we currently do it helps performance? Might be slowing things down.
     ///     Maybe if we made the cache a tree structure, that would help. But so far it's not super slow.
     /// - The @"depth" is unused at the time of writing.
     
@@ -239,6 +240,7 @@ static BOOL classInheritsMethod(Class class, SEL selector) {
     /// Return
     return classInherits;
 }
+
 
 @end
 
