@@ -98,7 +98,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 
 + (void)load {
     
-    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(updateTextFieldIfNecessary), MakeInterceptorFactory(void, (), {
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(updateTextFieldIfNecessary), MakeInterceptorFactory(void, (), {
         MFSystemRenameDepthIncrement();
         OGImpl();
         MFSystemRenameDepthDecrement();
@@ -116,7 +116,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 @implementation NSTextFieldCell (MFUIStringAnnotation)
 
 + (void)load {
-    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(init), MakeInterceptorFactory(NSTextFieldCell *, (), {
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(init), MakeInterceptorFactory(NSTextFieldCell *, (), {
         MFSystemRenameDepthIncrement();
         NSTextFieldCell *result = OGImpl();
         MFSystemRenameDepthDecrement();
@@ -137,7 +137,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 
 + (void)load {
     
-    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(_preparedHeaderFillerCell), MakeInterceptorFactory(void *, (), {
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(_preparedHeaderFillerCell), MakeInterceptorFactory(void *, (), {
         MFSystemRenameDepthIncrement();
         void *result = OGImpl();
         MFSystemRenameDepthDecrement();
@@ -161,7 +161,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 
 + (void)load {
     
-    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(_size:ofCell:withTitle:), MakeInterceptorFactory(void, (NSSize *sizePtr, id cell, id title), {
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(_size:ofCell:withTitle:), MakeInterceptorFactory(void, (NSSize *sizePtr, id cell, id title), {
         MFSystemRenameDepthIncrement();
         OGImpl(sizePtr, cell, title);
         MFSystemRenameDepthDecrement();
@@ -186,7 +186,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 
 + (void)load {
     
-    swizzleMethodOnClassAndSubclasses(object_getClass(objc_getClass("NSMenuBarImpl")), @"AppKit", @selector(appleMenuItem), MakeInterceptorFactory(id, (), {
+    swizzleMethodOnClassAndSubclasses(object_getClass(objc_getClass("NSMenuBarImpl")), @{ @"framework": @"AppKit" }, @selector(appleMenuItem), MakeInterceptorFactory(id, (), {
         MFSystemRenameDepthIncrement();
         id result = OGImpl();
         MFSystemRenameDepthDecrement();
@@ -206,7 +206,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 
 + (void)load {
     
-    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(_configureAsSeparatorItem), MakeInterceptorFactory(void, (), {
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(_configureAsSeparatorItem), MakeInterceptorFactory(void, (), {
         MFSystemRenameDepthIncrement();
         OGImpl();
         MFSystemRenameDepthDecrement();
@@ -225,7 +225,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 
 + (void)load {
     
-    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(initWithFrame:), MakeInterceptorFactory(id, (NSRect frame), {
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(initWithFrame:), MakeInterceptorFactory(id, (NSRect frame), {
         MFSystemRenameDepthIncrement();
         id result = OGImpl(frame);
         MFSystemRenameDepthDecrement();
@@ -245,7 +245,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 
 + (void)load {
     
-    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(initTextCell:), MakeInterceptorFactory(id, (id value), {
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(initTextCell:), MakeInterceptorFactory(id, (id value), {
         MFSystemRenameDepthIncrement();
         id result = OGImpl(value);
         MFSystemRenameDepthDecrement();
@@ -267,7 +267,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 @implementation NSObject (MFUIStringAnnotation_NSLegacyItem) /// Can't create a category on NSLegacySegmentItem due to linker errors
 
 + (void)load {
-    swizzleMethodOnClassAndSubclasses(objc_getClass("NSLegacySegmentItem"), @"AppKit", @selector(_recalcRectsForCell:), MakeInterceptorFactory(void, (id cell), {
+    swizzleMethodOnClassAndSubclasses(objc_getClass("NSLegacySegmentItem"), @{ @"framework": @"AppKit" }, @selector(_recalcRectsForCell:), MakeInterceptorFactory(void, (id cell), {
         MFSystemRenameDepthIncrement();
         OGImpl(cell);
         MFSystemRenameDepthDecrement();
@@ -287,20 +287,20 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 
 + (void)load {
     
-    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(_computeDisplayedSizeOfString:), MakeInterceptorFactory(NSSize, (id string), {
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(_computeDisplayedSizeOfString:), MakeInterceptorFactory(NSSize, (id string), {
         MFSystemRenameDepthIncrement();
         NSSize result = OGImpl(string);
         MFSystemRenameDepthDecrement();
         return result;
     }));
     
-    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(_resetToolTipIfNecessary), MakeInterceptorFactory(void, (), {
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(_resetToolTipIfNecessary), MakeInterceptorFactory(void, (), {
         MFSystemRenameDepthIncrement();
         OGImpl();
         MFSystemRenameDepthDecrement();
     }));
     
-    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(drawLabel:inRect:), MakeInterceptorFactory(void, (bool drawLabel, NSRect rect), {
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(drawLabel:inRect:), MakeInterceptorFactory(void, (bool drawLabel, NSRect rect), {
         MFSystemRenameDepthIncrement();
         OGImpl(drawLabel, rect);
         MFSystemRenameDepthDecrement();

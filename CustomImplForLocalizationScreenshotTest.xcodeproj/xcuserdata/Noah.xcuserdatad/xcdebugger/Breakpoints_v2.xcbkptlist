@@ -78,8 +78,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Utility.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "65"
-            endingLineNumber = "65"
+            startingLineNumber = "266"
+            endingLineNumber = "266"
             landmarkName = "BREAKPOINT(context)"
             landmarkType = "9">
          </BreakpointContent>
@@ -101,31 +101,7 @@
                   symbolName = "*0x19a6ac6f0"
                   usesParentBreakpointCondition = "Yes">
                </Location>
-               <Location
-                  uuid = "FAA0D01C-9C8F-4570-BDFA-FDA4FC29A6F5 - ded038ad2d30536f"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "*0x19a6ac6f0"
-                  usesParentBreakpointCondition = "Yes">
-               </Location>
             </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "1BC5E90F-F706-4D4F-A3B8-64840FA21AFF"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Swizzle.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "119"
-            endingLineNumber = "119"
-            landmarkName = "_subclassesOfClass(baseClass, framework, includeBaseClass)"
-            landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

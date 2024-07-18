@@ -9,9 +9,210 @@
 @import ObjectiveC.runtime;
 @import AppKit;
 #import "NSString+Additions.h"
-
+#import "dlfcn.h"
+#import "objc/runtime.h"
 
 @implementation Utility
+
+NSArray<Class> *searchClasses(NSDictionary<MFClassSearchCriterion, id> *criteria) {
+
+    /// Validate
+    assert([criteria isKindOfClass:[NSDictionary class]]);
+    
+    /// Extract criteria
+    Protocol *protocol = criteria[MFClassSearchCriterionProtocol];
+    Class baseClass = criteria[MFClassSearchCriterionSuperclass];
+    NSString *namePrefixNS = criteria[MFClassSearchCriterionClassNamePrefix];
+    NSString *frameworkNameNS = criteria[MFClassSearchCriterionFrameworkName];
+    
+    /// Validate 
+    /// - at least one criterion
+    assert(protocol != nil || baseClass != nil || namePrefixNS != nil || frameworkNameNS != nil);
+    
+    /// Validate 
+    /// - no extra criteria
+    NSMutableDictionary *criteriaMutable = criteria.mutableCopy;
+    criteriaMutable[MFClassSearchCriterionProtocol] = nil;
+    criteriaMutable[MFClassSearchCriterionSuperclass] = nil;
+    criteriaMutable[MFClassSearchCriterionClassNamePrefix] = nil;
+    criteriaMutable[MFClassSearchCriterionFrameworkName] = nil;
+    assert(criteriaMutable.count == 0);
+    
+    /// Preprocess baseClass
+//    BOOL baseClassIsMetaClass = class_isMetaClass(baseClass);
+//    NSString *baseClassName = NSStringFromClass(baseClass);
+    
+    /// Preprocess namePrefix
+    const char *namePrefix = NULL;
+    if (namePrefixNS) {
+        namePrefix = [namePrefixNS cStringUsingEncoding:NSUTF8StringEncoding];
+    }
+    
+    /// Preprocess frameworkName
+    
+    void *frameworkHandle = NULL;
+    if (frameworkNameNS != nil) {
+        const char *frameworkName = [frameworkNameNS cStringUsingEncoding:NSUTF8StringEncoding];
+        const char *frameworkPath = searchFrameworkPath(frameworkName);
+        frameworkHandle = dlopen(frameworkPath, RTLD_LAZY | RTLD_GLOBAL); /// Maybe we could/should use `RTLD_NOLOAD` here for better performance?
+        assert(frameworkHandle != NULL);
+    }
+    
+    /// Find classes
+    /// `objc_enumerateClasses` is only available on macOS 13.0 and later. Alternatives are  `objc_copyClassNamesForImage`, `objc_copyClassList`, `objc_getClassList`.
+    
+    NSMutableArray *result = [NSMutableArray array];
+    objc_enumerateClasses(frameworkHandle, namePrefix, protocol, baseClass, ^(Class _Nonnull aClass, BOOL * _Nonnull stop){
+        [result addObject:aClass];
+    });
+    
+    /// Release framework handle
+    dlclose(frameworkHandle);
+    
+    /// Return
+    return result;
+}
+
+const char *searchFrameworkPath(const char *frameworkName) {
+    
+    /// Can't get dlopen to find any frameworks without hardcoding the path, so we're making our own framework searcher
+    
+    /// Preprocess framework name
+    char *frameworkSubpath = NULL;
+    asprintf(&frameworkSubpath, "%s.framework/%s", frameworkName, frameworkName);
+    
+    /// Define constants
+    const char *frameworkSearchPaths[] = {
+        "/System/Library/Frameworks",
+        "/System/Library/PrivateFrameworks",
+        "/Library/Frameworks",
+    };
+    
+    /// Search for the framework
+    const char *result = NULL;
+    for (int i = 0; i < sizeof(frameworkSearchPaths)/sizeof(char *); i++) {
+        
+        const char *frameworkSearchPath = frameworkSearchPaths[i];
+        
+        char *frameworkPath;
+        asprintf(&frameworkPath, "%s/%s", frameworkSearchPath, frameworkSubpath);
+        
+        void *handle = dlopen(frameworkPath, RTLD_LAZY | RTLD_GLOBAL); /// Should we use `RTLD_NOLOAD`? Not sure about the option flags.
+        
+        bool frameworkWasFound = handle != NULL;
+        if (frameworkWasFound) {
+            int closeRet = dlclose(handle);
+            if (closeRet != 0) {
+                char *error = dlerror();
+                NSLog(@"dlclose failed with error %s", error);
+                assert(false);
+            }
+        }
+        
+        if (frameworkWasFound) {
+            result = frameworkPath;
+            break;
+        }
+    }
+    
+    /// Return frameworkPath
+    if (result != NULL) {
+        return result;
+    }
+    
+    ///
+    /// Fallback: objc runtime
+    ///
+    
+    /// Not sure this is actually slower than the main appriach. Should be more robust though.
+    
+    char *frameworkSubpath2 = NULL; /// Why are we using another subpath: When using dlopen `...AppKit.framework/AppKit` works, but in the objc imageNames `...AppKit.framework/Versions/C/AppKit` appears.
+    asprintf(&frameworkSubpath2, "%s.framework", frameworkName);
+    
+    unsigned int imageCount;
+    const char **imagePaths = objc_copyImageNames(&imageCount); /// The API is called imageNames, but it returns full framework paths from what I can tell.
+    
+    for (int i = 0; i < imageCount; i++) {
+        const char *imagePath = imagePaths[i];
+        bool frameworkSubpathIsInsideImagepath = strstr(imagePath, frameworkSubpath2) != NULL;
+        if (frameworkSubpathIsInsideImagepath) {
+            result = imagePath;
+            break;
+        }
+    }
+    
+    free(imagePaths);
+    
+    assert(result != NULL);
+    return result;
+    
+}
+
+
+BOOL classInheritsMethod(Class class, SEL selector) {
+    
+    /// Returns YES if the class inherits the method for `selector` from its superclass, instead of defining its own implementation.
+    /// Note: Also see `class_copyMethodList`
+    
+    /// Main check
+    Method classMethod = class_getInstanceMethod(class, selector);
+    Method superclassMethod = class_getInstanceMethod(class_getSuperclass(class), selector);
+    BOOL classInherits = classMethod == superclassMethod;
+    
+    /// ?
+    assert(classMethod != NULL); /// Not sure if this is good or necessary
+    
+    /// Return
+    return classInherits;
+}
+
+NSArray<Class> *getClassesFromFramework(NSString *frameworkNameNS) {
+    
+    /// Unused at the moment
+    ///     - but might be useful if we want to support pre macOS 13.0
+    assert(false);
+    
+    /// Trying to write cool confusing c code without comments 😎
+    
+    static NSMutableDictionary *_cache = nil;
+    if (_cache == nil) {
+        _cache = [NSMutableDictionary dictionary];
+    }
+    
+    NSArray *resultFromCache = _cache[frameworkNameNS];
+    if (resultFromCache != nil) {
+        return resultFromCache;
+    }
+    
+    bool frameworkIsSpecified = frameworkNameNS != nil && frameworkNameNS.length != 0;
+    
+    char *frameworkPathComponent = NULL;
+    if (frameworkIsSpecified) {
+        const char *frameworkName = [frameworkNameNS cStringUsingEncoding:NSUTF8StringEncoding];
+        asprintf(&frameworkPathComponent, "/%s.framework/", frameworkName);
+    }
+    
+    unsigned int count;
+    Class *classes = objc_copyClassList(&count);
+    
+    NSMutableArray<Class> *result = [NSMutableArray array];
+    
+    for (int i = 0; i < count; i++) {
+        
+        Class class = classes[i];
+        
+        bool classIsInFramework = !frameworkIsSpecified || (strstr(class_getImageName(class), frameworkPathComponent) != NULL);
+        
+        if (classIsInFramework) {
+            [result addObject:class];
+        }
+    }
+    free(classes);
+    
+    _cache[frameworkNameNS] = result;
+    
+    return result;
+}
 
 #define MFRecursionCounterBaseKey @"MFRecursionCounterBaseKey"
 
@@ -255,5 +456,7 @@ void printClassHierarchy(NSObject *obj) {
     /// Return
     return result;
 }
+
+
 
 @end

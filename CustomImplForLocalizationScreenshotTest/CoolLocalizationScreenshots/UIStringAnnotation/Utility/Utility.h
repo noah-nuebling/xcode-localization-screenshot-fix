@@ -12,6 +12,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface Utility : NSObject
 
+typedef NSString * MFClassSearchCriterion NS_TYPED_ENUM;
+#define MFClassSearchCriterionFrameworkName @"framework"
+#define MFClassSearchCriterionClassNamePrefix @"namePrefix"
+#define MFClassSearchCriterionProtocol @"protocol"
+#define MFClassSearchCriterionSuperclass @"superclass"
+
+NSArray<Class> *searchClasses(NSDictionary<MFClassSearchCriterion, id> *criteria);
+BOOL classInheritsMethod(Class class, SEL selector);
+
 void BREAKPOINT(id context);
 
 void listMethods(id obj);

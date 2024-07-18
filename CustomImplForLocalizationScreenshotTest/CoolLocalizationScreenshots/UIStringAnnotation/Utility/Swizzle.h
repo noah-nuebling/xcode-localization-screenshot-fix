@@ -6,7 +6,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "PreprocessorMagic.h"
+#import "Utility.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -17,7 +17,7 @@ typedef IMP OriginalImplementation;
 typedef InterceptorBlock _Nonnull (^InterceptorFactory)(Class originalClass, SEL originalSelector, OriginalImplementation _Nonnull originalImplementation);
 
 void swizzleMethod(Class cls, SEL originalSelector, InterceptorFactory interceptorFactory);
-void swizzleMethodOnClassAndSubclasses(Class baseClass, NSString *framework, SEL originalSelector, InterceptorFactory interceptorFactory);
+void swizzleMethodOnClassAndSubclasses(Class baseClass, NSDictionary<MFClassSearchCriterion, id> *subclassSearchCriteria, SEL originalSelector, InterceptorFactory interceptorFactory);
 
 #define MakeInterceptorFactory(__ReturnType, __Arguments, __OnIntercept...) \
     (id)                                                                /** Cast the entire factory block to id to silence type-checker */ \
