@@ -562,7 +562,7 @@ static void postDive(NSString *nibName, NSString *fileName) {
             }
             
             /// Get the axElement representing the column
-            NSTableHeaderCell *matchingHeaderCell = matchingColumn.headerCell;
+            NSTableHeaderCell *matchingHeaderCell = [Utility getRepresentingAccessibilityElementForObject:matchingColumn];
             
             /// Attach annotation
             /// Why we are using `forceValidation_`:
@@ -633,15 +633,9 @@ static void postDive(NSString *nibName, NSString *fileName) {
                     }
                     assert(matchingItem != nil);
                     
-                    /// Attach annotation to tabView
-                    ///     Each single tabViewButton is selectable in the Accessibility Inspector. It would be ideal to set our annotation to that.
-                    ///     But I can't find the corresponding elements in the view hierarchy or the accessibility hierarchy.
-                    ///     So we just assign the annotation to the tabView.
-                    ///     We `forceValidation_` since the `matchingItem` code already serves as validation that the uiString occurs in the tabView.
-                    NSTabView *tabView = matchingItem.tabView;
-                    NSAccessibilityElement *annotation =
-                    [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
-                    [UIStringAnnotationHelper forceValidation_addAnnotations:@[annotation] toAccessibilityElement:tabView];
+                    id axElement = [Utility getRepresentingAccessibilityElementForObject:matchingItem];
+                    NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+                    [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:axElement];
                     
                     /// Flag
                     validation_lastLocalizedStringWasNotUsed = NO;

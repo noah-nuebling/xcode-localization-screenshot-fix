@@ -152,8 +152,8 @@
     _TEST_UISTRING("_codeSegmentedControl segmentOne tooltip", ^(NSString *newValue) { [self->_codeSegmentedControl setToolTip:newValue forSegment:0]; } );
     
     TEST_UISTRING(_codeTabView.toolTip);
-    TEST_UISTRING(_codeTabView.tabViewItems[0].toolTip);
     TEST_UISTRING(_codeTabView.tabViewItems[0].label);
+    TEST_UISTRING(_codeTabView.tabViewItems[0].toolTip);
     
     TEST_UISTRING(_codeOutlineView.tableColumns[0].title);
     

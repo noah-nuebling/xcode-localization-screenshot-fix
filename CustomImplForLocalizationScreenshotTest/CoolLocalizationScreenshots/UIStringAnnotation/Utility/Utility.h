@@ -19,7 +19,7 @@ void printClassHierarchy(NSObject *obj);
 
 NSString *pureString(id value);
 + (NSObject *)getRepresentingToolTipHolderForObject:(NSObject *)object;
-+ (NSObject <NSAccessibility>* _Nullable)getRepresentingAccessibilityElementForObject:(NSObject <NSAccessibility>*)object ;
++ (NSObject <NSAccessibility> * _Nullable)getRepresentingAccessibilityElementForObject:(id)object;
 
 void countRecursions(id recursionDepthKey, void (^workload)(NSInteger recursionDepth));
 

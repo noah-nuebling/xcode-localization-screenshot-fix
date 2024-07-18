@@ -14,66 +14,6 @@
 
 @implementation Swizzle
 
-void swizzleMethodOnClassAndSubclasses(Class baseClass, NSString *framework, SEL originalSelector, InterceptorFactory interceptorFactory) {
-    
-    ///
-    /// Explanation for arg `class`:
-    ///     The class whose methods to swap out. Pass in a metaclass () to swap out class methods. Otherwise instance methods will be swapped out.
-    ///     You can get the metaclass of a class by calling `object_getClass()` on it.
-    /// Explanation for `selector`:
-    ///     The name of the method on class you want to intercept.
-    /// Explanation for arg `includeSubclasses`:
-    ///     Set this to true to swap out the methods for `class` as well as *all* subclasses of `class`. If you set this to false, only subclasses which inherit the swapped out methods from `class` will be affected (And subclasses which override the swapped out methods won't be affected.). Setting this to true,might make this function slow. (Which might affect app startup time)
-    /// Explanation for arg `framework`:
-    ///     Set this to a framework name such as @"AppKit" to only swizzle subclasses from that framework. Use this option with includeSubclasses=true.
-    ///     This should be useful when swizzling subclasses of NSObject.
-    ///     Set this to nil to not filter out any subclasses.
-    /// Expanation for arg `interceptorFactory`:
-    ///     Contains the code that is executed when the method is intercepted. Use MakeInterceptorFactory() to create. +
-    
-    /// Log
-    NSLog(@"Swizzling [%s %s] including subclasses. filterToFramework: %@ (Class is in %s)", class_getName(baseClass), sel_getName(originalSelector), framework, class_getImageName(baseClass));
-    
-    /// Validate args
-    assert(baseClass != nil);
-    assert(interceptorFactory != nil);
-    
-    /// Find subclasses
-    NSArray <NSDictionary *> *subclasses = _subclassesOfClass(baseClass, framework, false);
-    
-    /// Declare validation state
-    BOOL someClassHasBeenSwizzled = NO;
-    
-    /// Swizzle subclasses
-    for (NSDictionary *subclassDict in subclasses) {
-
-        Class subclass = subclassDict[@"class"];
-        
-        /// Skip
-        ///     We only need to swizzle one method, and then all its subclasses will also be swizzled - as long as they inherit the method and don't override it.
-        if (![subclass instancesRespondToSelector:originalSelector]
-            || classInheritsMethod(subclass, originalSelector)) continue;
-        
-        /// Swizzle
-        swizzleMethod(subclass, originalSelector, interceptorFactory);
-        someClassHasBeenSwizzled = YES;
-    }
-    
-    /// Swizzle on baseClass
-    ///     We always (\* mostly) want to at least swizzle on the baseClass. Even if the baseClass, doesn't define it's own implementation for `originalSelector`, and instead inherits the implementation.
-    ///     That way all the subclasses inherit the swizzled method from the baseClass.
-    ///     Except, if `baseClass` doesn't respond to the `originalSelector` at all, then we skip this.
-    
-    if (class_getInstanceMethod(baseClass, originalSelector) != nil) {
-        swizzleMethod(baseClass, originalSelector, interceptorFactory);
-        someClassHasBeenSwizzled = YES;
-    }
-    
-    /// Validate
-    assert(someClassHasBeenSwizzled);
-}
-
-
 void swizzleMethod(Class class, SEL originalSelector, InterceptorFactory interceptorFactory) {
     
     /// Log
@@ -108,6 +48,65 @@ void swizzleMethod(Class class, SEL originalSelector, InterceptorFactory interce
     /// Replace implementation
     method_setImplementation(originalMethod, interceptorImplementation);
 }
+
+void swizzleMethodOnClassAndSubclasses(Class baseClass, NSString *framework, SEL originalSelector, InterceptorFactory interceptorFactory) {
+    
+    ///
+    /// Explanation for arg `class`:
+    ///     The class whose methods to swap out. Pass in a metaclass () to swap out class methods. Otherwise instance methods will be swapped out.
+    ///     You can get the metaclass of a class by calling `object_getClass()` on it.
+    /// Explanation for arg `framework`:
+    ///     Set this to a framework name such as @"AppKit" to only swizzle subclasses from that framework. Use this option with includeSubclasses=true.
+    ///     This should be useful when swizzling subclasses of NSObject.
+    ///     Set this to nil to not filter out any subclasses.
+    /// Explanation for `originalSelector`:
+    ///     The name of the method on class you want to intercept.
+    /// Expanation for arg `interceptorFactory`:
+    ///     Contains the code that is executed when the method is intercepted. Use MakeInterceptorFactory() to create.
+    
+    /// Log
+    NSLog(@"Swizzling [%s %s] including subclasses. filterToFramework: %@ (Class is in %s)", class_getName(baseClass), sel_getName(originalSelector), framework, class_getImageName(baseClass));
+    
+    /// Validate args
+    assert(baseClass != nil);
+    assert(interceptorFactory != nil);
+    
+    /// Find subclasses
+    NSArray <NSDictionary *> *subclasses = _subclassesOfClass(baseClass, framework, false);
+    
+    /// Declare validation state
+    BOOL someClassHasBeenSwizzled = NO;
+    
+    /// Swizzle subclasses
+    for (NSDictionary *subclassDict in subclasses) {
+        
+        Class subclass = subclassDict[@"class"];
+        
+        /// Skip
+        ///     We only need to swizzle one method, and then all its subclasses will also be swizzled - as long as they inherit the method and don't override it.
+        if (![subclass instancesRespondToSelector:originalSelector]
+            || classInheritsMethod(subclass, originalSelector)) continue;
+        
+        /// Swizzle
+        swizzleMethod(subclass, originalSelector, interceptorFactory);
+        someClassHasBeenSwizzled = YES;
+    }
+    
+    /// Swizzle on baseClass
+    ///     We always (\* mostly) want to at least swizzle on the baseClass. Even if the baseClass, doesn't define it's own implementation for `originalSelector`, and instead inherits the implementation.
+    ///     That way all the subclasses inherit the swizzled method from the baseClass.
+    ///     Except, if `baseClass` doesn't respond to the `originalSelector` at all, then we skip this.
+    
+    if ([baseClass instancesRespondToSelector:originalSelector]) {
+        swizzleMethod(baseClass, originalSelector, interceptorFactory);
+        someClassHasBeenSwizzled = YES;
+    }
+    
+    /// Validate
+    assert(someClassHasBeenSwizzled);
+}
+
+
 
 ///
 /// Other

@@ -48,6 +48,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
     return _menuItemsRenamedBySystem;
 }
 
+
 #pragma mark - NSApplication swizzling
 
 ///

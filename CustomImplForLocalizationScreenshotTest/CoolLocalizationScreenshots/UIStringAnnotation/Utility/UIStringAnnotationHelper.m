@@ -352,7 +352,25 @@
             BOOL uiStringIsSubtitle = [[((NSWindow *)object) subtitle] isEqual:uiString];
             objectContainsUIString = uiStringIsTitle || uiStringIsSubtitle;
         }
+    }
+    
+    if (!objectContainsUIString) {
         
+        /// Special case: NSTabView
+        /// Explanation:
+        ///     We can't find any axElement that represents the tabViewItem's directly
+        ///         (Also see notes on that inside `getRepresentingAccessibilityElementForObject:`)
+        ///     That's why we allow attaching the annotations directly to the tabView instead
+        
+        if ([object isKindOfClass:[NSTabView class]]) {
+            NSTabView *tabView = (id)object;
+            for (NSTabViewItem *item in tabView.tabViewItems) {
+                BOOL uiStringIsLabel = [[item label] isEqual:uiString];
+                BOOL uiStringIsToolTip = [[item toolTip] isEqual:uiString];
+                objectContainsUIString = uiStringIsLabel || uiStringIsToolTip;
+                if (objectContainsUIString) break;
+            }
+        }
     }
     
     if (NO && !objectContainsUIString) {

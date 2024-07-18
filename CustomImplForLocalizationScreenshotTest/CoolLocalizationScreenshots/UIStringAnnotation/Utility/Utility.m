@@ -183,7 +183,7 @@ void printClassHierarchy(NSObject *obj) {
     }
 }
 
-+ (NSObject <NSAccessibility> * _Nullable)getRepresentingAccessibilityElementForObject:(NSObject<NSAccessibility> *)object {
++ (NSObject <NSAccessibility> * _Nullable)getRepresentingAccessibilityElementForObject:(id)object {
     
     /// This function tries to to find the object that represents `object` in the accessibility hierarchy. This can be `object` itself or a related object.
     /// Explanation:
@@ -194,10 +194,34 @@ void printClassHierarchy(NSObject *obj) {
     /// This function is made for this NSCell scenario, but might also work in other situations.
 
     
-    if ([object isAccessibilityElement]) {
+    /// Simple case
+    if ([object respondsToSelector:@selector(isAccessibilityElement)] && [object isAccessibilityElement]) {
         return object;
     }
     
+    /// Special cases
+    if ([object isKindOfClass:[NSTableColumn class]]) {
+        return [(NSTableColumn *)object headerCell];
+    }
+    if ([object isKindOfClass:objc_getClass("NSSegmentItemLabelCell")]) {
+        id segmentItemLabelView = [(id)object controlView];
+        object = segmentItemLabelView; /// We don't return here so this is handled by the if (NSSegmentItemLabelView) statement below.
+    }
+    if ([object isKindOfClass:objc_getClass("NSSegmentItemLabelView")]) {
+        NSSegmentedCell *cell = [(id)[[(id)object superview] superview] cell];
+        assert([cell respondsToSelector:@selector(isAccessibilityElement)] && [cell isAccessibilityElement]);
+        return cell;
+    }
+    if ([object isKindOfClass:[NSTabViewItem class]]) {
+        /// Get tabView
+        ///     Each single tabViewButton is selectable in the Accessibility Inspector. It would be ideal to set our annotation to that.
+        ///     But I can't find the corresponding elements in the view hierarchy or the accessibility hierarchy.
+        ///     So we just assign the annotation to the tabView.
+        NSTabView *tabView = [(NSTabViewItem *)object tabView];
+        return tabView;
+    }
+    
+    /// Default: Search childen
     NSArray *children = [object accessibilityChildren];
     for (NSObject<NSAccessibility> *child in children) {
         NSObject<NSAccessibility> *childRepresenter = [self getRepresentingAccessibilityElementForObject:child];
@@ -206,6 +230,10 @@ void printClassHierarchy(NSObject *obj) {
         }
     }
     
+    /// Nil return
+    id axParent = [object accessibilityParent];
+    NSLog(@"Error: Couldn't find accessibilityElement representing object %@. AXParent: %@", object, axParent);
+    assert(false);
     return nil;
 }
 

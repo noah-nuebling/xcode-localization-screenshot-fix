@@ -16,79 +16,167 @@
 #import "Utility.h"
 #import "NSString+Additions.h"
 #import "objc/runtime.h"
+#import "NSRunLoop+Additions.h"
 
 @interface UIStringChangeInterceptor : NSObject
 @end
 
 @implementation UIStringChangeInterceptor
 
-+ (NSArray <NSDictionary *>*)extractBestElementsFromLocalizedStringRecordForObject:(id<NSAccessibility>)object withChangedAttribute:(NSAccessibilityAttributeName)changedAttribute {
++ (void)load {
+    [NSRunLoop.mainRunLoop observeLoopActivities:kCFRunLoopBeforeTimers withCallback:^(CFRunLoopObserverRef  _Nonnull observer, CFRunLoopActivity activity) { /// kCFRunLoopBeforeTimers is the earliest time in the runLoop iteration we can observe.
+        NSArray *unhandledStrings = NSLocalizedStringRecord.queue._rawStorage;
+        if (unhandledStrings.count > 0) {
+            NSLog(@"UIStringChangeDetector: Unhandled localizedStrings after last runLoop iteration: %@", unhandledStrings);
+            assert(false);
+        }
+    }];
+}
+
++ (void)uiStringHasChangedFrom:(id)previousUIStringRaw toValue:(id)updatedUIStringRaw onObject:(id)object selector:(SEL)selector recursionDepth:(NSInteger)recursionDepth {
     
-    /// TODO: Make this work
+    /// Validate thread
+    assert(NSThread.currentThread.isMainThread);
     
-    /// Get localized strings composing this upate
-    NSArray *localizedStringsComposingThisUpdate = nil;
+    /// Validate args
+    BOOL isString = updatedUIStringRaw == nil || [updatedUIStringRaw isKindOfClass:[NSString class]] || [updatedUIStringRaw isKindOfClass:[NSAttributedString class]];
+    if (!isString) {
+            NSLog(@"    UIStringChangeDetector: New value %@ is not a string", updatedUIStringRaw);
+            assert(false);
+            return;
+    }
     
-    /// Get the updated UI string from the object
-    NSDictionary *uiStrings = [UIStringAnnotationHelper getUserFacingStringsFromAccessibilityElement:object];
-    NSString *updatedUIString = uiStrings[changedAttribute];
+    /// Convert to pure NSString
+    NSString *previousUIStringPure = pureString(previousUIStringRaw);
+    NSString *updatedUIStringPure = pureString(updatedUIStringRaw);
+
+    /// Skip - default cases
+    if (MFIsLoadingNib() || MFSystemIsChangingUIStrings()) {
+        return;
+    }
+    if (previousUIStringPure == updatedUIStringPure || [previousUIStringPure isEqual:updatedUIStringPure]) {
+        return;
+    }
     
-    /// Get NSLocalizedString()'s which make up the new UIString
+    /// Set up recursion handling
+    
+    static BOOL _doWaitForNextRecursion = NO;
+    
+    if (!_doWaitForNextRecursion && recursionDepth > 0) { /// Normally, we only look at the baseLevel call (recursionDepth == 0) and ignore the recursions, except if the `_doWaitForNextRecursion` flag is set.
+//        return;
+    }
+    _doWaitForNextRecursion = NO;
+    
+    #define waitForNextRecursion() \
+        assert(recursionDepth != 0); /** We're always notified of the deepest recursion first, so when we see recursionDepth 0 that was the last recursion */\
+        NSLog(@"    UIStringChangeDetector: [%s \"%@\"] (recursionDepth %ld) (on %@) --- Waiting for next recursion", sel_getName(selector), updatedUIStringPure, recursionDepth, object); \
+        _doWaitForNextRecursion = YES; \
+        return;
+    
+//    /// Skip - special cases
+//    if ([object isKindOfClass:objc_getClass("NSSegmentItem")]) { /// NSSegmentItem doesn't have a reference to the NSAccessibilityItem that represents it in the axHierarchy. And `NSSegmentItemLabelView -setStringValue:` is called right after this (with recursionDepth 0)
+//        return;
+//    }
+    
+    /// Special recursion cases
+    //    if () {
+    //        waitForNextRecursion()
+    //    }
+    
+    /// Log
+    NSLog(@"    UIStringChangeDetector: [%s \"%@\"] (recursionDepth %ld) (on %@)", sel_getName(selector), updatedUIStringPure, recursionDepth, object);
+    
+    ///
+    /// Main work
+    ///
+    
+    /// Get NSLocalizedStrings return-values that make up the updatedUIString
+    
+    NSArray *localizedStringsComposingUpdatedUIString = nil;
+    
     if (_localizedStringsComposingNextUpdate != nil) {
         
         /// Explanation:
         ///     This case is intended to occur when the application code has called NSLocalizedString() several times, and then composed the resulting raw localizedStrings together
         ///     before setting them as a UIString to the UIElement `object`. In this case, we can't determine with high confidence which entries in the
         ///     NSLocalizedStringRecord belong to `object`, since no UIStrings on `object` exactly match any of the strings in the NSLocalizedStringRecord.
-        ///     So for this case, we require the application code to call `nextUIStringUpdateIsComposedOfRawLocalizedStrings:`
+        ///     So for this case, we require the application code to call `nextUIStringUpdateIsComposedOfNSLocalizedStrings:`
         ///     to let us know which raw localized strings compose the new UIString that was set on `object`.
         
-        assert(![_localizedStringsComposingNextUpdate containsObject:updatedUIString]);
-        localizedStringsComposingThisUpdate = _localizedStringsComposingNextUpdate;
+        assert(![_localizedStringsComposingNextUpdate containsObject:updatedUIStringPure]);
+        localizedStringsComposingUpdatedUIString = _localizedStringsComposingNextUpdate;
         
     } else {
         
         /// Explanation:
-        ///     This means that the UIString that changed on the element is exactly equal to one of the entries in the NSLocalizedStringRecord.
-        ///     So we have high confidence that exactly this entry in the NSLocalizedStringRecord belongs to `object`, and we'll only extract that one.
-        ///     This
+        ///     In the default case, we assume that the UIString that changed on the element is exactly equal to one of the entries in the NSLocalizedStringRecord.
+        ///     If that's the case, we have high confidence that exactly this entry in the NSLocalizedStringRecord belongs to `object`, and we'll only extract that one.
+        ///     If we can't find the string in the LocalizedStringRecord, we'll throw an error/crash.
         
-        localizedStringsComposingThisUpdate = @[updatedUIString];
+        localizedStringsComposingUpdatedUIString = @[updatedUIStringPure];
     }
     
     /// Update global state
     _localizedStringsComposingNextUpdate = nil;
     
+    /// Validate
+    assert(localizedStringsComposingUpdatedUIString != nil && localizedStringsComposingUpdatedUIString.count > 0);
+    
     /// Find matches in NSLocalizedStringRecord
+    __block BOOL everyStringWasMatched = YES;
     NSMutableArray <NSDictionary *> *matchingLocalizedStringRecords = nil;
-    for (NSString *localizedString in localizedStringsComposingThisUpdate) {
-        for (NSDictionary *localizedStringRecord in NSLocalizedStringRecord.queue.peekAll) {
-            [NSLocalizedStringRecord unpackRecord:localizedStringRecord callback:^(NSString * _Nonnull key, NSString * _Nonnull value, NSString * _Nonnull table, NSString * _Nonnull result) {
-                BOOL isPerfectMatch = [result isEqual:localizedString] && result.length > 0;
-                if (isPerfectMatch) {
+    
+    for (NSDictionary *localizedStringRecord in NSLocalizedStringRecord.queue.peekAll) {
+        [NSLocalizedStringRecord unpackRecord:localizedStringRecord callback:^(NSString * _Nonnull key, NSString * _Nonnull value, NSString * _Nonnull table, NSString * _Nonnull localizedStringFromRecord) {
+            
+            for (NSString *localizedStringComposingUpdatedUIString in localizedStringsComposingUpdatedUIString) {
+                BOOL isAMatch = [localizedStringFromRecord isEqual:localizedStringComposingUpdatedUIString] && localizedStringFromRecord.length > 0;
+                if (isAMatch) {
                     [matchingLocalizedStringRecords addObject:localizedStringRecord];
+                    break;
                 }
-            }];
-        }
+            }
+            
+            everyStringWasMatched = NO;
+            assert(false); /// No match found
+        }];
     }
+         
     
     /// Validate
-    if (matchingLocalizedStringRecords.count == localizedStringsComposingThisUpdate.count) {
+    if (!everyStringWasMatched || matchingLocalizedStringRecords.count == localizedStringsComposingUpdatedUIString.count) { /// I don't think we need the .count check.
         NSLog(@"UIStringChangeDetector: Something went wrong! Remember to call `nextUIStringUpdateIsComposedOfRawLocalizedStrings:` before setting a UIString to an object - if that UIString has been altered after being retrieved from NSLocalizedString()");
         assert(false);
     }
     
-    /// Remove the matching records from the record 
+    /// Remove the matching records from the record
     ///     (the record of records? weird naming)
     ///     (We totally misuse the queue here. Should probably not use queue at all.)
     [NSLocalizedStringRecord.queue._rawStorage removeObjectsInArray:matchingLocalizedStringRecords];
     
-    /// Return
-    return matchingLocalizedStringRecords;
+    /// Find accessibilityElement for `object`
+    id<NSAccessibility> axObject = [Utility getRepresentingAccessibilityElementForObject:object];
+    
+    /// Attach annotations to the object
+    for (NSDictionary *record in matchingLocalizedStringRecords) {
+        
+        [NSLocalizedStringRecord unpackRecord:record callback:^(NSString * _Nonnull key, NSString * _Nonnull value, NSString * _Nonnull table, NSString * _Nonnull localizedStringFromRecord) {
+            NSString *mergedUIString = [localizedStringFromRecord isEqual:updatedUIStringPure] ? nil : updatedUIStringPure;
+            NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:key translatedString:localizedStringFromRecord developmentString:value translatedStringNibKey:nil mergedUIString:mergedUIString];
+            [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:axObject];
+        }];
+    }
 }
 
+///
+/// Extra interface
+///     for special cases
+///
+
 static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
-+ (void)nextUIStringUpdateIsComposedOfRawLocalizedStrings:(NSArray <NSString *>*)rawLocalizedStrings {
++ (void)nextUIStringUpdateIsComposedOfNSLocalizedStrings:(NSArray <NSString *>*)rawLocalizedStrings {
+    
+    assert(NSThread.currentThread.isMainThread); /// Only call this from the main thread to prevent race conditions
     
     assert(_localizedStringsComposingNextUpdate == nil);
     _localizedStringsComposingNextUpdate = rawLocalizedStrings;
@@ -99,74 +187,78 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 #pragma mark - Idea: Swizzle setters
 
 /**
- 
- Placeholder setters from lldb:
-    (I found these by using `breakpoint set -n setPlaceholderString:` and `breakpoint set -n setPlaceholderAttributedString:`
-    and then seeing where lldb put the breakpoints in the Breakpoints Navigator.)
- 
- ```
- Cells:
- -[NSTextFieldCell setPlaceholderString:]
- -[NSTextFieldCell setPlaceholderAttributedString:]
- -[NSFormCell setPlaceholderString:]
- -[NSFormCell setPlaceholderAttributedString:]
- -[NSPathCell setPlaceholderString:]
- -[NSPathCell setPlaceholderAttributedString:]
- 
- NSTextView:
- -[NSTextView(NSPrivate) setPlaceholderString:]
- -[NSTextView (NSPrivate) setPlaceholderAttributedString:]
- 
- Cell-backed views:
- -[NSTextField setPlaceholderString:]
- -[NSTextField setPlaceholderAttributedString:]
- -[NSPathControl setPlaceholderString:]
- -[NSPathControl setPlaceholderAttributedString:]
- 
- Private stuff for specific apps:
- -[ABCollectionViewltem setPlaceholderString:]
- -[NSSearchToolbarltem(NSSearchToolbarPrivateForNews) setPlaceholderString]
- ```
- 
- ToolTip setters from lldb:
-    (Found these with `breakpoint set -n setPlaceholderString:` and `image lookup --regex --name ".*[Ss]et.*[Tt]ool[Tt]ip.*" -- AppKit`
- 
- ```
 
- NSObject subclasses:
- -[NSMenuItem setToolTip:]
- -[NSStatusItem setToolTip:]
- -[NSWindowTab setToolTip:]
- -[NSTabBarItem setToolTip:]
- -[NSTabViewItem setToolTip:]
- -[NSToolbarItem setToolTip:] 
- -[NSSegmentItem setToolTip:] x redundant due to `NSSegmentItemLabelCell`
+ Sub Idea: Search for all the relevant method names using lldb:
  
- NSView:
- -[NSView setToolTip:]
+    (We don't need this. Instead we plan to build a validator that will alert us if any method is still unhandled, and then we can just add them one by one.)
  
- NSView subclasses:
- -[NSTableView setToolTip:]
- -[NSTabButton setToolTip:]
- 
- Special names:
+     Placeholder setters from lldb:
+        (I found these by using `breakpoint set -n setPlaceholderString:` and `breakpoint set -n setPlaceholderAttributedString:`
+        and then seeing where lldb put the breakpoints in the Breakpoints Navigator.)
+     
+     ```
+     Cells:
+     -[NSTextFieldCell setPlaceholderString:]
+     -[NSTextFieldCell setPlaceholderAttributedString:]
+     -[NSFormCell setPlaceholderString:]
+     -[NSFormCell setPlaceholderAttributedString:]
+     -[NSPathCell setPlaceholderString:]
+     -[NSPathCell setPlaceholderAttributedString:]
+     
+     NSTextView:
+     -[NSTextView(NSPrivate) setPlaceholderString:]
+     -[NSTextView (NSPrivate) setPlaceholderAttributedString:]
+     
+     Cell-backed views:
+     -[NSTextField setPlaceholderString:]
+     -[NSTextField setPlaceholderAttributedString:]
+     -[NSPathControl setPlaceholderString:]
+     -[NSPathControl setPlaceholderAttributedString:]
+     
+     Private stuff for specific apps:
+     -[ABCollectionViewltem setPlaceholderString:]
+     -[NSSearchToolbarltem(NSSearchToolbarPrivateForNews) setPlaceholderString]
+     ```
+     
+     ToolTip setters from lldb:
+        (Found these with `breakpoint set -n setPlaceholderString:` and `image lookup --regex --name ".*[Ss]et.*[Tt]ool[Tt]ip.*" -- AppKit`
+     
+     ```
 
- -[NSTableColumn setHeaderToolTip:]
- -[NSSegmentedControl setToolTip:forSegment:]
- -[NSSegmentedCell setToolTip:forSegment:]      /// Strange that there's a tooltip setter for a cell
- -[NSSegmentItem setToolTipTag:]                /// This is probably not a string
- 
- Apple Internal stuff:
- -[NSSuggestionItem setToolTip:]
- 
- Special names (Apple Internal stuff):
- -[QLControlSegment setToolTip:]
- -[NSRolloverButton setToolTipString:]
- -[NSRolloverButton setAlternateToolTipString:]
- -[NSToolTipPanel setToolTipString:]
- 
- Legacy stuff:
- -[NSMatrix setToolTip:forCell:]
+     NSObject subclasses:
+     -[NSMenuItem setToolTip:]
+     -[NSStatusItem setToolTip:]
+     -[NSWindowTab setToolTip:]
+     -[NSTabBarItem setToolTip:]
+     -[NSTabViewItem setToolTip:]
+     -[NSToolbarItem setToolTip:]
+     -[NSSegmentItem setToolTip:] x redundant due to `NSSegmentItemLabelCell`
+     
+     NSView:
+     -[NSView setToolTip:]
+     
+     NSView subclasses:
+     -[NSTableView setToolTip:]
+     -[NSTabButton setToolTip:]
+     
+     Special names:
+
+     -[NSTableColumn setHeaderToolTip:]
+     -[NSSegmentedControl setToolTip:forSegment:]
+     -[NSSegmentedCell setToolTip:forSegment:]      /// Strange that there's a tooltip setter for a cell
+     -[NSSegmentItem setToolTipTag:]                /// This is probably not a string
+     
+     Apple Internal stuff:
+     -[NSSuggestionItem setToolTip:]
+     
+     Special names (Apple Internal stuff):
+     -[QLControlSegment setToolTip:]
+     -[NSRolloverButton setToolTipString:]
+     -[NSRolloverButton setAlternateToolTipString:]
+     -[NSToolTipPanel setToolTipString:]
+     
+     Legacy stuff:
+     -[NSMatrix setToolTip:forCell:]
  
  ```
  
@@ -177,35 +269,6 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 @end
 
 @implementation NSObject (MFUIStringChangeDetection)
-
-
-+ (void)uiStringHasChangedFrom:(id)oldValue toValue:(id)newValue onObject:(id)object selector:(SEL)selector recursionDepth:(NSInteger)recursionDepth {
-    
-    BOOL isString = newValue == nil || [newValue isKindOfClass:[NSString class]] || [newValue isKindOfClass:[NSAttributedString class]];
-    
-    if (!isString) {
-        NSLog(@"    UIStringChangeDetector: New value %@ is not a string", newValue);
-        return;
-    }
-    
-    oldValue = pureString(oldValue);
-    newValue = pureString(newValue);
-
-    if (MFIsLoadingNib() || MFSystemIsChangingUIStrings()) {
-        
-    } else {
-        
-        if (oldValue != newValue && ![oldValue isEqual:newValue]) {
-            if (recursionDepth == 0) {
-                NSLog(@"    UIStringChangeDetector: [%s \"%@\"] (recursionDepth %ld) (on %@)", sel_getName(selector), newValue, (long)recursionDepth, object);
-            } else {
-                
-            }
-                
-        }
-        
-    }
-}
 
 + (void)load {
     
@@ -227,12 +290,6 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
             [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
         });
     }));
-//    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setObjectValue:), MakeInterceptorFactory(void, (, NSObject *newValue), {
-//        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
-//            OGImpl(, newValue);
-//            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
-//        });
-//    }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setPlaceholderString:), MakeInterceptorFactory(void, (NSString *newValue), {
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
             OGImpl(newValue);
@@ -269,6 +326,14 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
             [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
         });
     }));
+    
+    /// Swizzling `setObjectValue:` detects lots of string changes, by seems to be unnecessary. `setStringValue:` also catches all those cases.
+    //    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setObjectValue:), MakeInterceptorFactory(void, (, NSObject *newValue), {
+    //        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+    //            OGImpl(, newValue);
+    //            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+    //        });
+    //    }));
 }
 
 @end
@@ -276,9 +341,6 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 @implementation NSSegmentedControl (MFUIStringChangeDetection)
 
 + (void)load {
-//    swizzleMethods([self class], true, @"AppKit", @"swizzled_", 
-//                   @selector(swizzled_),
-//                   nil);
     
     swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(setToolTip:forSegment:), MakeInterceptorFactory(void,  (NSString *newValue, NSInteger segment), {
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
@@ -288,10 +350,6 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
             [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
         });
     }));
-}
-
-- (void)swizzled_setToolTip:(NSString *)newValue forSegment:(NSInteger)segment {
-    
 }
 
 @end

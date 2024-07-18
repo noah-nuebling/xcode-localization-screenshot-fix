@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4F1382E42C3FEDFF007E0C03 /* UINibDecoderIntrospection.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F1382E32C3FEDFF007E0C03 /* UINibDecoderIntrospection.m */; };
+		4F1E090A2C491846005569B7 /* NSRunLoop+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F1E09092C491846005569B7 /* NSRunLoop+Additions.m */; };
 		4F53EBCB2C3AF1C800843320 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F53EBCA2C3AF1C800843320 /* AppDelegate.m */; };
 		4F53EBCD2C3AF1CA00843320 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4F53EBCC2C3AF1CA00843320 /* Assets.xcassets */; };
 		4F53EBD22C3AF1CA00843320 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F53EBD12C3AF1CA00843320 /* main.m */; };
@@ -53,6 +54,8 @@
 /* Begin PBXFileReference section */
 		4F1382E32C3FEDFF007E0C03 /* UINibDecoderIntrospection.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UINibDecoderIntrospection.m; sourceTree = "<group>"; };
 		4F1E09072C47FBE6005569B7 /* PreprocessorMagic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PreprocessorMagic.h; sourceTree = "<group>"; };
+		4F1E09082C491846005569B7 /* NSRunLoop+Additions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSRunLoop+Additions.h"; sourceTree = "<group>"; };
+		4F1E09092C491846005569B7 /* NSRunLoop+Additions.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSRunLoop+Additions.m"; sourceTree = "<group>"; };
 		4F53EBC62C3AF1C800843320 /* CustomImplForLocalizationScreenshotTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CustomImplForLocalizationScreenshotTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F53EBC92C3AF1C800843320 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		4F53EBCA2C3AF1C800843320 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -304,6 +307,8 @@
 				4F5A28122C3B443D00F95211 /* Swizzle.m */,
 				4F5A281A2C3B596800F95211 /* Utility.h */,
 				4F5A281B2C3B596800F95211 /* Utility.m */,
+				4F1E09082C491846005569B7 /* NSRunLoop+Additions.h */,
+				4F1E09092C491846005569B7 /* NSRunLoop+Additions.m */,
 			);
 			path = Utility;
 			sourceTree = "<group>";
@@ -479,6 +484,7 @@
 				4F966AB82C415ECD003226B2 /* KVPair.m in Sources */,
 				4F746D122C4074F60031DA27 /* UIStringAnnotationHelper.m in Sources */,
 				4F8738132C4414A6001F95DE /* AppKitIntrospection.m in Sources */,
+				4F1E090A2C491846005569B7 /* NSRunLoop+Additions.m in Sources */,
 				4F8738102C43E348001F95DE /* SystemRenameTracker.m in Sources */,
 				4FB7E9ED2C3EACD200A36F3B /* UIStringChangeDetector.m in Sources */,
 				4F5A281C2C3B596800F95211 /* Utility.m in Sources */,
