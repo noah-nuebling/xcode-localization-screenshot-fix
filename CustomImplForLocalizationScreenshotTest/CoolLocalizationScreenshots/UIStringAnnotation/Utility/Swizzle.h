@@ -14,36 +14,39 @@ NS_ASSUME_NONNULL_BEGIN
 
 typedef id InterceptorBlock;
 typedef IMP OriginalImplementation;
-typedef InterceptorBlock _Nonnull (^InterceptorFactory)(Class originalClass, SEL _cmd, OriginalImplementation _Nonnull originalImplementation);
+typedef InterceptorBlock _Nonnull (^InterceptorFactory)(Class originalClass, SEL originalSelector, OriginalImplementation _Nonnull originalImplementation);
 
-#define UNPACK(...) __VA_ARGS__ /// This allows us to include `,` inside an argument to a macro (but the argument then needs to be wrapped inside `()` by the caller of the macro )
+void swizzleMethod(Class cls, SEL originalSelector, InterceptorFactory interceptorFactory);
+void swizzleMethodOnClassAndSubclasses(Class baseClass, NSString *framework, SEL originalSelector, InterceptorFactory interceptorFactory);
 
-#define MakeInterceptorFactory(__ReturnType, __Arguments, ...) \
-    (id)                                                        /** Cast the entire factory block to id to silence type-checker */ \
-    ^id (Class m_originalClass, SEL m__cmd, __ReturnType (*m_originalImplementation)(id self, SEL _cmd UNPACK __Arguments)) /** Define return types and args of the factory block (Setting the return type to id bc idk how to objc, return value is actually the interceptor block) */ \
-    {                                                           /** Body of the factory block */ \
-        return ^__ReturnType (id m_self UNPACK __Arguments)     /** Return type and args of the interceptor block */ \
-            __VA_ARGS__;                                        /**  Body of the interceptor block is the code that the caller of the macro provided. Needs to be the varargs to prevent weird compiler errors. */ \
+#define MakeInterceptorFactory(__ReturnType, __Arguments, __OnIntercept...) \
+    (id)                                                                /** Cast the entire factory block to id to silence type-checker */ \
+    ^InterceptorBlock (Class m_originalClass, SEL m__cmd, __ReturnType (*m_originalImplementation)(id self, SEL _cmd APPEND_ARGS __Arguments)) /** Return type and args of the factory  block */ \
+    {                                                                   /** Body of the factory block */ \
+        return ^__ReturnType (id m_self APPEND_ARGS __Arguments)        /** Return type and args of the interceptor block */ \
+            __OnIntercept;                                              /**  Body of the interceptor block - the code that the caller of the macro provided. This will be executed when the method is intercepted. Needs to be the varargs to prevent weird compiler errors. */ \
     } \
 
-void swizzleMethodOnClassAndSubclasses(Class baseClass, NSString *framework, SEL originalSelector, InterceptorFactory interceptorFactory);
-void swizzleMethod(Class cls, SEL originalSelector, InterceptorFactory interceptorFactory);
-
 /// Convenience macros
-///     To be used inside the onIntercept codeblock passed to the `MakeInterceptorFactory()` macro
-#define OGImpl(...) \
-    m_originalImplementation(m_self, m__cmd __VA_ARGS__)
+///     To be used inside the `__OnIntercept` codeblock passed to the `MakeInterceptorFactory()` macro
+#define OGImpl(args...) \
+    m_originalImplementation(m_self, m__cmd APPEND_ARGS(args))
 
+/// Helper macros
+///     To implementation the main macros
+
+#define UNPACK(args...) args /// This allows us to include `,` inside an argument to a macro (but the argument then needs to be wrapped inside `()` by the caller of the macro )
+#define APPEND_ARGS(args...) , ## args /// This is like UNPACK but it also automatically inserts a comma before the args. The ## deletes the comma, if `args` is empty. I have no idea why. But this lets us nicely append args to an existing list of arguments in a function call or function header.
 
 /// Old
 #define MakeInterceptorFactory_2(__ReturnType, __Arguments, __InterceptionCode) /** This older alternate factory-maker is more neat and properly typed but it seems to break autocomplete */ \
     ({ \
-        typedef __ReturnType (*OriginalImplementation)(id, SEL, UNPACK __Arguments); \
+        typedef __ReturnType (*OriginalImplementation)(id, SEL, APPEND_ARGS __Arguments); \
         typedef __ReturnType (^InterceptorBlock)(id self, UNPACK __Arguments); \
         typedef InterceptorBlock (^InterceptorFactory)(Class originalClass, SEL _cmd, OriginalImplementation originalImplementation); \
         \
         (InterceptorFactory) ^InterceptorBlock (Class originalClass, SEL _cmd, OriginalImplementation originalImplementation) { \
-            return ^__ReturnType (id self, UNPACK __Arguments) __InterceptionCode; \
+            return ^__ReturnType (id self, APPEND_ARGS __Arguments) __InterceptionCode; \
         }; \
     })
 

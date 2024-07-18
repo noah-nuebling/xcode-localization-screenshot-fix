@@ -157,7 +157,15 @@ void listMethods(id obj) {
         SEL selector = method_getName(method);
         char returnType[5000];
         method_getReturnType(method, returnType, 5000);
-        NSLog(@"(%@)%@", typeNameFromEncoding(returnType), NSStringFromSelector(selector));
+        unsigned int nOfArgs = method_getNumberOfArguments(method);
+        NSMutableArray *argTypes = [NSMutableArray array];
+        for (int i = 2; i < nOfArgs; i++) { /// Start at 2 to skip the `self` and `_cmd` args
+            char argType[5000];
+            method_getArgumentType(method, i, argType, 5000);
+            [argTypes addObject:typeNameFromEncoding(argType)];
+        }
+        
+        NSLog(@"(%@)%@ (%@)", typeNameFromEncoding(returnType), NSStringFromSelector(selector), [argTypes componentsJoinedByString:@", "]);
     }
     
     free(methods);

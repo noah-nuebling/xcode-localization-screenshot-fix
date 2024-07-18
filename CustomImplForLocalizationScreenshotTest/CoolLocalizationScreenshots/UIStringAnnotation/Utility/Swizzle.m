@@ -41,6 +41,9 @@ void swizzleMethodOnClassAndSubclasses(Class baseClass, NSString *framework, SEL
     /// Find subclasses
     NSArray <NSDictionary *> *subclasses = _subclassesOfClass(baseClass, framework, false);
     
+    /// Declare validation state
+    BOOL someClassHasBeenSwizzled = NO;
+    
     /// Swizzle subclasses
     for (NSDictionary *subclassDict in subclasses) {
 
@@ -50,9 +53,10 @@ void swizzleMethodOnClassAndSubclasses(Class baseClass, NSString *framework, SEL
         ///     We only need to swizzle one method, and then all its subclasses will also be swizzled - as long as they inherit the method and don't override it.
         if (![subclass instancesRespondToSelector:originalSelector]
             || classInheritsMethod(subclass, originalSelector)) continue;
-                
+        
         /// Swizzle
         swizzleMethod(subclass, originalSelector, interceptorFactory);
+        someClassHasBeenSwizzled = YES;
     }
     
     /// Swizzle on baseClass
@@ -62,7 +66,11 @@ void swizzleMethodOnClassAndSubclasses(Class baseClass, NSString *framework, SEL
     
     if (class_getInstanceMethod(baseClass, originalSelector) != nil) {
         swizzleMethod(baseClass, originalSelector, interceptorFactory);
+        someClassHasBeenSwizzled = YES;
     }
+    
+    /// Validate
+    assert(someClassHasBeenSwizzled);
 }
 
 
@@ -107,12 +115,15 @@ void swizzleMethod(Class class, SEL originalSelector, InterceptorFactory interce
 
 static NSArray<NSDictionary<NSString *, id> *> *_subclassesOfClass(Class baseClass, NSString *framework, BOOL includeBaseClass) {
         
+    /// TODO: Use `objc_enumerateClasses` `objc_copyClassNamesForImage` or similar instead of classList. Should be 1000x faster.
+    
     /// Notes:
     /// - I'm not sure the caching as we currently do it helps performance? Might be slowing things down.
     ///     Maybe if we made the cache a tree structure, that would help. But so far it's not super slow.
     /// - The @"depth" is unused at the time of writing.
     
     /// Preprocess
+    BOOL baseClassIsMetaClass = class_isMetaClass(baseClass);
     NSString *baseClassName = NSStringFromClass(baseClass);
     if (framework == nil) framework = @"";
     
@@ -145,12 +156,18 @@ static NSArray<NSDictionary<NSString *, id> *> *_subclassesOfClass(Class baseCla
     /// Iterate classes
     ///     And fill result
     for (Class class in classes) {
-
+        
+        /// Turn class into metaclass
+        if (baseClassIsMetaClass) {
+            class = object_getClass(class);
+        }
+        
         /// Check if `baseClass` is a superclass of `class`
         BOOL baseClassIsSuperclass = NO;
         Class superclass = class_getSuperclass(class);
         int superclassDistance = 1;
         while (true) {
+            
             if (superclass == nil) {
                 baseClassIsSuperclass = NO;
                 break;

@@ -130,9 +130,9 @@ static void deleteUINibDecoderRecord(void) {
 
 + (void)load {
     
-    swizzleMethod([self class], @selector(loadNibNamed:owner:topLevelObjects:), MakeInterceptorFactory(BOOL, (, NSNibName nibName, id owner, NSArray * _Nullable __autoreleasing *topLevelObjects), {
+    swizzleMethod([self class], @selector(loadNibNamed:owner:topLevelObjects:), MakeInterceptorFactory(BOOL, (NSNibName nibName, id owner, NSArray * _Nullable __autoreleasing *topLevelObjects), {
         preDive();
-        BOOL result = OGImpl(, nibName, owner, topLevelObjects);
+        BOOL result = OGImpl(nibName, owner, topLevelObjects);
         assert(_uiNibDecoderRecordTopLevelObjects == nil);
         if (topLevelObjects != nil && *topLevelObjects != nil) {
             _uiNibDecoderRecordTopLevelObjects = *topLevelObjects;
@@ -141,22 +141,22 @@ static void deleteUINibDecoderRecord(void) {
         return result;
     }));
     
-    swizzleMethod([self class], @selector(loadNibFile:externalNameTable:withZone:), MakeInterceptorFactory(BOOL, (, NSString *fileName, NSDictionary *context, NSZone *zone), {
+    swizzleMethod([self class], @selector(loadNibFile:externalNameTable:withZone:), MakeInterceptorFactory(BOOL, (NSString *fileName, NSDictionary *context, NSZone *zone), {
         preDive();
-        BOOL result = OGImpl(, fileName, context, zone);
+        BOOL result = OGImpl(fileName, context, zone);
         postDive(nil, fileName);
         return result;
     }));
     
-    swizzleMethod(object_getClass([self class]), @selector(loadNibNamed:owner:), MakeInterceptorFactory(BOOL, (, NSString *nibName, id owner), {
+    swizzleMethod(object_getClass([self class]), @selector(loadNibNamed:owner:), MakeInterceptorFactory(BOOL, (NSString *nibName, id owner), {
         preDive();
-        BOOL result = OGImpl(, nibName, owner);
+        BOOL result = OGImpl(nibName, owner);
         postDive(nibName, nil);
         return result;
     }));
-    swizzleMethod(object_getClass([self class]), @selector(loadNibFile:externalNameTable:withZone:), MakeInterceptorFactory(BOOL, (, NSString *fileName, NSDictionary *context, NSZone *zone), {
+    swizzleMethod(object_getClass([self class]), @selector(loadNibFile:externalNameTable:withZone:), MakeInterceptorFactory(BOOL, (NSString *fileName, NSDictionary *context, NSZone *zone), {
         preDive();
-        BOOL result = OGImpl(, fileName, context, zone);
+        BOOL result = OGImpl(fileName, context, zone);
         postDive(nil, fileName);
         return result;
     }));
@@ -221,7 +221,7 @@ static void postDive(NSString *nibName, NSString *fileName) {
     /// Notes:
     ///     We're only swizzling `decodeObjectForKey:` atm because that's where the localized string keys appear. There are many other `decode<...>ForKey:` methods though, which perhaps contain info we're missing.
     
-    swizzleMethod([self class], @selector(decodeObjectForKey:), MakeInterceptorFactory(id, (, NSString *key), {
+    swizzleMethod([self class], @selector(decodeObjectForKey:), MakeInterceptorFactory(id, (NSString *key), {
         
         /// Increase depth
         MFUINibDecoderDepthIncrement();
@@ -229,7 +229,7 @@ static void postDive(NSString *nibName, NSString *fileName) {
         /// Call original implementation
         /// Notes:
         /// - This will recursively call this method over and over for all the child objects.
-        id result = OGImpl(, key);
+        id result = OGImpl(key);
         
         /// Decrease depth
         MFUINibDecoderDepthDecrement();

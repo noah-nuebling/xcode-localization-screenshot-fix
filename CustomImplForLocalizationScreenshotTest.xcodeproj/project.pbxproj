@@ -677,8 +677,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SYSTEM_FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
 					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
+					"$(inherited)",
 				);
 			};
 			name = Debug;
@@ -709,8 +709,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SYSTEM_FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
 					"$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks",
+					"$(inherited)",
 				);
 			};
 			name = Release;

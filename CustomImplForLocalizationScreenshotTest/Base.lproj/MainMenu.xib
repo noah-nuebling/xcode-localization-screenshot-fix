@@ -717,7 +717,7 @@
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="272" y="172" width="928" height="527"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1415"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
             <view key="contentView" id="yk2-0F-Fou">
                 <rect key="frame" x="0.0" y="0.0" width="928" height="527"/>
                 <autoresizingMask key="autoresizingMask"/>
@@ -747,7 +747,7 @@
                     <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ou9-Tz-b7d">
                         <rect key="frame" x="17" y="369" width="258" height="25"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <popUpButtonCell key="cell" type="push" title="&lt;IB title for codeMenuItemTwo&gt;" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="jCo-IJ-zbH" id="yi8-Hq-xPY">
+                        <popUpButtonCell key="cell" type="push" title="Title for codeMenuItemTwo" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="jCo-IJ-zbH" id="yi8-Hq-xPY">
                             <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                             <font key="font" metaFont="message"/>
                             <menu key="menu" id="dea-Pi-BIF">
@@ -755,7 +755,7 @@
                                     <menuItem title="&lt;IB title for codeMenuItemOne&gt;" toolTip="&lt;IB tooltip for codeMenuItemOne&gt;" id="z9V-dK-gVX">
                                         <accessibility description="&lt;IB ax-description for codeMenuItemOne&gt;" help="&lt;IB ax-help for codeMenuItemOne&gt;" identifier="&lt;IB ax-identifier for codeMenuItemOne&gt;"/>
                                     </menuItem>
-                                    <menuItem title="&lt;IB title for codeMenuItemTwo&gt;" state="on" toolTip="&lt;IB tooltip for codeMenuItemTwo&gt;" id="jCo-IJ-zbH">
+                                    <menuItem title="Title for codeMenuItemTwo" state="on" toolTip="&lt;IB tooltip for codeMenuItemTwo&gt;" id="jCo-IJ-zbH">
                                         <attributedString key="attributedTitle">
                                             <fragment content="Title for codeMenuItemTwo">
                                                 <attributes>
@@ -1011,7 +1011,7 @@
                                                     </outlineView>
                                                 </subviews>
                                             </clipView>
-                                            <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="0.093023255813953487" horizontal="YES" id="Bj1-o8-rUJ">
+                                            <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="Bj1-o8-rUJ">
                                                 <rect key="frame" x="1" y="209" width="417" height="16"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </scroller>
@@ -1037,7 +1037,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <clipView key="contentView" drawsBackground="NO" id="flb-Qk-Fc2">
                                                 <rect key="frame" x="0.0" y="0.0" width="416" height="220"/>
-                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                <autoresizingMask key="autoresizingMask"/>
                                                 <subviews>
                                                     <textView toolTip="&lt;IB tooltip for codeTextView&gt;" wantsLayer="YES" importsGraphics="NO" richText="NO" verticallyResizable="YES" spellingCorrection="YES" smartInsertDelete="YES" id="suu-N2-pHo">
                                                         <rect key="frame" x="0.0" y="0.0" width="416" height="220"/>

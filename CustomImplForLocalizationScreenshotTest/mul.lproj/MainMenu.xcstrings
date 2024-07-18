@@ -1610,13 +1610,13 @@
       }
     },
     "jCo-IJ-zbH.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"<IB title for codeMenuItemTwo>\"; ObjectID = \"jCo-IJ-zbH\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"Title for codeMenuItemTwo\"; ObjectID = \"jCo-IJ-zbH\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "<IB title for codeMenuItemTwo>"
+            "value" : "Title for codeMenuItemTwo"
           }
         }
       }

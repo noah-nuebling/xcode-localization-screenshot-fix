@@ -72,10 +72,10 @@ static Queue *_systemLocalizationKeyQueue;
     
     /// TODO: Only swizzle, when some special 'MF_AX_INSPECTABLE_LOCALIZATION_KEYS' flag is set
     
-    swizzleMethod([self class], @selector(localizedStringForKey:value:table:), MakeInterceptorFactory(NSString *, (, NSString *key, NSString *value, NSString *tableName), {
+    swizzleMethod([self class], @selector(localizedStringForKey:value:table:), MakeInterceptorFactory(NSString *, (NSString *key, NSString *value, NSString *tableName), {
         
         /// Call og
-        NSString *result = OGImpl(, key, value, tableName);
+        NSString *result = OGImpl(key, value, tableName);
         
         /// Create element
         NSDictionary *newElement = @{
@@ -95,10 +95,10 @@ static Queue *_systemLocalizationKeyQueue;
         
         /// TESTING
         if ([result containsString:@"tooltip"]) {
-            BREAKPOINT(result);
+//            BREAKPOINT(result);
         }
         if ([result isEqual:@"Rechtschreibung und Grammatik einblenden"]) {
-            BREAKPOINT(result);
+//            BREAKPOINT(result);
         }
         
         
@@ -106,12 +106,12 @@ static Queue *_systemLocalizationKeyQueue;
         return result;
     }));
                   
-    swizzleMethod([self class], @selector(localizedAttributedStringForKey:value:table:), MakeInterceptorFactory(NSAttributedString *, (, NSString *key, NSString *value, NSString *tableName), {
+    swizzleMethod([self class], @selector(localizedAttributedStringForKey:value:table:), MakeInterceptorFactory(NSAttributedString *, (NSString *key, NSString *value, NSString *tableName), {
         
         assert(false); /// This is untested
         
         /// Call og
-        NSAttributedString *result = OGImpl(, key, value, tableName);
+        NSAttributedString *result = OGImpl(key, value, tableName);
         
         /// Create element
         NSDictionary *newElement = @{

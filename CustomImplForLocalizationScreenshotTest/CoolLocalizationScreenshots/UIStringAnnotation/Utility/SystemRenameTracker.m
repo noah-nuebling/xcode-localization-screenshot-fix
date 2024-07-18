@@ -8,6 +8,8 @@
 #import "SystemRenameTracker.h"
 #import "AppKit/AppKit.h"
 #import "Swizzle.h"
+#import "Utility.h"
+#import "objc/runtime.h"
 
 #pragma mark - RenameDepth definitions
 
@@ -57,11 +59,11 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 
 + (void)load {
     
-    swizzleMethod([self class], @selector(validateMenuItem:), MakeInterceptorFactory(BOOL, (, NSMenuItem *menuItem), {
+    swizzleMethod([self class], @selector(validateMenuItem:), MakeInterceptorFactory(BOOL, (NSMenuItem *menuItem), {
         
         NSString *beforeTitle = [menuItem title];
         MFSystemRenameDepthIncrement();
-        BOOL result = OGImpl(, menuItem);
+        BOOL result = OGImpl(menuItem);
         MFSystemRenameDepthDecrement();
         NSString *afterTitle = [menuItem title];
         
@@ -95,11 +97,10 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 
 + (void)load {
     
-    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(updateTextFieldIfNecessary), MakeInterceptorFactory(void *, (), {
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(updateTextFieldIfNecessary), MakeInterceptorFactory(void, (), {
         MFSystemRenameDepthIncrement();
-        void *result = OGImpl();
+        OGImpl();
         MFSystemRenameDepthDecrement();
-        return result;
     }));
 }
 
@@ -140,6 +141,168 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
         void *result = OGImpl();
         MFSystemRenameDepthDecrement();
         return result;
+    }));
+}
+@end
+
+#pragma mark - NSThemeFrame swizzle
+
+@interface NSFrameView : NSView
+@end
+
+@interface NSTitledFrame : NSFrameView
+@end
+
+@interface NSThemeFrame : NSTitledFrame
+@end
+
+@implementation NSThemeFrame (MFUIStringAnnotation)
+
++ (void)load {
+    
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(_size:ofCell:withTitle:), MakeInterceptorFactory(void, (NSSize *sizePtr, id cell, id title), {
+        MFSystemRenameDepthIncrement();
+        OGImpl(sizePtr, cell, title);
+        MFSystemRenameDepthDecrement();
+    }));
+}
+
+@end
+
+#pragma mark - NSMenuBarImpl swizzle
+
+///
+/// This sets the string of some menu item(s)(?) to the Apple Icon 
+///
+
+@interface NSCocoaMenuImpl : NSResponder
+@end
+
+@interface NSMenuBarImpl : NSCocoaMenuImpl
+@end
+
+@implementation NSResponder (MFUIStringAnnotation_NSMenuBarImpl) /// Can't actually swizzle on `NSMenuBarImpl due to linker errors. NSResponder is a superclass.
+
++ (void)load {
+    
+    swizzleMethodOnClassAndSubclasses(object_getClass(objc_getClass("NSMenuBarImpl")), @"AppKit", @selector(appleMenuItem), MakeInterceptorFactory(id, (), {
+        MFSystemRenameDepthIncrement();
+        id result = OGImpl();
+        MFSystemRenameDepthDecrement();
+        return result;
+    }));
+    
+}
+@end
+
+#pragma mark - NSMenuItem swizzling
+
+///
+/// Separator items have their string set to @"" I think
+///
+
+@implementation NSMenuItem (MFUIStringAnnotation)
+
++ (void)load {
+    
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(_configureAsSeparatorItem), MakeInterceptorFactory(void, (), {
+        MFSystemRenameDepthIncrement();
+        OGImpl();
+        MFSystemRenameDepthDecrement();
+    }));
+}
+
+@end
+
+#pragma mark - NSTextField swizzling
+
+///
+/// Textfields call [setStringValue: @""] on themselves during init
+///
+
+@implementation NSTextField (MFUIStringAnnotation)
+
++ (void)load {
+    
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(initWithFrame:), MakeInterceptorFactory(id, (NSRect frame), {
+        MFSystemRenameDepthIncrement();
+        id result = OGImpl(frame);
+        MFSystemRenameDepthDecrement();
+        return result;
+    }));
+}
+
+@end
+
+#pragma mark - NSCell swizzling
+
+///
+/// NCell call [setStringValue: @""] on themselves during init
+///
+
+@implementation NSCell (MFUIStringAnnotation)
+
++ (void)load {
+    
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(initTextCell:), MakeInterceptorFactory(id, (id value), {
+        MFSystemRenameDepthIncrement();
+        id result = OGImpl(value);
+        MFSystemRenameDepthDecrement();
+        return result;
+    }));
+}
+
+@end
+
+#pragma mark - NSLegacySegmentItem swizzling
+
+///
+/// I saw that "NSLegacySegmentItem" calls [setStringValue: <Value from IB>] on NSSegmentItemLabelCell, but after the loadNib routine is already done. Not sure what's going on.
+///
+
+@interface NSLegacySegmentItem : NSObject
+@end
+
+@implementation NSObject (MFUIStringAnnotation_NSLegacyItem) /// Can't create a category on NSLegacySegmentItem due to linker errors
+
++ (void)load {
+    swizzleMethodOnClassAndSubclasses(objc_getClass("NSLegacySegmentItem"), @"AppKit", @selector(_recalcRectsForCell:), MakeInterceptorFactory(void, (id cell), {
+        MFSystemRenameDepthIncrement();
+        OGImpl(cell);
+        MFSystemRenameDepthDecrement();
+    }));
+}
+
+@end
+
+#pragma mark - NSTabViewItem swizzling
+
+///
+/// `_computeDisplayedSizeOfString:` calls `[NSTabViewLabelCell setStringValue:<String From IB>]`, but after the nib loading routine is done it seems.
+///     ^ Same thing for `_resetToolTipIfNecessary` and `drawLabel:inRect:`
+///
+
+@implementation NSTabViewItem (MFUIStringAnnotation)
+
++ (void)load {
+    
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(_computeDisplayedSizeOfString:), MakeInterceptorFactory(NSSize, (id string), {
+        MFSystemRenameDepthIncrement();
+        NSSize result = OGImpl(string);
+        MFSystemRenameDepthDecrement();
+        return result;
+    }));
+    
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(_resetToolTipIfNecessary), MakeInterceptorFactory(void, (), {
+        MFSystemRenameDepthIncrement();
+        OGImpl();
+        MFSystemRenameDepthDecrement();
+    }));
+    
+    swizzleMethodOnClassAndSubclasses([self class], @"AppKit", @selector(drawLabel:inRect:), MakeInterceptorFactory(void, (bool drawLabel, NSRect rect), {
+        MFSystemRenameDepthIncrement();
+        OGImpl(drawLabel, rect);
+        MFSystemRenameDepthDecrement();
     }));
 }
 
