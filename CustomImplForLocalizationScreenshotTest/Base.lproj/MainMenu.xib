@@ -2,8 +2,11 @@
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="23077.2" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaDFRPlugin" version="23006"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23077.2"/>
+        <capability name="Combo buttons" minToolsVersion="14.0" minSystemVersion="13.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+        <capability name="the Touch Bar" minToolsVersion="8.1" minSystemVersion="10.12.2" requiredIntegratedClassName="NSTouchBar"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
@@ -24,6 +27,8 @@
                 <outlet property="codeMenuItemTwo" destination="jCo-IJ-zbH" id="Ee0-Vf-gOh"/>
                 <outlet property="codeMenuPopupButton" destination="ou9-Tz-b7d" id="mij-qc-8RR"/>
                 <outlet property="codeOutlineView" destination="QG7-gp-EhQ" id="azV-tV-Y44"/>
+                <outlet property="codePathControl" destination="iVf-il-t0Z" id="5ZU-WF-xAu"/>
+                <outlet property="codeRuleEditor" destination="M3t-ja-PnQ" id="OR3-or-jJh"/>
                 <outlet property="codeSearchField" destination="39k-dW-E8l" id="KIV-sp-CdF"/>
                 <outlet property="codeSegmentedControl" destination="Vvj-FJ-wY9" id="e7o-yV-aqq"/>
                 <outlet property="codeSwitch" destination="vNM-AA-ASA" id="mON-CA-ZOS"/>
@@ -36,6 +41,11 @@
                 <outlet property="codeTextScrollView" destination="Hsa-1a-MWA" id="uuf-yG-FWg"/>
                 <outlet property="codeTextView" destination="suu-N2-pHo" id="J8a-dq-ysq"/>
                 <outlet property="preferencesMenuItem" destination="BOF-NM-1cW" id="BSv-qD-iGb"/>
+                <outlet property="tbButton" destination="SIb-Dt-tpz" id="ztj-Ig-0gA"/>
+                <outlet property="tbLabel" destination="824-ec-2jH" id="5KC-uq-B3U"/>
+                <outlet property="tbSegmentedControl" destination="7OE-uN-6EQ" id="Cmh-r2-itv"/>
+                <outlet property="tbSegmentedControlItem" destination="Aco-T9-k3Z" id="ENq-NE-VvV"/>
+                <outlet property="tbSlider" destination="RMa-wx-ilR" id="bbA-UT-qSy"/>
                 <outlet property="testsWindow" destination="QvC-M9-y7g" id="NDK-Bf-BWs"/>
             </connections>
         </customObject>
@@ -716,14 +726,14 @@
         <window title="&lt;IB title of CodeTestsPanel&gt;" subtitle="&lt;IB subtitle of CodeTestsPanel&gt;" separatorStyle="shadow" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" frameAutosaveName="" animationBehavior="default" id="3Zo-rV-JYM" customClass="NSPanel">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="272" y="172" width="928" height="527"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
+            <rect key="contentRect" x="272" y="172" width="1112" height="527"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1415"/>
             <view key="contentView" id="yk2-0F-Fou">
-                <rect key="frame" x="0.0" y="0.0" width="928" height="527"/>
-                <autoresizingMask key="autoresizingMask"/>
+                <rect key="frame" x="0.0" y="0.0" width="1112" height="527"/>
+                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <textField identifier="&lt;IB identifier of CodeTextField&gt;" toolTip="&lt;IB tooltip of CodeTextField&gt;" focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="SiQ-9Z-oXM" userLabel="&lt;IB document-label of CodeTextField&gt;">
-                        <rect key="frame" x="20" y="468" width="440" height="21"/>
+                        <rect key="frame" x="20" y="475" width="244" height="21"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" title="&lt;IB content of codeTextField&gt;" placeholderString="&lt;IB placeholder of codeTextField&gt;" drawsBackground="YES" id="MSh-Sn-JET">
                             <font key="font" metaFont="system"/>
@@ -736,7 +746,7 @@
                         <accessibility description="&lt;IB ax-description of CodeTextField&gt;" help="&lt;IB ax-help of CodeTextField&gt;" identifier="&lt;IB ax-identifier of CodeTextField&gt;"/>
                     </textField>
                     <searchField toolTip="&lt;IB tooltip of codeSearchField&gt;" wantsLayer="YES" focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="39k-dW-E8l">
-                        <rect key="frame" x="20" y="413" width="440" height="22"/>
+                        <rect key="frame" x="20" y="429" width="260" height="22"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <searchFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" title="&lt;IB title of codeSearchField&gt;" placeholderString="&lt;IB placeholder of codeSearchField&gt;" usesSingleLineMode="YES" bezelStyle="round" id="D64-PH-7hT">
                             <font key="font" metaFont="system"/>
@@ -745,9 +755,9 @@
                         </searchFieldCell>
                     </searchField>
                     <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ou9-Tz-b7d">
-                        <rect key="frame" x="17" y="369" width="258" height="25"/>
+                        <rect key="frame" x="17" y="369" width="192" height="25"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <popUpButtonCell key="cell" type="push" title="Title for codeMenuItemTwo" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="jCo-IJ-zbH" id="yi8-Hq-xPY">
+                        <popUpButtonCell key="cell" type="push" title="&lt;IB title for codeMenuItemTwo&gt;" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="jCo-IJ-zbH" id="yi8-Hq-xPY">
                             <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                             <font key="font" metaFont="message"/>
                             <menu key="menu" id="dea-Pi-BIF">
@@ -755,12 +765,15 @@
                                     <menuItem title="&lt;IB title for codeMenuItemOne&gt;" toolTip="&lt;IB tooltip for codeMenuItemOne&gt;" id="z9V-dK-gVX">
                                         <accessibility description="&lt;IB ax-description for codeMenuItemOne&gt;" help="&lt;IB ax-help for codeMenuItemOne&gt;" identifier="&lt;IB ax-identifier for codeMenuItemOne&gt;"/>
                                     </menuItem>
-                                    <menuItem title="Title for codeMenuItemTwo" state="on" toolTip="&lt;IB tooltip for codeMenuItemTwo&gt;" id="jCo-IJ-zbH">
+                                    <menuItem title="&lt;IB title for codeMenuItemTwo&gt;" state="on" toolTip="&lt;IB tooltip for codeMenuItemTwo&gt;" id="jCo-IJ-zbH">
                                         <attributedString key="attributedTitle">
-                                            <fragment content="Title for codeMenuItemTwo">
+                                            <fragment content="&lt;IB title for codeMenuItemTwo&gt;">
                                                 <attributes>
                                                     <font key="NSFont" metaFont="smallSystem"/>
                                                     <paragraphStyle key="NSParagraphStyle" alignment="right" lineBreakMode="wordWrapping" baseWritingDirection="rightToLeft" tighteningFactorForTruncation="0.0"/>
+                                                    <array key="NSWritingDirection">
+                                                        <integer value="0"/>
+                                                    </array>
                                                 </attributes>
                                             </fragment>
                                         </attributedString>
@@ -771,7 +784,7 @@
                         </popUpButtonCell>
                     </popUpButton>
                     <textField toolTip="&lt;IB title for codeTableViewLabel&gt;" focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cCu-0z-kQb">
-                        <rect key="frame" x="18" y="260" width="206" height="16"/>
+                        <rect key="frame" x="289" y="322" width="206" height="16"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" lineBreakMode="clipping" title="&lt;IB title for codeTableViewLabel&gt;" id="6OS-m6-FJq">
                             <font key="font" metaFont="system"/>
@@ -780,14 +793,14 @@
                         </textFieldCell>
                     </textField>
                     <scrollView toolTip="&lt;IB tooltip for codeTableScrollView&gt;" fixedFrame="YES" autohidesScrollers="YES" horizontalLineScroll="24" horizontalPageScroll="10" verticalLineScroll="24" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Jtb-ZC-uRp">
-                        <rect key="frame" x="20" y="20" width="453" height="232"/>
+                        <rect key="frame" x="20" y="20" width="379" height="77"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <clipView key="contentView" id="uze-ts-xUG">
-                            <rect key="frame" x="1" y="1" width="451" height="230"/>
+                            <rect key="frame" x="1" y="1" width="377" height="75"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
                                 <tableView identifier="&lt;IB identifier of codeTableView&gt;" toolTip="&lt;IB tooltip of codeTableView&gt;" verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" multipleSelection="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" headerView="WHx-zs-DKi" viewBased="YES" id="m1l-6m-Rgk">
-                                    <rect key="frame" x="0.0" y="0.0" width="451" height="202"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="377" height="47"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <size key="intercellSpacing" width="17" height="0.0"/>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -825,7 +838,7 @@
                                                 </tableCellView>
                                             </prototypeCellViews>
                                         </tableColumn>
-                                        <tableColumn identifier="AutomaticTableColumnIdentifier.1" width="306" minWidth="40" maxWidth="1000" headerToolTip="&lt;IB tooltip for codeTableColumnTwo&gt;" id="FPE-Bc-AAF">
+                                        <tableColumn identifier="AutomaticTableColumnIdentifier.1" width="232" minWidth="40" maxWidth="1000" headerToolTip="&lt;IB tooltip for codeTableColumnTwo&gt;" id="FPE-Bc-AAF">
                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="&lt;IB title for codeTableColumnTwo&gt;">
                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
@@ -838,11 +851,11 @@
                                             <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                             <prototypeCellViews>
                                                 <tableCellView id="Lzd-ag-onf">
-                                                    <rect key="frame" x="139" y="0.0" width="303" height="24"/>
+                                                    <rect key="frame" x="139" y="0.0" width="229" height="24"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <textField toolTip="&lt;IB tooltip for codeTableCellViewTwo&gt;" focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Cu0-fh-hNf">
-                                                            <rect key="frame" x="0.0" y="4" width="303" height="16"/>
+                                                            <rect key="frame" x="0.0" y="4" width="229" height="16"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                                             <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="&lt;IB title for codeTableCellViewTwo&gt;" placeholderString="&lt;IB placeholder for codeTableCellViewTwo&gt;" id="dRP-VX-JoX">
                                                                 <font key="font" usesAppearanceFont="YES"/>
@@ -863,7 +876,7 @@
                             </subviews>
                         </clipView>
                         <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="pi4-lj-mIn">
-                            <rect key="frame" x="1" y="215" width="451" height="16"/>
+                            <rect key="frame" x="1" y="61" width="377" height="15"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="EOZ-Y4-XiE">
@@ -871,7 +884,7 @@
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <tableHeaderView key="headerView" wantsLayer="YES" id="WHx-zs-DKi">
-                            <rect key="frame" x="0.0" y="0.0" width="451" height="28"/>
+                            <rect key="frame" x="0.0" y="0.0" width="377" height="28"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </tableHeaderView>
                         <connections>
@@ -879,8 +892,8 @@
                         </connections>
                     </scrollView>
                     <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bf3-vy-EER">
-                        <rect key="frame" x="18" y="341" width="150" height="16"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                        <rect key="frame" x="6" y="341" width="187" height="16"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" lineBreakMode="clipping" alignment="center" title="&lt;IB Title for codeLabel&gt;" id="QZC-Xv-yIU">
                             <font key="font" usesAppearanceFont="YES"/>
                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -896,48 +909,50 @@
                         </buttonCell>
                     </button>
                     <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9xr-rd-umS">
-                        <rect key="frame" x="204" y="340" width="195" height="18"/>
+                        <rect key="frame" x="236" y="372" width="195" height="18"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="check" title="&lt;IB title for codeCheckbox&gt;" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="o2G-iu-o56">
                             <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                             <font key="font" metaFont="system"/>
                         </buttonCell>
                     </button>
-                    <switch toolTip="&lt;IB tooltip for codeSwitch&gt;" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" baseWritingDirection="leftToRight" alignment="left" translatesAutoresizingMaskIntoConstraints="NO" id="vNM-AA-ASA">
-                        <rect key="frame" x="204" y="309" width="42" height="25"/>
+                    <slider toolTip="&lt;IB tooltip for codeSlider&gt;" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="VG5-RV-E2y">
+                        <rect key="frame" x="1017" y="435" width="58" height="28"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    </switch>
+                        <sliderCell key="cell" state="on" alignment="left" maxValue="100" doubleValue="50" tickMarkPosition="above" sliderType="linear" id="oJ0-ur-NOY">
+                            <font key="font" size="12" name="Helvetica"/>
+                        </sliderCell>
+                    </slider>
                     <segmentedControl toolTip="&lt;IB tooltip for codeSegmentedControl&gt;" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Vvj-FJ-wY9">
-                        <rect key="frame" x="514" y="466" width="398" height="23"/>
+                        <rect key="frame" x="622" y="474" width="445" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <segmentedCell key="cell" borderStyle="border" alignment="left" style="texturedSquare" trackingMode="selectOne" id="gWg-rL-Icg">
                             <font key="font" metaFont="system"/>
                             <segments>
-                                <segment label="&lt;IB label for codeSegmentOne&gt;" toolTip="&lt;IB tooltip for codeSegmentOne&gt;" width="128"/>
-                                <segment label="&lt;IB label for codeSegmentTwo&gt;" toolTip="&lt;IB tooltip for codeSegmentTwo&gt;" width="127" selected="YES" tag="1"/>
-                                <segment label="&lt;IB label for codSegmentThree&gt;" toolTip="&lt;IB tooltip for codSegmentThree&gt;" width="127"/>
+                                <segment label="&lt;IB label for codeSegmentOne&gt;" toolTip="&lt;IB tooltip for codeSegmentOne&gt;" width="218"/>
+                                <segment label="&lt;IB label for codeSegmentTwo&gt;" toolTip="&lt;IB tooltip for codeSegmentTwo&gt;" width="216" selected="YES" tag="1"/>
                             </segments>
                         </segmentedCell>
                     </segmentedControl>
                     <tabView toolTip="&lt;IB tooltip for codeTabView&gt;" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ohN-fY-zbs">
-                        <rect key="frame" x="485" y="10" width="433" height="272"/>
+                        <rect key="frame" x="416" y="10" width="502" height="131"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <font key="font" metaFont="system"/>
                         <tabViewItems>
                             <tabViewItem label="&lt;IB label for codeTabViewItemOne&gt;" identifier="" id="D6a-G7-Cpr">
                                 <view key="view" id="7f3-Uy-9tT">
-                                    <rect key="frame" x="10" y="33" width="413" height="226"/>
+                                    <rect key="frame" x="10" y="33" width="482" height="85"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <scrollView fixedFrame="YES" autohidesScrollers="YES" horizontalLineScroll="24" horizontalPageScroll="10" verticalLineScroll="24" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6Ex-b3-Nkb">
-                                            <rect key="frame" x="-3" y="-3" width="419" height="226"/>
+                                            <rect key="frame" x="-3" y="5" width="481" height="77"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                             <clipView key="contentView" id="ntg-cb-Y4B">
-                                                <rect key="frame" x="1" y="1" width="417" height="224"/>
+                                                <rect key="frame" x="1" y="1" width="479" height="75"/>
                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                 <subviews>
                                                     <outlineView toolTip="&lt;IB tooltip for codeOutlineView&gt;" verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" multipleSelection="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" headerView="Nkc-dN-yhM" viewBased="YES" indentationPerLevel="13" outlineTableColumn="1u7-k0-3n6" id="QG7-gp-EhQ">
-                                                        <rect key="frame" x="0.0" y="0.0" width="417" height="196"/>
+                                                        <rect key="frame" x="0.0" y="0.0" width="479" height="47"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                         <size key="intercellSpacing" width="17" height="0.0"/>
                                                         <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -975,7 +990,7 @@
                                                                     </tableCellView>
                                                                 </prototypeCellViews>
                                                             </tableColumn>
-                                                            <tableColumn identifier="AutomaticTableColumnIdentifier.1" width="186" minWidth="40" maxWidth="1000" headerToolTip="&lt;IB tooltip for codeOutlineColumnTwo&gt;" id="Omh-3v-jbZ">
+                                                            <tableColumn identifier="AutomaticTableColumnIdentifier.1" width="248" minWidth="40" maxWidth="1000" headerToolTip="&lt;IB tooltip for codeOutlineColumnTwo&gt;" id="Omh-3v-jbZ">
                                                                 <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="&lt;IB title for codeOutlineColumnTwo&gt;">
                                                                     <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                                     <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
@@ -988,11 +1003,11 @@
                                                                 <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                                 <prototypeCellViews>
                                                                     <tableCellView id="cRh-7K-Hcj">
-                                                                        <rect key="frame" x="225" y="0.0" width="183" height="24"/>
+                                                                        <rect key="frame" x="225" y="0.0" width="245" height="24"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                                         <subviews>
                                                                             <textField toolTip="&lt;IB tooltip for codeOutlineCellTwo&gt;" focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gUs-73-W4A">
-                                                                                <rect key="frame" x="0.0" y="4" width="183" height="16"/>
+                                                                                <rect key="frame" x="0.0" y="4" width="245" height="16"/>
                                                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                                                                 <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="&lt;IB title for codeOutlineCellTwo&gt;" id="da2-Pt-Olh">
                                                                                     <font key="font" usesAppearanceFont="YES"/>
@@ -1012,7 +1027,7 @@
                                                 </subviews>
                                             </clipView>
                                             <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="Bj1-o8-rUJ">
-                                                <rect key="frame" x="1" y="209" width="417" height="16"/>
+                                                <rect key="frame" x="1" y="61" width="479" height="15"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </scroller>
                                             <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="TgW-Ur-VIn">
@@ -1020,7 +1035,7 @@
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </scroller>
                                             <tableHeaderView key="headerView" toolTip="&lt;IB title for codeOutlineHeader&gt;" wantsLayer="YES" id="Nkc-dN-yhM">
-                                                <rect key="frame" x="0.0" y="0.0" width="417" height="28"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="479" height="28"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </tableHeaderView>
                                         </scrollView>
@@ -1029,21 +1044,21 @@
                             </tabViewItem>
                             <tabViewItem label="&lt;IB label for codeTabViewItemTwo&gt;" identifier="" id="lDc-aU-ytG">
                                 <view key="view" id="gx0-aE-bLo">
-                                    <rect key="frame" x="10" y="33" width="413" height="226"/>
+                                    <rect key="frame" x="10" y="33" width="482" height="85"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <scrollView toolTip="&lt;IB tooltip for codeTextScrollView&gt;" fixedFrame="YES" borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Hsa-1a-MWA">
-                                            <rect key="frame" x="0.0" y="3" width="416" height="220"/>
+                                            <rect key="frame" x="0.0" y="3" width="416" height="79"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <clipView key="contentView" drawsBackground="NO" id="flb-Qk-Fc2">
-                                                <rect key="frame" x="0.0" y="0.0" width="416" height="220"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="401" height="79"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                                 <subviews>
                                                     <textView toolTip="&lt;IB tooltip for codeTextView&gt;" wantsLayer="YES" importsGraphics="NO" richText="NO" verticallyResizable="YES" spellingCorrection="YES" smartInsertDelete="YES" id="suu-N2-pHo">
-                                                        <rect key="frame" x="0.0" y="0.0" width="416" height="220"/>
+                                                        <rect key="frame" x="0.0" y="0.0" width="401" height="79"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                                        <size key="minSize" width="416" height="220"/>
+                                                        <size key="minSize" width="401" height="79"/>
                                                         <size key="maxSize" width="416" height="10000000"/>
                                                         <attributedString key="textStorage">
                                                             <fragment content="&lt;IB ">
@@ -1089,7 +1104,7 @@
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </scroller>
                                             <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="xOS-we-8lr">
-                                                <rect key="frame" x="400" y="0.0" width="16" height="220"/>
+                                                <rect key="frame" x="401" y="0.0" width="15" height="79"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                             </scroller>
                                         </scrollView>
@@ -1098,18 +1113,99 @@
                             </tabViewItem>
                         </tabViewItems>
                     </tabView>
+                    <scrollView fixedFrame="YES" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NIj-F8-MJP">
+                        <rect key="frame" x="981" y="298" width="111" height="135"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <clipView key="contentView" id="jRv-cR-Oon">
+                            <rect key="frame" x="1" y="1" width="109" height="133"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            <subviews>
+                                <ruleEditor toolTip="&lt;IB tooltip for codeRuleEditor&gt;" nestingMode="compound" formattingStringsFilename="&lt;IB formatFileName for codeRuleEditor&gt;" canRemoveAllRows="YES" rowHeight="32" id="M3t-ja-PnQ">
+                                    <rect key="frame" x="0.0" y="0.0" width="109" height="133"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                </ruleEditor>
+                            </subviews>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </clipView>
+                        <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="LqM-k9-OzD">
+                            <rect key="frame" x="-100" y="-100" width="223" height="15"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                        </scroller>
+                        <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="6AP-Yv-nCP">
+                            <rect key="frame" x="224" y="1" width="15" height="118"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                        </scroller>
+                    </scrollView>
+                    <comboButton toolTip="&lt;IB tooltip for codeComboButton&gt;" verticalHuggingPriority="750" fixedFrame="YES" baseWritingDirection="leftToRight" alignment="center" title="&lt;IB title for codeComboButton&gt;" imageScaling="proportionallyDown" translatesAutoresizingMaskIntoConstraints="NO" id="R8d-Tx-f6S">
+                        <rect key="frame" x="279" y="474" width="227" height="24"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <menu key="menu" id="Og3-9f-lXa">
+                            <items>
+                                <menuItem title="&lt;IB title for codeComboMenuItemOne&gt;" id="hYP-k5-jWu"/>
+                                <menuItem title="&lt;IB title for codeComboMenuItemTwo&gt;" id="TLP-Fa-Wgc"/>
+                            </items>
+                        </menu>
+                    </comboButton>
+                    <datePicker verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jPR-lT-S9m">
+                        <rect key="frame" x="509" y="475" width="97" height="28"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <datePickerCell key="cell" borderStyle="bezel" alignment="left" useCurrentDate="YES" id="BzX-Rb-7St">
+                            <font key="font" metaFont="system"/>
+                            <date key="date" timeIntervalSinceReferenceDate="743075430.68030095">
+                                <!--2024-07-19 09:50:30 +0000-->
+                            </date>
+                            <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        </datePickerCell>
+                    </datePicker>
+                    <tokenField toolTip="&lt;IB tooltip for codeTokenField&gt;" focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="b1D-8n-4Xn">
+                        <rect key="frame" x="313" y="430" width="228" height="21"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <tokenFieldCell key="cell" selectable="YES" editable="YES" borderStyle="bezel" alignment="left" title="&lt;IB title for codeTokenField&gt;" drawsBackground="YES" allowsEditingTextAttributes="YES" id="zfl-xa-zXo">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </tokenFieldCell>
+                    </tokenField>
+                    <pathControl toolTip="&lt;IB tooltip for codePathControl&gt;" verticalHuggingPriority="750" fixedFrame="YES" allowsExpansionToolTips="YES" translatesAutoresizingMaskIntoConstraints="NO" id="iVf-il-t0Z">
+                        <rect key="frame" x="568" y="439" width="226" height="22"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <pathCell key="cell" selectable="YES" editable="YES" alignment="left" placeholderString="&lt;IB placeholder for codePathControl&gt;" id="cqE-M8-bTg">
+                            <font key="font" metaFont="system"/>
+                            <url key="url" string="file:///Applications/"/>
+                        </pathCell>
+                    </pathControl>
+                    <switch toolTip="&lt;IB tooltip for codeSwitch&gt;" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" baseWritingDirection="leftToRight" alignment="left" translatesAutoresizingMaskIntoConstraints="NO" id="vNM-AA-ASA">
+                        <rect key="frame" x="945" y="444" width="42" height="25"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    </switch>
                 </subviews>
                 <gestureRecognizers>
                     <gestureRecognizer id="bRl-U1-c5s"/>
                 </gestureRecognizers>
             </view>
+            <toolbar key="toolbar" implicitIdentifier="308A007A-6AB1-43E7-90C1-BA15411613BA" autosavesConfiguration="NO" showsBaselineSeparator="NO" displayMode="iconAndLabel" sizeMode="regular" id="ml3-fF-cCb">
+                <allowedToolbarItems>
+                    <toolbarItem implicitItemIdentifier="NSToolbarShowColorsItem" id="q5X-do-cwD"/>
+                    <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="NwB-eb-Gij"/>
+                    <toolbarItem implicitItemIdentifier="5CF2B89A-47A6-49D7-95C4-12142981D810" label="&lt;IB label for codeToolBarItemOne&gt;" paletteLabel="&lt;IB palette-label for codeToolBarItemOne&gt;" toolTip="&lt;IB tooltip for codeToolBarItemOne&gt;" tag="-1" bordered="YES" title="&lt;IB title for codeToolBarItemOne&gt;" id="hxf-Of-epH">
+                        <size key="minSize" width="154" height="16"/>
+                        <size key="maxSize" width="209" height="16"/>
+                    </toolbarItem>
+                </allowedToolbarItems>
+                <defaultToolbarItems>
+                    <toolbarItem reference="q5X-do-cwD"/>
+                    <toolbarItem reference="NwB-eb-Gij"/>
+                    <toolbarItem reference="hxf-Of-epH"/>
+                </defaultToolbarItems>
+            </toolbar>
             <point key="canvasLocation" x="1067" y="460.5"/>
         </window>
         <window title="Title of IB Tests Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="QvC-M9-y7g">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="335" y="390" width="480" height="360"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1415"/>
             <view key="contentView" id="EiT-Mj-1SZ">
                 <rect key="frame" x="0.0" y="0.0" width="480" height="360"/>
                 <autoresizingMask key="autoresizingMask"/>
@@ -1161,5 +1257,71 @@
             </connections>
             <point key="canvasLocation" x="200" y="400"/>
         </window>
+        <touchBar id="Aau-RB-OBQ">
+            <touchBarItems>
+                <touchBarItem customizationLabel="&lt;IB customization-label for tbSegmentedControlItem&gt;" id="Aco-T9-k3Z">
+                    <viewController key="viewController" id="s2Q-i0-AeP">
+                        <segmentedControl key="view" toolTip="&lt;IB tooltip for tbSegmentedControl&gt;" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7OE-uN-6EQ">
+                            <rect key="frame" x="0.0" y="0.0" width="390" height="30"/>
+                            <segmentedCell key="cell" borderStyle="border" alignment="left" style="rounded" trackingMode="selectOne" id="cUp-HJ-HK2">
+                                <font key="font" metaFont="system"/>
+                                <segments>
+                                    <segment label="&lt;IB label for tbSegmentOne&gt;" toolTip="&lt;IB tooltip for tbSegmentOne&gt;" width="194"/>
+                                    <segment label="&lt;IB label for tbSegmentTwo&gt;" toolTip="&lt;IB tooltip for tbSegmentTwo&gt;" width="194" selected="YES" tag="1"/>
+                                </segments>
+                            </segmentedCell>
+                            <accessibility description="&lt;IB ax-description for tbSegmentedControl&gt;" help="&lt;IB ax-help for tbSegmentedControl&gt;" identifier="&lt;IB ax-identifier for tbSegmentedControl&gt;"/>
+                        </segmentedControl>
+                    </viewController>
+                </touchBarItem>
+            </touchBarItems>
+            <point key="canvasLocation" x="984.5" y="82"/>
+        </touchBar>
+        <touchBar id="P0Q-cT-XmG">
+            <touchBarItems>
+                <sliderTouchBarItem customizationLabel="&lt;IB customization-label for tbSlider&gt;" label="&lt;IB label for tbSlider&gt;" id="RMa-wx-ilR">
+                    <sliderAccessory key="minimumValueAccessory" image="NSTouchBarGoDownTemplate" id="P0d-5B-VIl">
+                        <sliderAccessoryBehavior key="behavior" id="Kog-RE-MJs"/>
+                    </sliderAccessory>
+                    <sliderAccessory key="maximumValueAccessory" image="NSTouchBarGoUpTemplate" id="tZi-LC-dWN">
+                        <sliderAccessoryBehavior key="behavior" id="T3X-Yo-y3v"/>
+                    </sliderAccessory>
+                    <slider key="slider" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZMz-JW-Z9C">
+                        <rect key="frame" x="203" y="0.0" width="66" height="30"/>
+                        <sliderCell key="cell" alignment="left" maxValue="100" tickMarkPosition="above" numberOfTickMarks="4" sliderType="linear" id="22K-v2-kDl">
+                            <font key="font" size="12" name="Helvetica"/>
+                        </sliderCell>
+                    </slider>
+                </sliderTouchBarItem>
+                <touchBarItem id="l5Q-yi-gJt">
+                    <viewController key="viewController" id="ZPE-Tf-cUJ">
+                        <textField key="view" toolTip="&lt;IB tooltip for tbLabel&gt;" focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="824-ec-2jH">
+                            <rect key="frame" x="0.0" y="0.0" width="146" height="18"/>
+                            <textFieldCell key="cell" lineBreakMode="clipping" title="&lt;IB title for tbLabel&gt;" placeholderString="&lt;IB placeholder for tbLabel&gt;" id="ZrI-G9-DZK">
+                                <font key="font" usesAppearanceFont="YES"/>
+                                <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                            </textFieldCell>
+                        </textField>
+                    </viewController>
+                </touchBarItem>
+                <touchBarItem id="t7c-yP-jTS">
+                    <viewController key="viewController" id="jpg-2G-ygd">
+                        <button key="view" toolTip="&lt;IB placeholder for tbButton&gt;" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="SIb-Dt-tpz">
+                            <rect key="frame" x="0.0" y="0.0" width="162" height="30"/>
+                            <buttonCell key="cell" type="push" title="&lt;IB title for tbButton&gt;" alternateTitle="&lt;IB alternateTitle for tbButton&gt;" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="YZK-yp-wRX">
+                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                        </button>
+                    </viewController>
+                </touchBarItem>
+            </touchBarItems>
+            <point key="canvasLocation" x="984.5" y="82"/>
+        </touchBar>
     </objects>
+    <resources>
+        <image name="NSTouchBarGoDownTemplate" width="18" height="11"/>
+        <image name="NSTouchBarGoUpTemplate" width="18" height="11"/>
+    </resources>
 </document>

@@ -20,7 +20,7 @@
 		4F5A28132C3B443D00F95211 /* Swizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F5A28122C3B443D00F95211 /* Swizzle.m */; };
 		4F5A281C2C3B596800F95211 /* Utility.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F5A281B2C3B596800F95211 /* Utility.m */; };
 		4F5A284E2C3C563600F95211 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F5A284C2C3C49EF00F95211 /* AppKit.framework */; };
-		4F746D112C4073B40031DA27 /* UINibDecoder+LocalizationKeyAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F5A28182C3B4D3700F95211 /* UINibDecoder+LocalizationKeyAnnotation.m */; };
+		4F746D112C4073B40031DA27 /* NibDecodingAnalysis.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F5A28182C3B4D3700F95211 /* NibDecodingAnalysis.m */; };
 		4F746D122C4074F60031DA27 /* UIStringAnnotationHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FB7E9E82C3E9CF900A36F3B /* UIStringAnnotationHelper.m */; };
 		4F8738102C43E348001F95DE /* SystemRenameTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F87380F2C43E348001F95DE /* SystemRenameTracker.m */; };
 		4F8738132C4414A6001F95DE /* AppKitIntrospection.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F8738122C4414A6001F95DE /* AppKitIntrospection.m */; };
@@ -56,6 +56,8 @@
 		4F1E09072C47FBE6005569B7 /* PreprocessorMagic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PreprocessorMagic.h; sourceTree = "<group>"; };
 		4F1E09082C491846005569B7 /* NSRunLoop+Additions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSRunLoop+Additions.h"; sourceTree = "<group>"; };
 		4F1E09092C491846005569B7 /* NSRunLoop+Additions.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSRunLoop+Additions.m"; sourceTree = "<group>"; };
+		4F3C93D82C49C4B90012F50D /* labelSettersFromLLDB.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = labelSettersFromLLDB.txt; sourceTree = "<group>"; };
+		4F3C93DD2C49C65F0012F50D /* AppKitSetters.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppKitSetters.h; sourceTree = "<group>"; };
 		4F53EBC62C3AF1C800843320 /* CustomImplForLocalizationScreenshotTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CustomImplForLocalizationScreenshotTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F53EBC92C3AF1C800843320 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		4F53EBCA2C3AF1C800843320 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -79,8 +81,8 @@
 		4F5A28062C3B330D00F95211 /* TakeScreenshots.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TakeScreenshots.xctestplan; sourceTree = "<group>"; };
 		4F5A28112C3B443D00F95211 /* Swizzle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swizzle.h; sourceTree = "<group>"; };
 		4F5A28122C3B443D00F95211 /* Swizzle.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Swizzle.m; sourceTree = "<group>"; };
-		4F5A28172C3B4D3700F95211 /* UINibDecoder+LocalizationKeyAnnotation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UINibDecoder+LocalizationKeyAnnotation.h"; sourceTree = "<group>"; };
-		4F5A28182C3B4D3700F95211 /* UINibDecoder+LocalizationKeyAnnotation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UINibDecoder+LocalizationKeyAnnotation.m"; sourceTree = "<group>"; };
+		4F5A28172C3B4D3700F95211 /* NibDecodingAnalysis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NibDecodingAnalysis.h; sourceTree = "<group>"; };
+		4F5A28182C3B4D3700F95211 /* NibDecodingAnalysis.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NibDecodingAnalysis.m; sourceTree = "<group>"; };
 		4F5A281A2C3B596800F95211 /* Utility.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Utility.h; sourceTree = "<group>"; };
 		4F5A281B2C3B596800F95211 /* Utility.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Utility.m; sourceTree = "<group>"; };
 		4F5A281D2C3BDA2C00F95211 /* UINibDecoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UINibDecoder.h; sourceTree = "<group>"; };
@@ -148,6 +150,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4F3C93D92C49C5B30012F50D /* AppKitSetters */ = {
+			isa = PBXGroup;
+			children = (
+				4F3C93DD2C49C65F0012F50D /* AppKitSetters.h */,
+				4FB7E9E22C3DD61800A36F3B /* accessibilityNotificationPostingSymbolsFromLLDB.txt */,
+				4F87381C2C443669001F95DE /* toolTipSettersFromLLDB.txt */,
+				4F3C93D82C49C4B90012F50D /* labelSettersFromLLDB.txt */,
+			);
+			path = AppKitSetters;
+			sourceTree = "<group>";
+		};
+		4F3C93DA2C49C5CD0012F50D /* Notes */ = {
+			isa = PBXGroup;
+			children = (
+				4F3C93D92C49C5B30012F50D /* AppKitSetters */,
+			);
+			path = Notes;
+			sourceTree = "<group>";
+		};
 		4F53EBBD2C3AF1C800843320 = {
 			isa = PBXGroup;
 			children = (
@@ -177,6 +198,7 @@
 				4F53EBCA2C3AF1C800843320 /* AppDelegate.m */,
 				4F58C23F2C3AFFBB0047F651 /* MainMenu.xib */,
 				4F53EBF82C3AF64C00843320 /* Localizable.xcstrings */,
+				4F3C93DA2C49C5CD0012F50D /* Notes */,
 				4F5A280A2C3B3FC400F95211 /* CoolLocalizationScreenshots */,
 				4F53EBF62C3AF4A900843320 /* SupportFiles */,
 			);
@@ -262,8 +284,6 @@
 		4FB7E9E52C3E996B00A36F3B /* CodeAnnotation */ = {
 			isa = PBXGroup;
 			children = (
-				4FB7E9E22C3DD61800A36F3B /* accessibilityNotificationPostingSymbolsFromLLDB.txt */,
-				4F87381C2C443669001F95DE /* toolTipSettersFromLLDB.txt */,
 				4FE839732C3D8C8800AFCA6D /* UIStringChangeDetector.h */,
 				4FB7E9EC2C3EACD200A36F3B /* UIStringChangeDetector.m */,
 				4FE839702C3D7C3100AFCA6D /* NSLocalizedStringRecord.h */,
@@ -275,8 +295,8 @@
 		4FB7E9E62C3E997200A36F3B /* NibAnnotation */ = {
 			isa = PBXGroup;
 			children = (
-				4F5A28172C3B4D3700F95211 /* UINibDecoder+LocalizationKeyAnnotation.h */,
-				4F5A28182C3B4D3700F95211 /* UINibDecoder+LocalizationKeyAnnotation.m */,
+				4F5A28172C3B4D3700F95211 /* NibDecodingAnalysis.h */,
+				4F5A28182C3B4D3700F95211 /* NibDecodingAnalysis.m */,
 			);
 			path = NibAnnotation;
 			sourceTree = "<group>";
@@ -474,7 +494,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4F746D112C4073B40031DA27 /* UINibDecoder+LocalizationKeyAnnotation.m in Sources */,
+				4F746D112C4073B40031DA27 /* NibDecodingAnalysis.m in Sources */,
 				4FE839722C3D7C3100AFCA6D /* NSLocalizedStringRecord.m in Sources */,
 				4F53EBD22C3AF1CA00843320 /* main.m in Sources */,
 				4F53EBCB2C3AF1C800843320 /* AppDelegate.m in Sources */,

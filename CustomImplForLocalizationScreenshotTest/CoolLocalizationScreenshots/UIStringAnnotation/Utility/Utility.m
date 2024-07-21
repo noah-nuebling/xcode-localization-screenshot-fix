@@ -11,11 +11,71 @@
 #import "NSString+Additions.h"
 #import "dlfcn.h"
 #import "objc/runtime.h"
+#import "AppKitIntrospection.h"
+#import "dlfcn.h"
+#import "mach-o/dyld.h"
+//#import "execinfo.h"
 
 @implementation Utility
 
-NSArray<Class> *searchClasses(NSDictionary<MFClassSearchCriterion, id> *criteria) {
+NSString *getExecutablePath(void) {
+    
+    /// Get the path of the current executable.
+    
+    static uint32_t pathBufferSize = MAXPATHLEN; /// Make this static to store between invocations. For optimization?
+    char *pathBuffer = malloc(pathBufferSize); if (pathBuffer == NULL) return NULL; /// ChatGPT and SO tells me to NULL-check my malloc, and that not doing it is "unsafe" and "bad programming". I'm annoyed because that seems extremely unnecessary, but ok.
+    int ret = _NSGetExecutablePath(pathBuffer, &pathBufferSize);
+    
+    if (ret == -1) { /// If the buffer size is not large enough, the buffer size is set to the right value and the function returns -1
+        free(pathBuffer);
+        pathBuffer = malloc(pathBufferSize); if (pathBuffer == NULL) return NULL;
+        ret = _NSGetExecutablePath(pathBuffer, &pathBufferSize);
+        if (ret == -1) {
+            assert(false);
+            return NULL;
+        }
+    }
+    
+    NSString *result = [NSString stringWithCString:pathBuffer encoding:NSUTF8StringEncoding];
+    free(pathBuffer);
+    
+    return result;
+}
 
+NSString *getImagePath(void *address) {
+    
+    /// Get the image path of an address.
+    /// For example when the address comes from the AppKit framework, the result will be
+    ///     `@"/System/Library/Frameworks/AppKit.framework/AppKit"`
+    /// Pass in the address of a function and compare the result to `getExecutablePath()` to see if the function is defined inside the current executable (and not by a framework or library.)
+    
+    Dl_info info;
+    int ret = dladdr(address, &info);
+    assert(ret != 0); /// 0 is failure code of dladrr()
+    
+    const char *imagePath = info.dli_fname;
+    NSString *result = [NSString stringWithCString:imagePath encoding:NSUTF8StringEncoding];
+    assert(result != nil);
+    
+    return result;
+}
+
+NSString *getSymbol(void *address) {
+    
+    Dl_info info;
+    int ret = dladdr(address, &info);
+    assert(ret != 0); /// 0 is failure code of dladrr()
+    
+    const char *symbolName = info.dli_sname;
+    NSString *result = [NSString stringWithCString:symbolName encoding:NSUTF8StringEncoding];
+    assert(result != nil);
+    
+    return result;
+}
+
+
+NSArray<Class> *searchClasses(NSDictionary<MFClassSearchCriterion, id> *criteria) {
+    
     /// Validate
     assert([criteria isKindOfClass:[NSDictionary class]]);
     
@@ -25,11 +85,19 @@ NSArray<Class> *searchClasses(NSDictionary<MFClassSearchCriterion, id> *criteria
     NSString *namePrefixNS = criteria[MFClassSearchCriterionClassNamePrefix];
     NSString *frameworkNameNS = criteria[MFClassSearchCriterionFrameworkName];
     
-    /// Validate 
+    /// Map emptyString to nil
+    if (namePrefixNS != nil && namePrefixNS.length == 0) {
+        namePrefixNS = nil;
+    }
+    if (frameworkNameNS != nil && frameworkNameNS.length == 0) {
+        frameworkNameNS = nil;
+    }
+    
+    /// Validate
     /// - at least one criterion
     assert(protocol != nil || baseClass != nil || namePrefixNS != nil || frameworkNameNS != nil);
     
-    /// Validate 
+    /// Validate
     /// - no extra criteria
     NSMutableDictionary *criteriaMutable = criteria.mutableCopy;
     criteriaMutable[MFClassSearchCriterionProtocol] = nil;
@@ -38,10 +106,6 @@ NSArray<Class> *searchClasses(NSDictionary<MFClassSearchCriterion, id> *criteria
     criteriaMutable[MFClassSearchCriterionFrameworkName] = nil;
     assert(criteriaMutable.count == 0);
     
-    /// Preprocess baseClass
-//    BOOL baseClassIsMetaClass = class_isMetaClass(baseClass);
-//    NSString *baseClassName = NSStringFromClass(baseClass);
-    
     /// Preprocess namePrefix
     const char *namePrefix = NULL;
     if (namePrefixNS) {
@@ -49,25 +113,60 @@ NSArray<Class> *searchClasses(NSDictionary<MFClassSearchCriterion, id> *criteria
     }
     
     /// Preprocess frameworkName
+    ///     -> Get framwork paths
     
-    void *frameworkHandle = NULL;
+    unsigned int frameworkCount;
+    const char **frameworkPaths = NULL;
+    
     if (frameworkNameNS != nil) {
         const char *frameworkName = [frameworkNameNS cStringUsingEncoding:NSUTF8StringEncoding];
         const char *frameworkPath = searchFrameworkPath(frameworkName);
-        frameworkHandle = dlopen(frameworkPath, RTLD_LAZY | RTLD_GLOBAL); /// Maybe we could/should use `RTLD_NOLOAD` here for better performance?
-        assert(frameworkHandle != NULL);
+        frameworkPaths = malloc(sizeof(char *));
+        *frameworkPaths = frameworkPath;
+        frameworkCount = 1;
+    } else {
+        /// If the caller hasn't specified a framework, get *all* the frameworks.
+        ///     There are 46977 classes in all the frameworks, but it's still quite fast, especially with the macOS 13.0+ implementation.
+        frameworkPaths = objc_copyImageNames(&frameworkCount);
+    }
+    
+    /// Get framework handles from framework paths
+    void *frameworkHandles[frameworkCount];
+    for (int i = 0; i < frameworkCount; i++) {
+        const char *frameworkPath = frameworkPaths[i];
+        frameworkHandles[i] = dlopen(frameworkPath, RTLD_LAZY | RTLD_GLOBAL); /// Maybe we could/should use `RTLD_NOLOAD` here for better performance?
+        assert(frameworkHandles[i] != NULL);
     }
     
     /// Find classes
-    /// `objc_enumerateClasses` is only available on macOS 13.0 and later. Alternatives are  `objc_copyClassNamesForImage`, `objc_copyClassList`, `objc_getClassList`.
-    
     NSMutableArray *result = [NSMutableArray array];
-    objc_enumerateClasses(frameworkHandle, namePrefix, protocol, baseClass, ^(Class _Nonnull aClass, BOOL * _Nonnull stop){
-        [result addObject:aClass];
-    });
     
-    /// Release framework handle
-    dlclose(frameworkHandle);
+    for (int i = 0; i < frameworkCount; i++) {
+        
+        if (@available(macOS 13.0, *)) {
+            objc_enumerateClasses(frameworkHandles[i], namePrefix, protocol, baseClass, ^(Class _Nonnull aClass, BOOL * _Nonnull stop){
+                [result addObject:aClass];
+            });
+        } else {
+            unsigned int classCount;
+            const char **classNames = objc_copyClassNamesForImage(frameworkPaths[i], &classCount);
+            for (int i = 0; i < classCount; i++) {
+                Class class = objc_getClass(classNames[i]);
+                bool hasNamePrefix      = namePrefix == NULL ? true :   strncmp(namePrefix, classNames[i], strlen(namePrefix)) == 0;
+                bool conformsToProtocol = protocol == nil ? true :      class_conformsToProtocol(class, protocol);
+                bool isSubclass         = baseClass == nil ? true :     classIsSubclass(class, baseClass) && class != baseClass; /// Filter out baseClass since that's how `objc_copyClassNamesForImage()` works.
+                if (hasNamePrefix && conformsToProtocol && isSubclass) {
+                    [result addObject:class];
+                }
+            }
+        }
+    }
+    
+    /// Release stuff
+    free(frameworkPaths);
+    for (int i = 0; i < frameworkCount; i++) {
+        dlclose(frameworkHandles[i]);
+    }
     
     /// Return
     return result;
@@ -76,6 +175,11 @@ NSArray<Class> *searchClasses(NSDictionary<MFClassSearchCriterion, id> *criteria
 const char *searchFrameworkPath(const char *frameworkName) {
     
     /// Can't get dlopen to find any frameworks without hardcoding the path, so we're making our own framework searcher
+    /// 
+    /// Update: I just found this in the dlopen docs which explains the problem: (our app was codesigned with entitlements.)
+    ///   Note: If the main executable is a set[ug]id binary or codesigned with
+    ///   entitlements, then all environment variables are ignored, and only a full
+    ///   path can be used.
     
     /// Preprocess framework name
     char *frameworkSubpath = NULL;
@@ -124,7 +228,7 @@ const char *searchFrameworkPath(const char *frameworkName) {
     /// Fallback: objc runtime
     ///
     
-    /// Not sure this is actually slower than the main appriach. Should be more robust though.
+    /// Not sure this is even slower than the main approach. (If not then this should be the main approach) Should be more robust than the main approach though.
     
     char *frameworkSubpath2 = NULL; /// Why are we using another subpath: When using dlopen `...AppKit.framework/AppKit` works, but in the objc imageNames `...AppKit.framework/Versions/C/AppKit` appears.
     asprintf(&frameworkSubpath2, "%s.framework", frameworkName);
@@ -143,13 +247,16 @@ const char *searchFrameworkPath(const char *frameworkName) {
     
     free(imagePaths);
     
-    assert(result != NULL);
+    if (result == NULL) {
+        NSLog(@"Error: Couldn't find framework with name %@", frameworkName);
+        assert(false);
+    }
     return result;
     
 }
 
 
-BOOL classInheritsMethod(Class class, SEL selector) {
+bool classInheritsMethod(Class class, SEL selector) {
     
     /// Returns YES if the class inherits the method for `selector` from its superclass, instead of defining its own implementation.
     /// Note: Also see `class_copyMethodList`
@@ -157,13 +264,33 @@ BOOL classInheritsMethod(Class class, SEL selector) {
     /// Main check
     Method classMethod = class_getInstanceMethod(class, selector);
     Method superclassMethod = class_getInstanceMethod(class_getSuperclass(class), selector);
-    BOOL classInherits = classMethod == superclassMethod;
+    bool classInherits = classMethod == superclassMethod;
     
     /// ?
     assert(classMethod != NULL); /// Not sure if this is good or necessary
     
     /// Return
     return classInherits;
+}
+
+bool classIsSubclass(Class potentialSub, Class potentialSuper) {
+    
+    /// `isSubclassOfClass:` sometimes crashes. I think sending a message to the class might have sideeffects, so we're building a pure c implementation.
+    /// This also returns true, if the two classes are the same (just like `isSubclassOfClass:`)
+    
+    while (true) {
+            
+        if (potentialSub == potentialSuper) {
+            return true;
+        }
+        potentialSub = class_getSuperclass(potentialSub);
+        
+        if (potentialSub == NULL) {
+            break;
+        }
+    }
+    
+    return false;
 }
 
 NSArray<Class> *getClassesFromFramework(NSString *frameworkNameNS) {
@@ -264,6 +391,7 @@ void _recursionSwitch(id selfKey, SEL _cmdKey, void (^onFirstRecursion)(void), v
 
 void BREAKPOINT(id context) { /// Be able to break inside c macros
     
+
 }
 
 NSString *pureString(id value) {
@@ -280,6 +408,7 @@ NSString *pureString(id value) {
         result = nil;
     } else {
         assert(false);
+        result = nil;
     }
     
     return result;
@@ -291,7 +420,7 @@ NSString *typeNameFromEncoding(const char *typeEncoding) { /// Credit ChatGPT & 
     NSUInteger index = 0;
     
     /// Handle type qualifiers
-    while (typeEncoding[index] && strchr("rnNoORV", typeEncoding[index])) {
+    while (typeEncoding[index] && strchr("rnNoORV^", typeEncoding[index])) {
         switch (typeEncoding[index]) {
             case 'r': [typeName appendString:@"const "]; break;
             case 'n': [typeName appendString:@"in "]; break;
@@ -300,6 +429,7 @@ NSString *typeNameFromEncoding(const char *typeEncoding) { /// Credit ChatGPT & 
             case 'O': [typeName appendString:@"bycopy "]; break;
             case 'R': [typeName appendString:@"byref "]; break;
             case 'V': [typeName appendString:@"oneway "]; break;
+            case '^': [typeName appendString:@"pointer "]; break;
         }
         index++;
     }
@@ -329,7 +459,6 @@ NSString *typeNameFromEncoding(const char *typeEncoding) { /// Credit ChatGPT & 
         case '{': baseTypeName = @"struct"; break;
         case '(': baseTypeName = @"union"; break;
         case 'b': baseTypeName = @"bit field"; break;
-        case '^': baseTypeName = @"pointer"; break;
         case '?': baseTypeName = @"unknown"; break;
         default:
             NSLog(@"typeEncoding: %s is unknown", typeEncoding);
@@ -380,7 +509,7 @@ void printClassHierarchy(NSObject *obj) {
     NSLog(@"Class hierarchy of object %@:", obj);
     while (cls) {
         NSLog(@"Class: %@", NSStringFromClass(cls));
-        cls = class_getSuperclass(cls);  // Move to the superclass
+        cls = class_getSuperclass(cls);  /// Move to the superclass
     }
 }
 
@@ -401,18 +530,50 @@ void printClassHierarchy(NSObject *obj) {
     }
     
     /// Special cases
+    
+    /// Special case: NSTextStorage
+    if ([object isKindOfClass:[NSTextStorage class]]) {
+        NSTextStorage *textStorage = (id)object;
+        assert([[textStorage textStorageObserver] isKindOfClass:[NSTextContentStorage class]]);
+        NSTextContentStorage *textContentStorage = (id)[textStorage textStorageObserver];
+        NSTextLayoutManager *textLayoutManager = [[textContentStorage textLayoutManagers] firstObject];
+        NSTextContainer *textContainer = [textLayoutManager textContainer];
+        NSTextView *textView = [textContainer textView];
+        assert(textView != nil);
+        return [self getRepresentingAccessibilityElementForObject:textView];
+    }
+    
+    /// Special case: NSToolbar.
+    if ([object isKindOfClass:[NSToolbarItem class]]) {
+        NSToolbarItemViewer *itemViewer = [(NSToolbarItem *)object rawItemViewer];
+        assert(itemViewer != NULL);
+        if (![itemViewer isAccessibilityElement]) {
+            return [(id)itemViewer accessibilityParent]; /// Some items viewers, e.g. flexibleSpaceItem are not ax elements themselves, so we use the parent (which is the toolbar itself from what I observed.)
+        }
+        return itemViewer;
+    }
+    
+    /// Special case: NSTableView
     if ([object isKindOfClass:[NSTableColumn class]]) {
         return [(NSTableColumn *)object headerCell];
     }
+    
+    /// Special case: NSSegmentedControl items
+    ///     This code is currently unused, because we simply attach the annotations for the segmented control items directly to their parent - the segmented control's cell.
+    ///     The NSSegmentedCell has an accessibilityChild "mock element" for each of its segments. It would be better to attach our annotations for the segments directly to those.
     if ([object isKindOfClass:objc_getClass("NSSegmentItemLabelCell")]) {
+        assert(false);
         id segmentItemLabelView = [(id)object controlView];
         object = segmentItemLabelView; /// We don't return here so this is handled by the if (NSSegmentItemLabelView) statement below.
     }
     if ([object isKindOfClass:objc_getClass("NSSegmentItemLabelView")]) {
+        assert(false);
         NSSegmentedCell *cell = [(id)[[(id)object superview] superview] cell];
         assert([cell respondsToSelector:@selector(isAccessibilityElement)] && [cell isAccessibilityElement]);
         return cell;
     }
+    
+    /// Special case: NSTabView
     if ([object isKindOfClass:[NSTabViewItem class]]) {
         /// Get tabView
         ///     Each single tabViewButton is selectable in the Accessibility Inspector. It would be ideal to set our annotation to that.
@@ -422,12 +583,21 @@ void printClassHierarchy(NSObject *obj) {
         return tabView;
     }
     
+    /// Special case: NSTouchBarItem
+    ///     (Does it really make sense to handle touchbar stuff? It seems pretty
+    ///     obsolete and and totally irrelevant for MMF and I don't know if localizationScreenshots will even work)
+    if ([object isKindOfClass:[NSTouchBarItem class]]) {
+        NSView *view = [(NSTouchBarItem *)object view];
+        return [self getRepresentingAccessibilityElementForObject:view];
+    }
+    
     /// Default: Search childen
+    ///     This will find the NSCell of an NSControl.
     NSArray *children = [object accessibilityChildren];
     for (NSObject<NSAccessibility> *child in children) {
         NSObject<NSAccessibility> *childRepresenter = [self getRepresentingAccessibilityElementForObject:child];
         if (childRepresenter != nil) {
-            return childRepresenter;
+            return childRepresenter; /// When there are multiple ax children we just take the first one which might be problematic? But works so far. 
         }
     }
     
@@ -446,6 +616,11 @@ void printClassHierarchy(NSObject *obj) {
     NSObject *result = nil;
     if ([object isKindOfClass:[NSCell class]]) {
         result = [(NSCell *)object controlView];
+    }
+    
+    /// Special case: comboButton
+    if ([result isKindOfClass:objc_getClass("NSComboButtonSegmentedControl")]) {
+        result = [(NSControl *)result superview];
     }
     
     /// Fallback to the object itself

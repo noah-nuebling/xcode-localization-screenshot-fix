@@ -9,7 +9,7 @@
 #import "Swizzle.h"
 #import "NSLocalizedStringRecord.h"
 #import "UIStringAnnotationHelper.h"
-#import "UINibDecoder+LocalizationKeyAnnotation.h"
+#import "NibDecodingAnalysis.h"
 #import "NSString+Additions.h"
 #import "SystemRenameTracker.h"
 #import "AppKitIntrospection.h"
@@ -27,35 +27,67 @@
     [NSRunLoop.mainRunLoop observeLoopActivities:kCFRunLoopBeforeTimers withCallback:^(CFRunLoopObserverRef  _Nonnull observer, CFRunLoopActivity activity) { /// kCFRunLoopBeforeTimers is the earliest time in the runLoop iteration we can observe.
         NSArray *unhandledStrings = NSLocalizedStringRecord.queue._rawStorage;
         if (unhandledStrings.count > 0) {
-            NSLog(@"UIStringChangeDetector: Unhandled localizedStrings after last runLoop iteration: %@", unhandledStrings);
+            NSLog(@"    UIStringChangeDetector: Error: Unhandled localizedStrings in the NSLocalizedStringRecord after last runLoop iteration: %@\nThis might be due to a bug in the NSLocalizedStringRecord or UIStringChangeDetector code or because the UIStringChangeDetector is not yet capable of detecting you setting the string on a UI Element in the way that you did.\nThe error could also be because the strings are defined by the system, instead of your app and the the code failed to recognize this and properly ignore the system strings.\n\nTip: If you did retrieve these localized strings in your code (probably using NSLocalizedString()) but you just didn't set them to a UI Element immediately, and instead you want to store the strings and set them to a UI Element later, then you can solve this error by telling the system about this through calling <...>.", unhandledStrings);
             assert(false);
         }
     }];
 }
 
-+ (void)uiStringHasChangedFrom:(id)previousUIStringRaw toValue:(id)updatedUIStringRaw onObject:(id)object selector:(SEL)selector recursionDepth:(NSInteger)recursionDepth {
++ (void)handleSetString:(id)updatedUIStringRaw
+               onObject:(id)object
+               selector:(SEL)selector
+         recursionDepth:(NSInteger)recursionDepth
+          returnAddress:(void *)returnAddress {
+    [self handleSetString:updatedUIStringRaw onObject:object selector:selector recursionDepth:recursionDepth returnAddress:returnAddress extraInfo:nil];
+}
+
++ (void)handleSetString:(id)newlySetStringRaw
+               onObject:(id)object
+               selector:(SEL)selector
+         recursionDepth:(NSInteger)recursionDepth
+          returnAddress:(void *)returnAddress
+              extraInfo:(NSDictionary *)extraInfo {
     
+    /// TEST
+    
+    if (sel_isEqual(selector, @selector(setLabel:))) {
+        
+    }
+    
+    if ([[pureString(newlySetStringRaw) lowercaseString] isEqual:[@"test-string.CB" lowercaseString]]) {
+        
+    }
+
     /// Validate thread
     assert(NSThread.currentThread.isMainThread);
     
     /// Validate args
-    BOOL isString = updatedUIStringRaw == nil || [updatedUIStringRaw isKindOfClass:[NSString class]] || [updatedUIStringRaw isKindOfClass:[NSAttributedString class]];
+    BOOL isString = newlySetStringRaw == nil || [newlySetStringRaw isKindOfClass:[NSString class]] || [newlySetStringRaw isKindOfClass:[NSAttributedString class]];
     if (!isString) {
-            NSLog(@"    UIStringChangeDetector: New value %@ is not a string", updatedUIStringRaw);
+            NSLog(@"    UIStringChangeDetector: Error: New value %@ is not a string", newlySetStringRaw);
             assert(false);
             return;
     }
     
     /// Convert to pure NSString
-    NSString *previousUIStringPure = pureString(previousUIStringRaw);
-    NSString *updatedUIStringPure = pureString(updatedUIStringRaw);
+    NSString *newlySetStringPure = pureString(newlySetStringRaw);
 
+    /// Define convenience var
+    ///     For logging
+    NSString *descriptionOfUIStringChange = [NSString stringWithFormat:@"[%@ %s\"%@\"]", NSStringFromClass([object class]), sel_getName(selector), newlySetStringPure];
+    
     /// Skip - default cases
     if (MFIsLoadingNib() || MFSystemIsChangingUIStrings()) {
         return;
     }
-    if (previousUIStringPure == updatedUIStringPure || [previousUIStringPure isEqual:updatedUIStringPure]) {
+    
+    NSString *symbolOfStringChanger = getSymbol(returnAddress);
+    NSString *imageOfStringChanger = getImagePath(returnAddress);
+    if (![getExecutablePath() isEqual:imageOfStringChanger]) { /// With the introduction of this, `MFSystemIsChangingUIStrings()` and the whole SystemRenameTracker might be largely unnecessary.
+//        NSLog(@"    UIStringChangeDetector: Debug: Skip processing uiStringChange %@ since it came from foreign image: %@ (%@)", descriptionOfUIStringChange, symbolOfStringChanger, imageOfStringChanger);
         return;
+    } else {
+//        NSLog(@"    UIStringChangeDetector: Debug: uiStringChange %@ comes from current image: %@", descriptionOfUIStringChange, symbolOfStringChanger);
     }
     
     /// Set up recursion handling
@@ -63,13 +95,13 @@
     static BOOL _doWaitForNextRecursion = NO;
     
     if (!_doWaitForNextRecursion && recursionDepth > 0) { /// Normally, we only look at the baseLevel call (recursionDepth == 0) and ignore the recursions, except if the `_doWaitForNextRecursion` flag is set.
-//        return;
+        return;
     }
     _doWaitForNextRecursion = NO;
     
     #define waitForNextRecursion() \
         assert(recursionDepth != 0); /** We're always notified of the deepest recursion first, so when we see recursionDepth 0 that was the last recursion */\
-        NSLog(@"    UIStringChangeDetector: [%s \"%@\"] (recursionDepth %ld) (on %@) --- Waiting for next recursion", sel_getName(selector), updatedUIStringPure, recursionDepth, object); \
+        NSLog(@"    UIStringChangeDetector: Info: %@ (recursionDepth %ld) (on %@) --- Waiting for next recursion", descriptionOfUIStringChange, recursionDepth, object); \
         _doWaitForNextRecursion = YES; \
         return;
     
@@ -79,12 +111,12 @@
 //    }
     
     /// Special recursion cases
-    //    if () {
-    //        waitForNextRecursion()
-    //    }
+//    if ([object isKindOfClass:[NSTableHeaderCell class]]) {
+//        waitForNextRecursion()
+//    }
     
     /// Log
-    NSLog(@"    UIStringChangeDetector: [%s \"%@\"] (recursionDepth %ld) (on %@)", sel_getName(selector), updatedUIStringPure, recursionDepth, object);
+    NSLog(@"    UIStringChangeDetector: Info: %@ (recursionDepth %ld) (on %@)", descriptionOfUIStringChange, recursionDepth, object);
     
     ///
     /// Main work
@@ -92,7 +124,7 @@
     
     /// Get NSLocalizedStrings return-values that make up the updatedUIString
     
-    NSArray *localizedStringsComposingUpdatedUIString = nil;
+    NSArray *localizedStringsComposingChangedUIString = nil;
     
     if (_localizedStringsComposingNextUpdate != nil) {
         
@@ -103,8 +135,8 @@
         ///     So for this case, we require the application code to call `nextUIStringUpdateIsComposedOfNSLocalizedStrings:`
         ///     to let us know which raw localized strings compose the new UIString that was set on `object`.
         
-        assert(![_localizedStringsComposingNextUpdate containsObject:updatedUIStringPure]);
-        localizedStringsComposingUpdatedUIString = _localizedStringsComposingNextUpdate;
+        assert(![_localizedStringsComposingNextUpdate containsObject:newlySetStringPure]);
+        localizedStringsComposingChangedUIString = _localizedStringsComposingNextUpdate;
         
     } else {
         
@@ -113,58 +145,79 @@
         ///     If that's the case, we have high confidence that exactly this entry in the NSLocalizedStringRecord belongs to `object`, and we'll only extract that one.
         ///     If we can't find the string in the LocalizedStringRecord, we'll throw an error/crash.
         
-        localizedStringsComposingUpdatedUIString = @[updatedUIStringPure];
+        localizedStringsComposingChangedUIString = @[newlySetStringPure];
     }
     
     /// Update global state
     _localizedStringsComposingNextUpdate = nil;
     
-    /// Validate
-    assert(localizedStringsComposingUpdatedUIString != nil && localizedStringsComposingUpdatedUIString.count > 0);
+    /// Validate detected changes
+    assert(localizedStringsComposingChangedUIString != nil && localizedStringsComposingChangedUIString.count > 0);
     
-    /// Find matches in NSLocalizedStringRecord
-    __block BOOL everyStringWasMatched = YES;
-    NSMutableArray <NSDictionary *> *matchingLocalizedStringRecords = nil;
+    /// Validate NSLocalizedStringRecord
+    ///     Note: We're already validating the same thing down below
+//    assert(NSLocalizedStringRecord.queue != nil && NSLocalizedStringRecord.queue.count > 0);
     
-    for (NSDictionary *localizedStringRecord in NSLocalizedStringRecord.queue.peekAll) {
-        [NSLocalizedStringRecord unpackRecord:localizedStringRecord callback:^(NSString * _Nonnull key, NSString * _Nonnull value, NSString * _Nonnull table, NSString * _Nonnull localizedStringFromRecord) {
+    /// Match the detected change with an entry in in localizedStringRecord
+    
+    BOOL everyDetectedChangeWasRecorded = YES;
+    NSMutableArray<NSDictionary *> *stringRecordsMatchingDetectedChange = [NSMutableArray array];
+    
+    for (NSString *localizedStringFromDetectedChange in localizedStringsComposingChangedUIString) {
+        
+        BOOL localizedStringFromDetectedChangeWasRecorded = NO;
+        
+        for (NSDictionary *localizedStringRecord in NSLocalizedStringRecord.queue.peekAll) {
             
-            for (NSString *localizedStringComposingUpdatedUIString in localizedStringsComposingUpdatedUIString) {
-                BOOL isAMatch = [localizedStringFromRecord isEqual:localizedStringComposingUpdatedUIString] && localizedStringFromRecord.length > 0;
-                if (isAMatch) {
-                    [matchingLocalizedStringRecords addObject:localizedStringRecord];
-                    break;
-                }
+            unpackLocalizedStringRecord(localizedStringRecord);
+            BOOL isAMatch = [pureString(m_localizedStringFromRecord) isEqual:localizedStringFromDetectedChange] && m_localizedStringFromRecord.length > 0;
+            if (isAMatch) {
+                [stringRecordsMatchingDetectedChange addObject:localizedStringRecord];
+                localizedStringFromDetectedChangeWasRecorded = YES;
+                break;
             }
-            
-            everyStringWasMatched = NO;
-            assert(false); /// No match found
-        }];
+        }
+        
+        if (!localizedStringFromDetectedChangeWasRecorded) {
+            everyDetectedChangeWasRecorded = NO;
+//            assert(false); /// No match found NOTE: We're already validating the same thing down below
+        }
     }
          
-    
     /// Validate
-    if (!everyStringWasMatched || matchingLocalizedStringRecords.count == localizedStringsComposingUpdatedUIString.count) { /// I don't think we need the .count check.
-        NSLog(@"UIStringChangeDetector: Something went wrong! Remember to call `nextUIStringUpdateIsComposedOfRawLocalizedStrings:` before setting a UIString to an object - if that UIString has been altered after being retrieved from NSLocalizedString()");
+    if (!everyDetectedChangeWasRecorded || stringRecordsMatchingDetectedChange.count != localizedStringsComposingChangedUIString.count) {
+        NSLog(@"    UIStringChangeDetector: Error: Couldn't match match the detected uiStringChange with any entries from the NSLocalizedStringRecord.Remember to call `nextUIStringUpdateIsComposedOfRawLocalizedStrings:` before setting a UIString to an object - if that UIString has been altered after being retrieved from NSLocalizedString()\n\n    Detected change: %@\n    Current record: %@", descriptionOfUIStringChange, NSLocalizedStringRecord.queue._rawStorage);
         assert(false);
     }
+    
+    /// DEBUG
+    NSLog(@"    UIStringChangeDetector: Debug: LocalizedStringRecord before removing matched string (%@): %@", newlySetStringPure, NSLocalizedStringRecord.queue._rawStorage);
     
     /// Remove the matching records from the record
     ///     (the record of records? weird naming)
     ///     (We totally misuse the queue here. Should probably not use queue at all.)
-    [NSLocalizedStringRecord.queue._rawStorage removeObjectsInArray:matchingLocalizedStringRecords];
+    [NSLocalizedStringRecord.queue._rawStorage removeObjectsInArray:stringRecordsMatchingDetectedChange];
     
     /// Find accessibilityElement for `object`
     id<NSAccessibility> axObject = [Utility getRepresentingAccessibilityElementForObject:object];
     
+    /// Special cases - additionalUIStringHolder
+    id additionalUIStringHolder = nil;
+    if ([axObject isKindOfClass:[NSTableHeaderCell class]]) {
+        assert([object isKindOfClass:[NSTableColumn class]]);
+        additionalUIStringHolder = object;
+    }
+    
     /// Attach annotations to the object
-    for (NSDictionary *record in matchingLocalizedStringRecords) {
+    for (NSDictionary *record in stringRecordsMatchingDetectedChange) {
         
-        [NSLocalizedStringRecord unpackRecord:record callback:^(NSString * _Nonnull key, NSString * _Nonnull value, NSString * _Nonnull table, NSString * _Nonnull localizedStringFromRecord) {
-            NSString *mergedUIString = [localizedStringFromRecord isEqual:updatedUIStringPure] ? nil : updatedUIStringPure;
-            NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:key translatedString:localizedStringFromRecord developmentString:value translatedStringNibKey:nil mergedUIString:mergedUIString];
-            [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:axObject];
-        }];
+        unpackLocalizedStringRecord(record);
+        
+        NSString *localizedStringFromRecordPure = pureString(m_localizedStringFromRecord); /// Should we have the localizedString record just record the strings as pure strings? Making this unnecessary
+        NSString *mergedUIString = [localizedStringFromRecordPure isEqual:newlySetStringPure] ? nil : newlySetStringPure;
+        
+        NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:m_stringKeyFromRecord translatedString:localizedStringFromRecordPure developmentString:m_developmentStringFromRecord translatedStringNibKey:nil mergedUIString:mergedUIString];
+        [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:axObject withAdditionalUIStringHolder:additionalUIStringHolder];
     }
 }
 
@@ -187,80 +240,8 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 #pragma mark - Idea: Swizzle setters
 
 /**
-
- Sub Idea: Search for all the relevant method names using lldb:
  
-    (We don't need this. Instead we plan to build a validator that will alert us if any method is still unhandled, and then we can just add them one by one.)
- 
-     Placeholder setters from lldb:
-        (I found these by using `breakpoint set -n setPlaceholderString:` and `breakpoint set -n setPlaceholderAttributedString:`
-        and then seeing where lldb put the breakpoints in the Breakpoints Navigator.)
-     
-     ```
-     Cells:
-     -[NSTextFieldCell setPlaceholderString:]
-     -[NSTextFieldCell setPlaceholderAttributedString:]
-     -[NSFormCell setPlaceholderString:]
-     -[NSFormCell setPlaceholderAttributedString:]
-     -[NSPathCell setPlaceholderString:]
-     -[NSPathCell setPlaceholderAttributedString:]
-     
-     NSTextView:
-     -[NSTextView(NSPrivate) setPlaceholderString:]
-     -[NSTextView (NSPrivate) setPlaceholderAttributedString:]
-     
-     Cell-backed views:
-     -[NSTextField setPlaceholderString:]
-     -[NSTextField setPlaceholderAttributedString:]
-     -[NSPathControl setPlaceholderString:]
-     -[NSPathControl setPlaceholderAttributedString:]
-     
-     Private stuff for specific apps:
-     -[ABCollectionViewltem setPlaceholderString:]
-     -[NSSearchToolbarltem(NSSearchToolbarPrivateForNews) setPlaceholderString]
-     ```
-     
-     ToolTip setters from lldb:
-        (Found these with `breakpoint set -n setPlaceholderString:` and `image lookup --regex --name ".*[Ss]et.*[Tt]ool[Tt]ip.*" -- AppKit`
-     
-     ```
-
-     NSObject subclasses:
-     -[NSMenuItem setToolTip:]
-     -[NSStatusItem setToolTip:]
-     -[NSWindowTab setToolTip:]
-     -[NSTabBarItem setToolTip:]
-     -[NSTabViewItem setToolTip:]
-     -[NSToolbarItem setToolTip:]
-     -[NSSegmentItem setToolTip:] x redundant due to `NSSegmentItemLabelCell`
-     
-     NSView:
-     -[NSView setToolTip:]
-     
-     NSView subclasses:
-     -[NSTableView setToolTip:]
-     -[NSTabButton setToolTip:]
-     
-     Special names:
-
-     -[NSTableColumn setHeaderToolTip:]
-     -[NSSegmentedControl setToolTip:forSegment:]
-     -[NSSegmentedCell setToolTip:forSegment:]      /// Strange that there's a tooltip setter for a cell
-     -[NSSegmentItem setToolTipTag:]                /// This is probably not a string
-     
-     Apple Internal stuff:
-     -[NSSuggestionItem setToolTip:]
-     
-     Special names (Apple Internal stuff):
-     -[QLControlSegment setToolTip:]
-     -[NSRolloverButton setToolTipString:]
-     -[NSRolloverButton setAlternateToolTipString:]
-     -[NSToolTipPanel setToolTipString:]
-     
-     Legacy stuff:
-     -[NSMatrix setToolTip:forCell:]
- 
- ```
+ See AppKitSetters.md
  
  */
 
@@ -273,67 +254,124 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 + (void)load {
     
     swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setToolTip:), MakeInterceptorFactory(void, (NSString *newValue), {
+        void *returnAddress = getReturnAddress();
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
             OGImpl(newValue);
-            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
         });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setStringValue:), MakeInterceptorFactory(void, (NSString *newValue), {
+        void *returnAddress = getReturnAddress();
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            
             OGImpl(newValue);
-            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
         });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setAttributedStringValue:), MakeInterceptorFactory(void, (NSAttributedString *newValue), {
+        void *returnAddress = getReturnAddress();
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
             OGImpl(newValue);
-            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
         });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setPlaceholderString:), MakeInterceptorFactory(void, (NSString *newValue), {
+        void *returnAddress = getReturnAddress();
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
             OGImpl(newValue);
-            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
         });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setPlaceholderAttributedString:), MakeInterceptorFactory(void, (NSAttributedString *newValue), {
+        void *returnAddress = getReturnAddress();
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
             OGImpl(newValue);
-            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
         });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setTitle:), MakeInterceptorFactory(void, (NSString *newValue), {
+        void *returnAddress = getReturnAddress();
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
             OGImpl(newValue);
-            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
         });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class],  @{ @"framework": @"AppKit" }, @selector(setAttributedTitle:), MakeInterceptorFactory(void, (NSAttributedString *newValue), {
+        void *returnAddress = getReturnAddress();
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
             OGImpl(newValue);
-            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
         });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setAlternateTitle:), MakeInterceptorFactory(void, (NSString *newValue), {
+        void *returnAddress = getReturnAddress();
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
             OGImpl(newValue);
-            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
         });
     }));
     swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setAttributedAlternateTitle:), MakeInterceptorFactory(void, (NSAttributedString *newValue), {
+        void *returnAddress = getReturnAddress();
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
             OGImpl(newValue);
-            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
+        });
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setSubtitle:), MakeInterceptorFactory(void, (NSString *newValue), {
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newValue);
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
+        });
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setLabel:), MakeInterceptorFactory(void, (NSString *newValue), {
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newValue);
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
         });
     }));
     
-    /// Swizzling `setObjectValue:` detects lots of string changes, by seems to be unnecessary. `setStringValue:` also catches all those cases.
-    //    swizzleMethodOnClassAndSubclasses([NSObject class], @"AppKit", @selector(setObjectValue:), MakeInterceptorFactory(void, (, NSObject *newValue), {
-    //        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
-    //            OGImpl(, newValue);
-    //            [UIStringChangeInterceptor uiStringHasChangedFrom:nil toValue:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
-    //        });
-    //    }));
+    /// Swizzling `setObjectValue:` 
+    ///     detects lots of string changes, but it seems `setStringValue:` also catches all the cases I could observe. Still swizzling because why not.
+    swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setObjectValue:), MakeInterceptorFactory(void, (NSObject *newValue), {
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newValue);
+            if ([newValue isKindOfClass:[NSString class]] || [newValue isKindOfClass:[NSAttributedString class]]) {
+                [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
+            }
+        });
+    }));
+    
+    /// Unhandled
+    swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setToolTip:forCell:), MakeInterceptorFactory(void, (NSString *newValue, id cell), { /// NSMatrix
+        assert(false); /// We don't know how to handle this.
+        
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newValue, cell);
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
+        });
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setLabel:atIndex:), MakeInterceptorFactory(void, (NSString *newValue, long long index), { /// For NSPickerTouchBarItem
+        assert(false); /// We don't know how to handle this.
+        
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newValue, index);
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
+        });
+    }));
+    swizzleMethodOnClassAndSubclasses([NSObject class], @{ @"framework": @"AppKit" }, @selector(setCustomizationLabel:), MakeInterceptorFactory(void, (NSString *newValue), { /// For TouchBar stuff
+        assert(false); /// We don't know how to handle this. TouchBarItems are complicated and unnecessary.
+        
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newValue);
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
+        });
+    }));
 }
 
 @end
@@ -342,12 +380,19 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 
 + (void)load {
     
-    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(setToolTip:forSegment:), MakeInterceptorFactory(void,  (NSString *newValue, NSInteger segment), {
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(setToolTip:forSegment:), MakeInterceptorFactory(void, (NSString *newValue, long long segment), {
+        void *returnAddress = getReturnAddress();
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
-            NSString *before = [m_self toolTipForSegment:segment];
             OGImpl(newValue, segment);
-            id after = [m_self toolTipForSegment:segment];
-            [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress extraInfo: @{ @"segment": @(segment) }];
+        });
+    }));
+    
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(setLabel:forSegment:), MakeInterceptorFactory(void, (NSString *newValue, long long segment), {
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newValue, segment);
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress extraInfo: @{ @"segment": @(segment) }];
         });
     }));
 }
@@ -358,53 +403,24 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 
 + (void)load {
     swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(setHeaderToolTip:), MakeInterceptorFactory(void, (NSString *newValue), {
+        void *returnAddress = getReturnAddress();
         countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
-            NSString *before = [m_self headerToolTip];
             OGImpl(newValue);
-            id after = [m_self headerToolTip];
-            [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
+            [UIStringChangeInterceptor handleSetString:newValue onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
         });
     }));
 }
-
-@end
-
-@implementation NSTextView (MFUIStringChangeDetection)
-
-+ (void)load {
-
-    
-    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, /*@selector(setPlaceholderString:)*/ /*@selector(setPlaceholderAttributedString:) */ @selector(didChangeText), MakeInterceptorFactory(void, (), {
-        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
-            NSAttributedString *before = nil;
-            OGImpl();
-            NSAttributedString *after = [m_self textStorage];
-            [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:m_self selector:m__cmd recursionDepth:recursionDepth];
-        });
-    }));
-}
-
-//- (void)swizzled_setPlaceholderString:(NSString *)newValue {
-//    NSString *before = [(id)self placeholderString];
-//    [self swizzled_setPlaceholderString:newValue];
-//    NSString *after = [(id)self placeholderString];
-//    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
-//}
-//- (void)swizzled_setPlaceholderAttributedString:(NSAttributedString *)newValue {
-//    NSAttributedString *before = [(id)self placeholderAttributedString];
-//    [self swizzled_setPlaceholderAttributedString:newValue];
-//    NSAttributedString *after = [(id)self placeholderAttributedString];
-//    [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
-//}
 
 @end
 
 @implementation NSSearchFieldCell (MFUIStringChangeDetection)
 
+/// TODO: remove this
+
 + (void)load {
-//    swizzleMethods([self class], false, nil, @"swizzled_", /// We really don't have to be editing subclasses here
-//                   @selector(swizzled_setObjectValue:), /// TEST - this should automaticlly be swizzled if we swizzle it on NSCell, but doesn't work currently
-//                   nil);
+    //    swizzleMethods([self class], false, nil, @"swizzled_", /// We really don't have to be editing subclasses here
+    //                   @selector(swizzled_setObjectValue:), /// TEST - this should automaticlly be swizzled if we swizzle it on NSCell, but doesn't work currently
+    //                   nil);
 }
 
 //- (void)swizzled_setObjectValue:(id)newValue {
@@ -418,18 +434,21 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 
 @implementation NSCell (MFUIStringChangeDetection)
 
+/// We're just intercepting all these selectors on NSObject and all its subclasses, so this is unnecessary.
+/// TODO: Remove this
+
 + (void)load {
     
     
-//    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
-//                   @selector(swizzled_setObjectValue:),
-//                   @selector(swizzled_setAttributedStringValue:),
-//                   ni+l);
-
-//    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
-//                   @selector(swizzled_setPlaceholderString:),
-//                   @selector(swizzled_setPlaceholderAttributedString:), 
-//                   nil);
+    //    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
+    //                   @selector(swizzled_setObjectValue:),
+    //                   @selector(swizzled_setAttributedStringValue:),
+    //                   ni+l);
+    
+    //    swizzleMethods([self class], true, @"AppKit", @"swizzled_",
+    //                   @selector(swizzled_setPlaceholderString:),
+    //                   @selector(swizzled_setPlaceholderAttributedString:),
+    //                   nil);
 }
 
 //- (void)swizzled_setObjectValue:(id)newValue {
@@ -462,6 +481,140 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
 //        [UIStringChangeInterceptor uiStringHasChangedFrom:before toValue:after onObject:self];
 //    }
 //}
+
+@end
+
+
+/// 
+/// NSTextView
+///
+/// Investigation: What are the ways to change the text of an NSTextView:
+///
+/// The NSTextView is an NSText instance and uses an NSAttributedString instance for its text storage which can be found in one of these locations:
+///     1. textView.textStorage { get } -> NSTextStorage : NSMutableAttributedString
+///     2. textView.textContentStorage.attributedString { get set } -> NSAttributedString
+///
+/// Additionally, the NSText provides the setString() and NSTextView provides the performValidatedReplacement() for manipulating text.
+/// I think this covers all the ways for clients to edit the textView's content.
+///
+/// So all-in-all, the textView's content can be edited by:
+///
+/// 1. Replacing the attributedString on the textContentStorage:
+///     - x textView.textContentStorage.setAttributedString(NSAttributedString)
+/// 2. Using mutation-methods defined directly on the NSTextView:
+///     - x textView.performValidatedReplacement(in: NSRange, with: NSAttributedString)
+/// 3. Using mutation-methods defined directly on the NSTextView's superclass: NSText:
+///     - x textView.setString(NSString)
+/// 4. Using mutation-methods on NSMutableAttributedString (and its subclass NSTextStorage):
+///     - x textView.textStorage?.append(NSAttributedString)
+///     - x textView.textStorage?.insert(NSAttributedString, at: Int)
+///     - x textView.textStorage?.replaceCharacters(in: NSRange, with: NSAttributedString)
+///     - x textView.textStorage?.replaceCharacters(in: NSRange, with: String)
+///     - x textView.textStorage?.setAttributedString(NSAttributedString)
+///     - x textView.textStorage?.deleteCharacters(in: NSRange)
+///
+/// -> We will only intercept string mutations on NSTextStorage, not its superclass NSMutableAttributedString, since otherwise we might be intercepting all of our internal string processing on NSMutableAttributedString inside Mac Mouse Fix.
+///     This should work ok in all cases, since even textView.textContentStorage.attributedString is also normally a NSTextStorage instance according to the docs.
+/// -> We also contemplated intercepting `- didChangeText` on the NSTextView, which is internally called after the string changes. This might be a good idea but we decided against using it, since currently, we're trying to filter out string-changes by the system by only regarding string changes where the calling function is defined in the current application. (as opposed to being defined in a system library/framework). The caller of didChangeText would always be in a system library/framework (unless we subclass NSTextView and call didChangeText ourselves in there) which would complicate the logic for detecting whether the string-change was made by the system or by the currentApplication. So instead of intercepting these internal things, I thought it's better and simpler to just intercept all the interfaces for changing the strings that could be called directly from the currentApplication code and leave the internal mechanisms like `didChangeText` alone.
+
+
+@implementation NSTextContentStorage (MFUIStringChangeDetection_TextView)
+
++ (void)load {
+    
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"UIFoundation" }, @selector(setAttributedString:), MakeInterceptorFactory(void, (NSAttributedString *newReplacementString), {
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newReplacementString);
+            [UIStringChangeInterceptor handleSetString:newReplacementString onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
+        });
+    }));
+}
+
+@end
+
+@implementation NSText (MFUIStringChangeDetection_TextView)
+
++ (void)load {
+    
+    swizzleMethodOnClassAndSubclasses([NSText class], @{ @"framework": @"AppKit" }, @selector(setString:), MakeInterceptorFactory(void, (NSString *newReplacementString), {
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newReplacementString);
+            [UIStringChangeInterceptor handleSetString:newReplacementString onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
+        });
+    }));
+    
+    swizzleMethodOnClassAndSubclasses([NSText class], @{ @"framework": @"AppKit" }, @selector(performValidatedReplacementInRange:withAttributedString:), MakeInterceptorFactory(bool, (NSRange range, NSAttributedString *newSubstring), {
+        __block bool result;
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            result = OGImpl(range, newSubstring);
+            [UIStringChangeInterceptor handleSetString:newSubstring onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress extraInfo:@{ @"replacementRange": [NSValue valueWithRange:range] }];
+        });
+        return result;
+    }));
+}
+
+@end
+
+@implementation NSTextStorage (MFUIStringChangeDetection)
+
++ (void)load {
+    
+    /// Note:
+    ///     The superclass of NSTextStorage - NSMutableAttributedString - is in Foundation, not in UIFoundation, if we ever want to swizzle that.
+    
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"UIFoundation" }, @selector(appendString:), MakeInterceptorFactory(void, (NSString *newSubstring), { /// appendString: is not declared in the Apple docs but it does exist. I guess it doesn't hurt to intercept.
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newSubstring);
+            [UIStringChangeInterceptor handleSetString:newSubstring onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
+        });
+    }));
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"UIFoundation" }, @selector(appendAttributedString:), MakeInterceptorFactory(void, (NSAttributedString *newSubstring), {
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newSubstring);
+            [UIStringChangeInterceptor handleSetString:newSubstring onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
+        });
+    }));    
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"UIFoundation" }, @selector(insertAttributedString:atIndex:), MakeInterceptorFactory(void, (NSAttributedString *newSubstring, unsigned long long index), {
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newSubstring, index);
+            [UIStringChangeInterceptor handleSetString:newSubstring onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress extraInfo:@{ @"insertionIndex": @(index) }];
+        });
+    }));    
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"UIFoundation" }, @selector(replaceCharactersInRange:withAttributedString:), MakeInterceptorFactory(void, (NSRange range, NSAttributedString *newSubstring), {
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(range, newSubstring);
+            [UIStringChangeInterceptor handleSetString:newSubstring onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress extraInfo: @{ @"replacementRange": [NSValue valueWithRange:range] }];
+        });
+    }));    
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"UIFoundation" }, @selector(replaceCharactersInRange:withString:), MakeInterceptorFactory(void, (NSRange range, NSAttributedString *newSubstring), {
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(range, newSubstring);
+            [UIStringChangeInterceptor handleSetString:newSubstring onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress extraInfo: @{ @"replacementRange": [NSValue valueWithRange:range] }];
+        });
+    }));
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"UIFoundation" }, @selector(setAttributedString:), MakeInterceptorFactory(void, (NSAttributedString *newReplacementString), {
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(newReplacementString);
+            [UIStringChangeInterceptor handleSetString:newReplacementString onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress];
+        });
+    }));
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"UIFoundation" }, @selector(deleteCharactersInRange:), MakeInterceptorFactory(void, (NSRange range), {
+        void *returnAddress = getReturnAddress();
+        countRecursions(@"uiStringChanges", ^(NSInteger recursionDepth) {
+            OGImpl(range);
+            [UIStringChangeInterceptor handleSetString:nil onObject:m_self selector:m__cmd recursionDepth:recursionDepth returnAddress:returnAddress extraInfo:@{ @"didDelete": @YES }];
+        });
+    }));
+}
 
 @end
 

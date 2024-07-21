@@ -20,4 +20,16 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
+@interface NSToolbarItemViewer : NSView
+
+- (NSToolbarItem *)item;
+
+@end
+
+@interface NSToolbarItem (MFIntrospection)
+
+- (NSToolbarItemViewer *)rawItemViewer;
+
+@end
+
 NS_ASSUME_NONNULL_END

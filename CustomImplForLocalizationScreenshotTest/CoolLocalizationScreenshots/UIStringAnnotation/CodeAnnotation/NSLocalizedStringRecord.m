@@ -54,9 +54,9 @@ static Queue *_systemLocalizationKeyQueue;
     return [NSSet setWithArray:[self systemQueue]._rawStorage];
 }
 
-+ (void)unpackRecord:(NSDictionary *)e callback:(void (^)(NSString *key, NSString *value, NSString *table, NSString *result))callback {
-    callback(e[@"key"], e[@"value"], e[@"table"], e[@"result"]);
-}
+//+ (void)unpackRecord:(NSDictionary *)e callback:(void (^)(NSString *key, NSString *value, NSString *table, NSString *result))callback {
+//    callback(e[@"key"], e[@"value"], e[@"table"], e[@"result"]);
+//}
 
 @end
 
@@ -86,29 +86,19 @@ static Queue *_systemLocalizationKeyQueue;
         };
         
         /// Enqueue
-        BOOL isSystemString = [[m_self systemTables] containsObject:tableName];
+        BOOL isSystemString = [[m_self systemTables] containsObject:tableName] || ![m_self isEqual:NSBundle.mainBundle];
+        
         if (!isSystemString) {
             [NSLocalizedStringRecord.queue enqueue:newElement];
         } else {
             [NSLocalizedStringRecord.systemQueue enqueue:newElement];
         }
         
-        /// TESTING
-        if ([result containsString:@"tooltip"]) {
-//            BREAKPOINT(result);
-        }
-        if ([result isEqual:@"Rechtschreibung und Grammatik einblenden"]) {
-//            BREAKPOINT(result);
-        }
-        
-        
         /// Return
         return result;
     }));
                   
     swizzleMethod([self class], @selector(localizedAttributedStringForKey:value:table:), MakeInterceptorFactory(NSAttributedString *, (NSString *key, NSString *value, NSString *tableName), {
-        
-        assert(false); /// This is untested
         
         /// Call og
         NSAttributedString *result = OGImpl(key, value, tableName);
@@ -122,7 +112,7 @@ static Queue *_systemLocalizationKeyQueue;
         };
         
         /// Enqueue
-        BOOL isSystemString = [[m_self systemTables] containsObject:tableName];
+        BOOL isSystemString = [[m_self systemTables] containsObject:tableName] || ![m_self isEqual:NSBundle.mainBundle];
         
         if (!isSystemString) {
             [NSLocalizedStringRecord.queue enqueue:newElement];
@@ -139,7 +129,20 @@ static Queue *_systemLocalizationKeyQueue;
 - (NSArray <NSString *>*)systemTables {
     
     /// These string tables are defined by macOS
-    return @[@"FunctionKeyNames", @"Common", @"InputManager", @"DictationManager", @"MenuCommands", @"WindowTabs", @"NSColorPanelExtras", @"FontManager", @"Services", @"Accessibility"];
+    ///
+    /// Notes:
+    /// - Instead of hardcoding these, I think we could also search for a .nib or .strings file in the appBundle with the name of the stringTable of
+    ///   a retrieved localizedString. If yes then the stringTable should be defined by the app itself, not the system.
+    /// - On the `""`, table
+    ///     I saw the following string-retrieval which apparently used a table named empty-string. This is weird. I hope it won't interfere with recording string retrievals by the user.
+    ///         key = "search result";
+    ///         result = Suchergebnis;
+    ///         table = "";
+    ///         value = "";
+    ///     Update: It turns out that that was called not on our applicationBundle but on the Shortcuts.framework bundle. Now we're filtering out strings retrieved on other bundled. That might make this list obsolete.
+    
+    
+    return @[@"FunctionKeyNames", @"Common", @"InputManager", @"DictationManager", @"MenuCommands", @"WindowTabs", @"NSColorPanelExtras", @"FontManager", @"Services", @"Accessibility", @"AccessibilityImageDescriptions", @"Toolbar", @""];
 }
 
 @end

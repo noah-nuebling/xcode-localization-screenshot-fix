@@ -12,12 +12,18 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface Swizzle : NSObject
 
+/// Typedefs
+
 typedef id InterceptorBlock;
 typedef IMP OriginalImplementation;
 typedef InterceptorBlock _Nonnull (^InterceptorFactory)(Class originalClass, SEL originalSelector, OriginalImplementation _Nonnull originalImplementation);
 
+/// Main interface
+
 void swizzleMethod(Class cls, SEL originalSelector, InterceptorFactory interceptorFactory);
 void swizzleMethodOnClassAndSubclasses(Class baseClass, NSDictionary<MFClassSearchCriterion, id> *subclassSearchCriteria, SEL originalSelector, InterceptorFactory interceptorFactory);
+
+/// Main macro
 
 #define MakeInterceptorFactory(__ReturnType, __Arguments, __OnIntercept...) \
     (id)                                                                /** Cast the entire factory block to id to silence type-checker */ \
@@ -29,6 +35,7 @@ void swizzleMethodOnClassAndSubclasses(Class baseClass, NSDictionary<MFClassSear
 
 /// Convenience macros
 ///     To be used inside the `__OnIntercept` codeblock passed to the `MakeInterceptorFactory()` macro
+
 #define OGImpl(args...) \
     m_originalImplementation(m_self, m__cmd APPEND_ARGS(args))
 
@@ -39,6 +46,7 @@ void swizzleMethodOnClassAndSubclasses(Class baseClass, NSDictionary<MFClassSear
 #define APPEND_ARGS(args...) , ## args /// This is like UNPACK but it also automatically inserts a comma before the args. The ## deletes the comma, if `args` is empty. I have no idea why. But this lets us nicely append args to an existing list of arguments in a function call or function header.
 
 /// Old
+
 #define MakeInterceptorFactory_2(__ReturnType, __Arguments, __InterceptionCode) /** This older alternate factory-maker is more neat and properly typed but it seems to break autocomplete */ \
     ({ \
         typedef __ReturnType (*OriginalImplementation)(id, SEL, APPEND_ARGS __Arguments); \

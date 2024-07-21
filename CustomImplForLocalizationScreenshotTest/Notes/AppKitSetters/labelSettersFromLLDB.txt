@@ -1,0 +1,254 @@
+
+
+image lookup --regex --name ".*set.*[lL]abel.*" -- AppKit
+125 matches found in /System/Library/Frameworks/AppKit.framework/Versions/C/AppKit:
+Address: AppKit[0x00000001840ad6c0] (AppKit.__TEXT.__text + 561424)
+Summary: AppKit`-[NSCell setAccessibilityLabel:]
+Address: AppKit[0x00000001840c585c] (AppKit.__TEXT.__text + 660140)
+Summary: AppKit`-[NSResponder setAccessibilityLabel:]
+Address: AppKit[0x00000001841199fc] (AppKit.__TEXT.__text + 1004620)
+Summary: AppKit`-[NSSegmentItemView setLabel:]
+Address: AppKit[0x000000018411d2dc] (AppKit.__TEXT.__text + 1019180)
+Summary: AppKit`-[NSToolbarItem setLabel:]
+Address: AppKit[0x000000018411d390] (AppKit.__TEXT.__text + 1019360)
+Summary: AppKit`-[NSToolbarItem _setAllPossibleLabelsToFit:]
+Address: AppKit[0x000000018411d468] (AppKit.__TEXT.__text + 1019576)
+Summary: AppKit`-[NSToolbarItem setPaletteLabel:]
+Address: AppKit[0x000000018411e610] (AppKit.__TEXT.__text + 1024096)
+Summary: AppKit`-[NSSegmentedControl setLabel:forSegment:]
+Address: AppKit[0x000000018411e624] (AppKit.__TEXT.__text + 1024116)
+Summary: AppKit`-[NSSegmentedCell setLabel:forSegment:]
+Address: AppKit[0x00000001841c32d8] (AppKit.__TEXT.__text + 1699112)
+Summary: AppKit`-[NSDockTile setBadgeLabel:]
+Address: AppKit[0x00000001841c3a50] (AppKit.__TEXT.__text + 1701024)
+Summary: AppKit`-[NSAccessibilityElement setAccessibilityLabel:]
+Address: AppKit[0x00000001841c41c4] (AppKit.__TEXT.__text + 1702932)
+Summary: AppKit`-[NSAccessibilityIndexedMockUIElement setAssociatedAccessibilityLabel:]
+Address: AppKit[0x00000001841c42f4] (AppKit.__TEXT.__text + 1703236)
+Summary: AppKit`-[NSSegmentedCell setAccessibilityLabel:forSegment:]
+Address: AppKit[0x00000001841c519c] (AppKit.__TEXT.__text + 1706988)
+Summary: AppKit`-[NSCustomTouchBarItem setCustomizationLabel:]
+Address: AppKit[0x00000001841c6b90] (AppKit.__TEXT.__text + 1713632)
+Summary: AppKit`-[NSPopoverTouchBarItem setCustomizationLabel:]
+Address: AppKit[0x00000001841f2c70] (AppKit.__TEXT.__text + 1894080)
+Summary: AppKit`-[NSTabViewItem setLabel:]
+Address: AppKit[0x00000001841f2cf4] (AppKit.__TEXT.__text + 1894212)
+Summary: AppKit`-[NSTabViewItem set_label:]
+Address: AppKit[0x000000018426b1c0] (AppKit.__TEXT.__text + 2386960)
+Summary: AppKit`-[NSTabBarItem setLabel:]
+Address: AppKit[0x0000000184299128] (AppKit.__TEXT.__text + 2575224)
+Summary: AppKit`-[NSNibConnector setLabel:]
+Address: AppKit[0x00000001842a5ff0] (AppKit.__TEXT.__text + 2628160)
+Summary: AppKit`-[NSSegmentItemView setLabelView:]
+Address: AppKit[0x000000018451f334] (AppKit.__TEXT.__text + 5221764)
+Summary: AppKit`-[NSToolbarLabelStack setLabelViews:]
+Address: AppKit[0x000000018459dc90] (AppKit.__TEXT.__text + 5740256)
+Summary: AppKit`-[NSTouchBarColorPickerSlider setHideLabelTimer]
+Address: AppKit[0x000000018459e80c] (AppKit.__TEXT.__text + 5743196)
+Summary: AppKit`-[NSTouchBarColorPickerSlider setLabelIsOnLeadingSideOfKnob:]
+Address: AppKit[0x000000018459e82c] (AppKit.__TEXT.__text + 5743228)
+Summary: AppKit`-[NSTouchBarColorPickerSlider setLabelTextEffect:]
+Address: AppKit[0x0000000184605a94] (AppKit.__TEXT.__text + 6165732)
+Summary: AppKit`-[NSCell setAccessibilityUserInputLabels:]
+Address: AppKit[0x0000000184605b04] (AppKit.__TEXT.__text + 6165844)
+Summary: AppKit`-[NSCell setAccessibilityAttributedUserInputLabels:]
+Address: AppKit[0x0000000184606440] (AppKit.__TEXT.__text + 6168208)
+Summary: AppKit`-[NSCell setAccessibilityLabelUIElements:]
+Address: AppKit[0x0000000184606474] (AppKit.__TEXT.__text + 6168260)
+Summary: AppKit`-[NSCell setAccessibilityLabelValue:]
+Address: AppKit[0x0000000184652468] (AppKit.__TEXT.__text + 6479544)
+Summary: AppKit`-[NSPickerTouchBarItem setLabel:atIndex:]
+Address: AppKit[0x00000001846524d8] (AppKit.__TEXT.__text + 6479656)
+Summary: AppKit`-[NSPickerTouchBarItem setCustomizationLabel:]
+Address: AppKit[0x000000018465253c] (AppKit.__TEXT.__text + 6479756)
+Summary: AppKit`-[NSPickerTouchBarItem setCollapsedRepresentationLabel:]
+Address: AppKit[0x0000000184665190] (AppKit.__TEXT.__text + 6556640)
+Summary: AppKit`-[NSControl _setInToolbarWithIconAndLabel:]
+Address: AppKit[0x000000018466736c] (AppKit.__TEXT.__text + 6565308)
+Summary: AppKit`-[NSGroupTouchBarItem setCustomizationLabel:]
+Address: AppKit[0x0000000184669da4] (AppKit.__TEXT.__text + 6576116)
+Summary: AppKit`-[NSStepperTouchBarItem setCustomizationLabel:]
+Address: AppKit[0x000000018466b440] (AppKit.__TEXT.__text + 6581904)
+Summary: AppKit`-[NSSharingServicePickerTouchBarItem setCustomizationLabel:]
+Address: AppKit[0x0000000184768240] (AppKit.__TEXT.__text + 7617680)
+Summary: AppKit`-[NSIBHelpConnector setLabel:]
+Address: AppKit[0x000000018476aa08] (AppKit.__TEXT.__text + 7627864)
+Summary: AppKit`-[NSTouchBarCustomizationPaletteOverlayWindow setDragLabel:]
+Address: AppKit[0x00000001847b28d0] (AppKit.__TEXT.__text + 7922464)
+Summary: AppKit`-[NSRemoteSavePanel setNameFieldLabel:]
+Address: AppKit[0x00000001847e9d54] (AppKit.__TEXT.__text + 8148900)
+Summary: AppKit`-[NSMenu setAccessibilityUserInputLabels:]
+Address: AppKit[0x00000001847e9dc4] (AppKit.__TEXT.__text + 8149012)
+Summary: AppKit`-[NSMenu setAccessibilityAttributedUserInputLabels:]
+Address: AppKit[0x00000001847e9ff0] (AppKit.__TEXT.__text + 8149568)
+Summary: AppKit`-[NSMenu setAccessibilityLabel:]
+Address: AppKit[0x00000001847ea754] (AppKit.__TEXT.__text + 8151460)
+Summary: AppKit`-[NSMenu setAccessibilityLabelUIElements:]
+Address: AppKit[0x00000001847ea788] (AppKit.__TEXT.__text + 8151512)
+Summary: AppKit`-[NSMenu setAccessibilityLabelValue:]
+Address: AppKit[0x0000000184804b48] (AppKit.__TEXT.__text + 8258968)
+Summary: AppKit`-[NSMenuItem setAccessibilityUserInputLabels:]
+Address: AppKit[0x0000000184804bb8] (AppKit.__TEXT.__text + 8259080)
+Summary: AppKit`-[NSMenuItem setAccessibilityAttributedUserInputLabels:]
+Address: AppKit[0x0000000184804de4] (AppKit.__TEXT.__text + 8259636)
+Summary: AppKit`-[NSMenuItem setAccessibilityLabel:]
+Address: AppKit[0x0000000184805548] (AppKit.__TEXT.__text + 8261528)
+Summary: AppKit`-[NSMenuItem setAccessibilityLabelUIElements:]
+Address: AppKit[0x000000018480557c] (AppKit.__TEXT.__text + 8261580)
+Summary: AppKit`-[NSMenuItem setAccessibilityLabelValue:]
+Address: AppKit[0x0000000184811a60] (AppKit.__TEXT.__text + 8311984)
+Summary: AppKit`-[NSColorPickerTouchBarItem setCustomizationLabel:]
+Address: AppKit[0x0000000184835458] (AppKit.__TEXT.__text + 8457896)
+Summary: AppKit`-[NSSegmentItem setLabel:]
+Address: AppKit[0x0000000184835490] (AppKit.__TEXT.__text + 8457952)
+Summary: AppKit`-[NSSegmentItem setAccessibilityLabel:]
+Address: AppKit[0x000000018483c6a4] (AppKit.__TEXT.__text + 8487156)
+Summary: AppKit`-[NSNibAXAttributeConnector setLabel:]
+Address: AppKit[0x00000001848dfdb8] (AppKit.__TEXT.__text + 9156616)
+Summary: AppKit`-[NSResponder setAccessibilityUserInputLabels:]
+Address: AppKit[0x00000001848dfe28] (AppKit.__TEXT.__text + 9156728)
+Summary: AppKit`-[NSResponder setAccessibilityAttributedUserInputLabels:]
+Address: AppKit[0x00000001848e06f8] (AppKit.__TEXT.__text + 9158984)
+Summary: AppKit`-[NSResponder setAccessibilityLabelUIElements:]
+Address: AppKit[0x00000001848e072c] (AppKit.__TEXT.__text + 9159036)
+Summary: AppKit`-[NSResponder setAccessibilityLabelValue:]
+Address: AppKit[0x00000001848e5178] (AppKit.__TEXT.__text + 9178056)
+Summary: AppKit`-[NSRulerView setLabelString:forValue:]
+Address: AppKit[0x000000018490f084] (AppKit.__TEXT.__text + 9349844)
+Summary: AppKit`-[NSSegmentedCell _setHidesUnselectedLabelsWhenNecessary:]
+Address: AppKit[0x0000000184912f70] (AppKit.__TEXT.__text + 9365952)
+Summary: AppKit`-[NSSegmentedControl setHidesUnselectedLabelsWhenNecessary:]
+Address: AppKit[0x0000000184963224] (AppKit.__TEXT.__text + 9694324)
+Summary: AppKit`-[NSAccessibilityElement setAccessibilityUserInputLabels:]
+Address: AppKit[0x0000000184963294] (AppKit.__TEXT.__text + 9694436)
+Summary: AppKit`-[NSAccessibilityElement setAccessibilityAttributedUserInputLabels:]
+Address: AppKit[0x0000000184963c08] (AppKit.__TEXT.__text + 9696856)
+Summary: AppKit`-[NSAccessibilityElement setAccessibilityLabelUIElements:]
+Address: AppKit[0x0000000184963c3c] (AppKit.__TEXT.__text + 9696908)
+Summary: AppKit`-[NSAccessibilityElement setAccessibilityLabelValue:]
+Address: AppKit[0x0000000184966b60] (AppKit.__TEXT.__text + 9708976)
+Summary: AppKit`-[NSComboButton setAccessibilityLabel:]
+Address: AppKit[0x000000018496a27c] (AppKit.__TEXT.__text + 9723084)
+Summary: AppKit`-[_NSDebugResponderChainTableCellView setSecondaryLabel:]
+Address: AppKit[0x0000000184974a38] (AppKit.__TEXT.__text + 9766024)
+Summary: AppKit`-[NSTabView setAllowsTruncatedLabels:]
+Address: AppKit[0x000000018499803c] (AppKit.__TEXT.__text + 9910924)
+Summary: AppKit`-[_NSDebugTouchBarTableCellView setSecondaryLabel:]
+Address: AppKit[0x0000000184b2f4c0] (AppKit.__TEXT.__text + 11579152)
+Summary: AppKit`-[_NSUserDefinedTouchBarItem setLabel:]
+Address: AppKit[0x0000000184b41678] (AppKit.__TEXT.__text + 11653320)
+Summary: AppKit`-[NSTouchBarCustomizationPreviewItemContainerView setDeletionLabelString:]
+Address: AppKit[0x0000000184bd8e94] (AppKit.__TEXT.__text + 12273892)
+Summary: AppKit`-[NSToolbarItem setPossibleLabels:]
+Address: AppKit[0x0000000184c32558] (AppKit.__TEXT.__text + 12640168)
+Summary: AppKit`-[_NSWindowDesktopIconRectInfo setLabelRect:]
+Address: AppKit[0x0000000184cc7248] (AppKit.__TEXT.__text + 13249688)
+Summary: AppKit`-[_NSSliderTouchBarItemView setLabel:]
+Address: AppKit[0x0000000184cc72c0] (AppKit.__TEXT.__text + 13249808)
+Summary: AppKit`-[_NSSliderTouchBarItemView set_showsLabel:]
+Address: AppKit[0x0000000184cf7054] (AppKit.__TEXT.__text + 13445796)
+Summary: AppKit`-[NSSliderAccessory setAccessibilityUserInputLabels:]
+Address: AppKit[0x0000000184cf70c4] (AppKit.__TEXT.__text + 13445908)
+Summary: AppKit`-[NSSliderAccessory setAccessibilityAttributedUserInputLabels:]
+Address: AppKit[0x0000000184cf72f0] (AppKit.__TEXT.__text + 13446464)
+Summary: AppKit`-[NSSliderAccessory setAccessibilityLabel:]
+Address: AppKit[0x0000000184cf7a54] (AppKit.__TEXT.__text + 13448356)
+Summary: AppKit`-[NSSliderAccessory setAccessibilityLabelUIElements:]
+Address: AppKit[0x0000000184cf7a88] (AppKit.__TEXT.__text + 13448408)
+Summary: AppKit`-[NSSliderAccessory setAccessibilityLabelValue:]
+Address: AppKit[0x0000000184d07654] (AppKit.__TEXT.__text + 13512868)
+Summary: AppKit`-[NSLabelViewCell setDiskLabelValues:]
+Address: AppKit[0x0000000184d2d168] (AppKit.__TEXT.__text + 13667256)
+Summary: AppKit`-[NSAccessibilityCustomRotor setLabel:]
+Address: AppKit[0x0000000184d2d574] (AppKit.__TEXT.__text + 13668292)
+Summary: AppKit`-[NSAccessibilityCustomRotorItemResult setCustomLabel:]
+Address: AppKit[0x0000000184d3b9b8] (AppKit.__TEXT.__text + 13726728)
+Summary: AppKit`-[NSLegacySegmentItem setLabelRect:]
+Address: AppKit[0x0000000184d84ad8] (AppKit.__TEXT.__text + 14026024)
+Summary: AppKit`-[NSTouchBarColorPickerSwitcherItem setLabel:]
+Address: AppKit[0x0000000184dbe3ec] (AppKit.__TEXT.__text + 14261820)
+Summary: AppKit`-[NSIBUserDefinedRuntimeAttributesConnector setLabel:]
+Address: AppKit[0x0000000184dc1d30] (AppKit.__TEXT.__text + 14276480)
+Summary: AppKit`-[NSTouchBarCustomizationPalettePresetItem(NSAccessibility) accessibilityLabel]
+Address: AppKit[0x0000000184dd5c90] (AppKit.__TEXT.__text + 14358240)
+Summary: AppKit`-[NSSliderTouchBarItem setLabel:]
+Address: AppKit[0x0000000184dd5e3c] (AppKit.__TEXT.__text + 14358668)
+Summary: AppKit`-[NSSliderTouchBarItem setCustomizationLabel:]
+Address: AppKit[0x0000000184df546c] (AppKit.__TEXT.__text + 14487228)
+Summary: AppKit`-[NSPopoverTouchBarItem setCollapsedRepresentationLabel:]
+Address: AppKit[0x0000000184dfb02c] (AppKit.__TEXT.__text + 14510716)
+Summary: AppKit`-[NSSavePanel setNameFieldLabel:]
+Address: AppKit[0x0000000184e24b4c] (AppKit.__TEXT.__text + 14681500)
+Summary: AppKit`-[NSCandidateListTouchBarItem setCustomizationLabel:]
+Address: AppKit[0x0000000184e4c3ec] (AppKit.__TEXT.__text + 14843452)
+Summary: AppKit`-[NSLocalSavePanel setNameFieldLabel:]
+Address: AppKit[0x0000000184e9b7bc] (AppKit.__TEXT.__text + 15168012)
+Summary: AppKit`-[NSPickerTouchBarItemView setLabel:atIndex:]
+Address: AppKit[0x0000000184e9ba94] (AppKit.__TEXT.__text + 15168740)
+Summary: AppKit`-[NSPickerTouchBarItemView setCollapsedRepresentationLabel:]
+Address: AppKit[0x0000000184ec3364] (AppKit.__TEXT.__text + 15330740)
+Summary: AppKit`-[NSButtonTouchBarItem setCustomizationLabel:]
+Address: AppKit[0x0000000184ec5a34] (AppKit.__TEXT.__text + 15340676)
+Summary: AppKit`-[NSTouchBarCustomizationPreviewSectionShade setAccessibilityLabel:]
+Address: AppKit[0x0000000184f41700] (AppKit.__TEXT.__text + 15847760)
+Summary: AppKit`-[NSMovePanel setMovePopupFieldLabel:]
+Address: AppKit[0x0000000184f75f24] (AppKit.__TEXT.__text + 16062836)
+Summary: AppKit`-[NSTouchBarCustomizationPreviewDeletionLabel setLabel:]
+Address: AppKit[0x0000000184f75f3c] (AppKit.__TEXT.__text + 16062860)
+Summary: AppKit`-[NSTouchBarCustomizationPreviewDeletionLabel setLabelTransform:]
+Address: AppKit[0x0000000184f79f38] (AppKit.__TEXT.__text + 16079240)
+Summary: AppKit`-[NSCloudSharingPanel setShareButtonLabel:]
+Address: AppKit[0x000000018546e040] (AppKit.__TEXT.__objc_stubs + 307744)
+Summary: AppKit`objc_msgSend$_setAllPossibleLabelsToFit:
+Address: AppKit[0x00000001854714c0] (AppKit.__TEXT.__objc_stubs + 321184)
+Summary: AppKit`objc_msgSend$_setHidesUnselectedLabelsWhenNecessary:
+Address: AppKit[0x00000001854718c0] (AppKit.__TEXT.__objc_stubs + 322208)
+Summary: AppKit`objc_msgSend$_setInToolbarWithIconAndLabel:
+Address: AppKit[0x00000001854ea800] (AppKit.__TEXT.__objc_stubs + 817632)
+Summary: AppKit`objc_msgSend$setAccessibilityLabel:
+Address: AppKit[0x00000001854ea820] (AppKit.__TEXT.__objc_stubs + 817664)
+Summary: AppKit`objc_msgSend$setAccessibilityLabel:forSegment:
+Address: AppKit[0x00000001854ec3c0] (AppKit.__TEXT.__objc_stubs + 824736)
+Summary: AppKit`objc_msgSend$setAssociatedAccessibilityLabel:
+Address: AppKit[0x00000001854ed080] (AppKit.__TEXT.__objc_stubs + 828000)
+Summary: AppKit`objc_msgSend$setBadgeLabel:
+Address: AppKit[0x00000001854eeac0] (AppKit.__TEXT.__objc_stubs + 834720)
+Summary: AppKit`objc_msgSend$setCollapsedRepresentationLabel:
+Address: AppKit[0x00000001854f0700] (AppKit.__TEXT.__objc_stubs + 841952)
+Summary: AppKit`objc_msgSend$setCustomizationLabel:
+Address: AppKit[0x00000001854f0f20] (AppKit.__TEXT.__objc_stubs + 844032)
+Summary: AppKit`objc_msgSend$setDeletionLabelString:
+Address: AppKit[0x00000001854f1a60] (AppKit.__TEXT.__objc_stubs + 846912)
+Summary: AppKit`objc_msgSend$setDragLabel:
+Address: AppKit[0x00000001854f4980] (AppKit.__TEXT.__objc_stubs + 858976)
+Summary: AppKit`objc_msgSend$setHideLabelTimer
+Address: AppKit[0x00000001854f6b40] (AppKit.__TEXT.__objc_stubs + 867616)
+Summary: AppKit`objc_msgSend$setLabel:
+Address: AppKit[0x00000001854f6b60] (AppKit.__TEXT.__objc_stubs + 867648)
+Summary: AppKit`objc_msgSend$setLabel:atIndex:
+Address: AppKit[0x00000001854f6b80] (AppKit.__TEXT.__objc_stubs + 867680)
+Summary: AppKit`objc_msgSend$setLabel:forSegment:
+Address: AppKit[0x00000001854f6ba0] (AppKit.__TEXT.__objc_stubs + 867712)
+Summary: AppKit`objc_msgSend$setLabelIsOnLeadingSideOfKnob:
+Address: AppKit[0x00000001854f6bc0] (AppKit.__TEXT.__objc_stubs + 867744)
+Summary: AppKit`objc_msgSend$setLabelRect:
+Address: AppKit[0x00000001854f6be0] (AppKit.__TEXT.__objc_stubs + 867776)
+Summary: AppKit`objc_msgSend$setLabelString:forValue:
+Address: AppKit[0x00000001854f6c00] (AppKit.__TEXT.__objc_stubs + 867808)
+Summary: AppKit`objc_msgSend$setLabelTextEffect:
+Address: AppKit[0x00000001854f6c20] (AppKit.__TEXT.__objc_stubs + 867840)
+Summary: AppKit`objc_msgSend$setLabelTransform:
+Address: AppKit[0x00000001854f6c40] (AppKit.__TEXT.__objc_stubs + 867872)
+Summary: AppKit`objc_msgSend$setLabelViews:
+Address: AppKit[0x00000001854f8e80] (AppKit.__TEXT.__objc_stubs + 876640)
+Summary: AppKit`objc_msgSend$setNameFieldLabel:
+Address: AppKit[0x00000001854f9ec0] (AppKit.__TEXT.__objc_stubs + 880800)
+Summary: AppKit`objc_msgSend$setPaletteLabel:
+Address: AppKit[0x00000001854fa8e0] (AppKit.__TEXT.__objc_stubs + 883392)
+Summary: AppKit`objc_msgSend$setPopupButtonLabelOffset:
+Address: AppKit[0x00000001854fd4e0] (AppKit.__TEXT.__objc_stubs + 894656)
+Summary: AppKit`objc_msgSend$setSecondaryLabel:
+Address: AppKit[0x00000001855040a0] (AppKit.__TEXT.__objc_stubs + 922240)
+Summary: AppKit`objc_msgSend$set_label:
+Address: AppKit[0x0000000185504200] (AppKit.__TEXT.__objc_stubs + 922592)
+Summary: AppKit`objc_msgSend$set_showsLabel:

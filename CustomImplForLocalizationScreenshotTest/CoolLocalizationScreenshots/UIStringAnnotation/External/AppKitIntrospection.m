@@ -8,17 +8,29 @@
 #import "AppKitIntrospection.h"
 #import "objc/runtime.h"
 
+
+id getIvar(id object, const char *ivarName) {
+    Ivar ivar = class_getInstanceVariable([object class], ivarName);
+    if (ivar != NULL) return object_getIvar(object, ivar);
+    return nil;
+}
+
 @implementation NSCell (MFIntrospection)
 
 - (id)rawContents {
     
     /// Define an accessor method for the `_contents` instance var. This lets us get the raw internal value without the sideeffetcts of `- objectValue`.
-    
-    Ivar ivar = class_getInstanceVariable([self class], "_contents");
-    if (ivar != NULL) {
-        return object_getIvar(self, ivar);
-    }
-    return nil;
+    return getIvar(self, "_contents");
 }
 
 @end
+
+@implementation NSToolbarItem (MFIntrospection)
+
+- (nonnull id)rawItemViewer {
+    return getIvar(self, "_itemViewer");
+}
+
+@end
+
+

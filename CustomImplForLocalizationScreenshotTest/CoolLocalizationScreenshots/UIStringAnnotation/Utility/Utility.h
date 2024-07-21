@@ -12,6 +12,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface Utility : NSObject
 
+#define getReturnAddress() \
+    __builtin_return_address(0) /// If this fails, `backtrace()` should be more robust
+
+NSString *getExecutablePath(void);
+NSString *getImagePath(void *address);
+NSString *getSymbol(void *address);
+
 typedef NSString * MFClassSearchCriterion NS_TYPED_ENUM;
 #define MFClassSearchCriterionFrameworkName @"framework"
 #define MFClassSearchCriterionClassNamePrefix @"namePrefix"

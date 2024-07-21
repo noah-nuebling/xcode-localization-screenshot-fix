@@ -15,7 +15,12 @@ NS_ASSUME_NONNULL_BEGIN
 + (Queue <NSDictionary *>*)queue;
 + (Queue <NSDictionary *>*)systemQueue;
 + (NSSet <NSDictionary *>*)systemSet;
-+ (void)unpackRecord:(NSDictionary *)e callback:(void (^)(NSString *key, NSString *value, NSString *table, NSString *result))callback;
+
+#define unpackLocalizedStringRecord(__LocalizedStringRecord) \
+    __unused NSString *m_stringKeyFromRecord = __LocalizedStringRecord[@"key"]; \
+    __unused NSString *m_developmentStringFromRecord = __LocalizedStringRecord[@"value"]; \
+    __unused NSString *m_stringTableFromRecord = __LocalizedStringRecord[@"table"]; \
+    __unused NSString *m_localizedStringFromRecord = __LocalizedStringRecord[@"result"]; \
 
 @end
 

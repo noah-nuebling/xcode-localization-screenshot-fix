@@ -35,7 +35,9 @@
 
 - (void)stopObservingLoopActivitiesWithResultDict:(NSDictionary *)resultDict {
     
-    assert(false);
+    /// Pass in the resultDict from `observeLoopActivities:`
+    
+    assert(false); /// Untested
     
     NSRunLoop *runLoop = resultDict[@"runLoop"];
     NSArray *modes = resultDict[@"modes"];

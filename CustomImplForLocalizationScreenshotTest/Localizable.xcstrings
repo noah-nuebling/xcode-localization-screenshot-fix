@@ -3,6 +3,7 @@
   "strings" : {
     "label-from-objc.1" : {
       "comment" : "This is set in objc",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -20,6 +21,7 @@
     },
     "label-from-objc.2" : {
       "comment" : "This is also set in objc",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -34,6 +36,165 @@
           }
         }
       }
+    },
+    "test-string.AA" : {
+      "comment" : "Test string with id AA"
+    },
+    "test-string.AB" : {
+      "comment" : "Test string with id AB"
+    },
+    "test-string.AC" : {
+      "comment" : "Test string with id AC"
+    },
+    "test-string.BA" : {
+      "comment" : "Test string with id BA"
+    },
+    "test-string.BB" : {
+      "comment" : "Test string with id BB"
+    },
+    "test-string.BC" : {
+      "comment" : "Test string with id BC"
+    },
+    "test-string.CA" : {
+      "comment" : "Test string with id CA"
+    },
+    "test-string.CB" : {
+      "comment" : "Test string with id CB"
+    },
+    "test-string.DA" : {
+      "comment" : "Test string with id DA"
+    },
+    "test-string.DB" : {
+      "comment" : "Test string with id DB"
+    },
+    "test-string.EA" : {
+      "comment" : "Test string with id EA"
+    },
+    "test-string.EB" : {
+      "comment" : "Test string with id EB"
+    },
+    "test-string.FA" : {
+      "comment" : "Test string with id FA"
+    },
+    "test-string.FB" : {
+      "comment" : "Test string with id FB"
+    },
+    "test-string.GA" : {
+      "comment" : "Test string with id GA"
+    },
+    "test-string.GB" : {
+      "comment" : "Test string with id GB"
+    },
+    "test-string.HA" : {
+      "comment" : "Test string with id HA"
+    },
+    "test-string.HB" : {
+      "comment" : "Test string with id HB"
+    },
+    "test-string.IA" : {
+      "comment" : "Test string with id IA"
+    },
+    "test-string.IB" : {
+      "comment" : "Test string with id IB"
+    },
+    "test-string.JA" : {
+      "comment" : "Test string with id JA"
+    },
+    "test-string.JB" : {
+      "comment" : "Test string with id JB"
+    },
+    "test-string.KA" : {
+      "comment" : "Test string with id KA"
+    },
+    "test-string.LA" : {
+      "comment" : "Test string with id LA"
+    },
+    "test-string.LB" : {
+      "comment" : "Test string with id LB"
+    },
+    "test-string.MA" : {
+      "comment" : "Test string with id MA"
+    },
+    "test-string.MB" : {
+      "comment" : "Test string with id MB"
+    },
+    "test-string.NA" : {
+      "comment" : "Test string with id NA"
+    },
+    "test-string.NB" : {
+      "comment" : "Test string with id NB"
+    },
+    "test-string.OA" : {
+      "comment" : "Test string with id OA"
+    },
+    "test-string.OB" : {
+      "comment" : "Test string with id OB"
+    },
+    "test-string.PA" : {
+      "comment" : "Test string with id PA"
+    },
+    "test-string.PB" : {
+      "comment" : "Test string with id PB"
+    },
+    "test-string.QA" : {
+      "comment" : "Test string with id QA"
+    },
+    "test-string.QB" : {
+      "comment" : "Test string with id QB"
+    },
+    "test-string.RA" : {
+      "comment" : "Test string with id RA"
+    },
+    "test-string.RB" : {
+      "comment" : "Test string with id RB"
+    },
+    "test-string.SA" : {
+      "comment" : "Test string with id SA"
+    },
+    "test-string.SB" : {
+      "comment" : "Test string with id SB"
+    },
+    "test-string.TA" : {
+      "comment" : "Test string with id TA"
+    },
+    "test-string.TB" : {
+      "comment" : "Test string with id TB"
+    },
+    "test-string.UA" : {
+      "comment" : "Test string with id UA"
+    },
+    "test-string.UB" : {
+      "comment" : "Test string with id UB"
+    },
+    "test-string.VA" : {
+      "comment" : "Test string with id VA"
+    },
+    "test-string.VB" : {
+      "comment" : "Test string with id VB"
+    },
+    "test-string.WA" : {
+      "comment" : "Test string with id WA"
+    },
+    "test-string.WB" : {
+      "comment" : "Test string with id WB"
+    },
+    "test-string.XA" : {
+      "comment" : "Test string with id XA"
+    },
+    "test-string.XB" : {
+      "comment" : "Test string with id XB"
+    },
+    "test-string.YA" : {
+      "comment" : "Test string with id YA"
+    },
+    "test-string.YB" : {
+      "comment" : "Test string with id YB"
+    },
+    "test-string.ZA" : {
+      "comment" : "Test string with id ZA"
+    },
+    "test-string.ZB" : {
+      "comment" : "Test string with id ZB"
     }
   },
   "version" : "1.0"

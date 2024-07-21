@@ -11,14 +11,14 @@
 #import "Utility.h"
 #import "objc/runtime.h"
 
-#pragma mark - RenameDepth definitions
-
-#define MFSystemRenameDepthKey @"MFSystemRenameDepth"
-
 ///
 /// We record whether the system is currently inside a routine that might set a uiString on a uiElement.
 /// The UIStringChangeDetector can then know if it's dealing with a uiString change caused by the system or by the current program by calling `MFSystemIsChangingUIStrings()`.
 ///
+
+#pragma mark - RenameDepth definitions
+
+#define MFSystemRenameDepthKey @"MFSystemRenameDepth"
 
 NSInteger MFSystemRenameDepth(void) {
     return [NSThread.currentThread.threadDictionary[MFSystemRenameDepthKey] integerValue];
@@ -79,6 +79,56 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
         
         return result;
         
+    }));
+}
+
+@end
+
+#pragma mark - NSWindow swizzling
+
+@implementation NSWindow (MFUIStringAnnotation)
+
++ (void)load {
+
+    swizzleMethodOnClassAndSubclasses([NSWindow class], @{ @"framework": @"AppKit" }, @selector(validateUserInterfaceItem:), MakeInterceptorFactory(BOOL, (id item), {
+        MFSystemRenameDepthIncrement();
+        BOOL result = OGImpl(item);
+        MFSystemRenameDepthDecrement();
+        return result;
+    }));
+}
+
+@end
+
+#pragma mark - NextStepFrame swizzling
+
+@interface NSNextStepFrame : NSView
+@end
+
+@implementation NSNextStepFrame (MFUIStringAnnotation)
+
++ (void)load {
+    
+    swizzleMethodOnClassAndSubclasses([NSNextStepFrame class], @{ @"framework": @"AppKit" }, @selector(_updateTitleProperties:), MakeInterceptorFactory(void, (id inputValue), {
+        MFSystemRenameDepthIncrement();
+        OGImpl(inputValue);
+        MFSystemRenameDepthDecrement();
+    }));
+}
+
+@end
+
+#pragma mark - TokenFieldCell swizzling
+
+@implementation NSTokenFieldCell (MFUIStringAnnotation)
+
++ (void)load {
+
+    swizzleMethodOnClassAndSubclasses([self class], @{ @"framework": @"AppKit" }, @selector(_attributedStringForRepresentedObjects:), MakeInterceptorFactory(id, (id representedObjects), {
+        MFSystemRenameDepthIncrement();
+        id result = OGImpl(representedObjects);
+        MFSystemRenameDepthDecrement();
+        return result;
     }));
 }
 
@@ -182,7 +232,7 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
 @interface NSMenuBarImpl : NSCocoaMenuImpl
 @end
 
-@implementation NSResponder (MFUIStringAnnotation_NSMenuBarImpl) /// Can't actually swizzle on `NSMenuBarImpl due to linker errors. NSResponder is a superclass.
+@implementation NSResponder (MFUIStringAnnotation_NSMenuBarImpl) /// Can't make a category on `NSMenuBarImpl` due to linker errors. NSResponder is the closest superclass we can link against..
 
 + (void)load {
     
@@ -213,6 +263,28 @@ NSMutableDictionary *MFMenuItemsRenamedBySystem(void) {
     }));
 }
 
+@end
+
+#pragma mark - NSMenuItemView swizzling
+
+@interface NSMenuItemView : NSView
+@end
+
+@implementation NSView (MFUIStringAnnotation_NSMenuItemView) /// Can't swizzle directly on NSMenuItemView due to linker errors
+
++ (void)load {
+    
+    /// We initially wanted to swizzle `updateStandardTitle:`, but we can't find it through the objc runtime even though it is called.
+    ///     -> Maybe it's defined in a protocol extension or sth weird like that?
+    /// Instead we swizzle `_initStandardMenuItem` which is a caller of updateStandardTitle:
+    swizzleMethodOnClassAndSubclasses(objc_getClass("NSMenuItemView"), @{ @"framework": @"AppKit" }, @selector(_initStandardMenuItem), MakeInterceptorFactory(void, (), {
+        MFSystemRenameDepthIncrement();
+        OGImpl();
+        MFSystemRenameDepthDecrement();
+    }));
+    
+    
+}
 @end
 
 #pragma mark - NSTextField swizzling
