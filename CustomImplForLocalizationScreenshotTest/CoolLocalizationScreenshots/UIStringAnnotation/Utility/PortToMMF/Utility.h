@@ -1,16 +1,36 @@
 //
-//  Swizzle.h
+//  Utility.h
 //  CustomImplForLocalizationScreenshotTest
 //
-//  Created by Noah Nübling on 07.07.24.
+//  Created by Noah Nübling on 08.07.24.
 //
 
 #import <Foundation/Foundation.h>
-#import "Utility.h"
+@import AppKit.NSAccessibility;
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface Swizzle : NSObject
+@interface Utility : NSObject
+
+#pragma mark - Runtime
+
+#define getReturnAddress() \
+    __builtin_return_address(0) /// If this fails, `backtrace()` should be more robust
+
+NSString *getExecutablePath(void);
+NSString *getImagePath(void *address);
+NSString *getSymbol(void *address);
+
+typedef NSString * MFClassSearchCriterion NS_TYPED_ENUM;
+#define MFClassSearchCriterionFrameworkName @"framework"
+#define MFClassSearchCriterionClassNamePrefix @"namePrefix"
+#define MFClassSearchCriterionProtocol @"protocol"
+#define MFClassSearchCriterionSuperclass @"superclass"
+
+NSArray<Class> *searchClasses(NSDictionary<MFClassSearchCriterion, id> *criteria);
+BOOL classInheritsMethod(Class class, SEL selector);
+
+#pragma mark - Swizzling
 
 /// Typedefs
 
@@ -57,6 +77,19 @@ void swizzleMethodOnClassAndSubclasses(Class baseClass, NSDictionary<MFClassSear
             return ^__ReturnType (id self, APPEND_ARGS __Arguments) __InterceptionCode; \
         }; \
     })
+
+#pragma mark - Recursions
+
+void countRecursions(id recursionDepthKey, void (^workload)(NSInteger recursionDepth));
+
+#pragma mark - Parse format strings
+
+NSRegularExpression *formatStringRecognizer(NSString *localizedString);
+
+#pragma mark - objc introspection
+
+void listMethods(id obj);
+void printClassHierarchy(NSObject *obj);
 
 @end
 

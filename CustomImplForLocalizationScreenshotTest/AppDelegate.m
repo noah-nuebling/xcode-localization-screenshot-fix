@@ -7,6 +7,7 @@
 
 #import "AppDelegate.h"
 #import "Utility.h"
+#import "AnnotationUtility.h"
 #import "NibDecodingAnalysis.h"
 #import "NSString+Additions.h"
 #import "objc/runtime.h"

@@ -7,11 +7,10 @@
 
 @import ObjectiveC.runtime;
 #import "NibDecodingAnalysis.h"
-#import "Swizzle.h"
 #import "AppKit/NSAccessibility.h"
 #import "AppKit/NSMenu.h"
 #import "NSLocalizedStringRecord.h"
-#import "UIStringAnnotationHelper.h"
+#import "AnnotationUtility.h"
 #import "UINibDecoderIntrospection.h"
 #import "Utility.h"
 #import "TreeNode.h"
@@ -450,7 +449,7 @@ static void postDive(NSString *nibName, NSString *fileName) {
             
             /// Extract info from matchingConnector
             NSObject<NSAccessibility>*connectionDestination = (id)[matchingConnector destination];
-            NSObject<NSAccessibility>*axConnectionDestination = [Utility getRepresentingAccessibilityElementForObject:connectionDestination];
+            NSObject<NSAccessibility>*axConnectionDestination = [AnnotationUtility getRepresentingAccessibilityElementForObject:connectionDestination];
         
             if (axConnectionDestination == nil) {
                 
@@ -461,8 +460,8 @@ static void postDive(NSString *nibName, NSString *fileName) {
             } else {
 
                 /// Add annotation
-                NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
-                [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:axConnectionDestination];
+                NSAccessibilityElement *annotation = [AnnotationUtility createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+                [AnnotationUtility addAnnotations:@[annotation] toAccessibilityElement:axConnectionDestination];
                 /// Flag
                 validation_lastLocalizedStringWasNotUsed = NO;
             }
@@ -502,11 +501,11 @@ static void postDive(NSString *nibName, NSString *fileName) {
             
             /// Get destination
             id destination = [matchingConnector destination];
-            id axDestination = [Utility getRepresentingAccessibilityElementForObject:destination];
+            id axDestination = [AnnotationUtility getRepresentingAccessibilityElementForObject:destination];
             
             /// Annotate the destination of the connector
-            NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
-            [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:axDestination];
+            NSAccessibilityElement *annotation = [AnnotationUtility createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+            [AnnotationUtility addAnnotations:@[annotation] toAccessibilityElement:axDestination];
             
             /// Flag
             validation_lastLocalizedStringWasNotUsed = NO;
@@ -555,8 +554,8 @@ static void postDive(NSString *nibName, NSString *fileName) {
             }
             
             /// Annotate the window
-            NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
-            [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:matchingWindow];
+            NSAccessibilityElement *annotation = [AnnotationUtility createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+            [AnnotationUtility addAnnotations:@[annotation] toAccessibilityElement:matchingWindow];
             
             /// Flag
             validation_lastLocalizedStringWasNotUsed = NO;
@@ -586,11 +585,11 @@ static void postDive(NSString *nibName, NSString *fileName) {
             }
             
             /// Get the axElement representing the column
-            NSTableHeaderCell *matchingHeaderCell = (id)[Utility getRepresentingAccessibilityElementForObject:matchingColumn];
+            NSTableHeaderCell *matchingHeaderCell = (id)[AnnotationUtility getRepresentingAccessibilityElementForObject:matchingColumn];
             
             /// Attach annotation
-            NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
-            [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:matchingHeaderCell withAdditionalUIStringHolder:matchingColumn];
+            NSAccessibilityElement *annotation = [AnnotationUtility createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+            [AnnotationUtility addAnnotations:@[annotation] toAccessibilityElement:matchingHeaderCell withAdditionalUIStringHolder:matchingColumn];
             
             /// Flag
             validation_lastLocalizedStringWasNotUsed = NO;
@@ -626,8 +625,8 @@ static void postDive(NSString *nibName, NSString *fileName) {
                     
                     /// Create annotation
                     NSAccessibilityElement *annotation =
-                    [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
-                    [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:mainMenu];
+                    [AnnotationUtility createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+                    [AnnotationUtility addAnnotations:@[annotation] toAccessibilityElement:mainMenu];
                     
                     /// Flag
                     validation_lastLocalizedStringWasNotUsed = NO;
@@ -648,9 +647,9 @@ static void postDive(NSString *nibName, NSString *fileName) {
                     }
                     assert(matchingItem != nil);
                     
-                    id axElement = [Utility getRepresentingAccessibilityElementForObject:matchingItem];
-                    NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
-                    [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:axElement];
+                    id axElement = [AnnotationUtility getRepresentingAccessibilityElementForObject:matchingItem];
+                    NSAccessibilityElement *annotation = [AnnotationUtility createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+                    [AnnotationUtility addAnnotations:@[annotation] toAccessibilityElement:axElement];
                     
                     /// Flag
                     validation_lastLocalizedStringWasNotUsed = NO;
@@ -668,8 +667,8 @@ static void postDive(NSString *nibName, NSString *fileName) {
                     /// Find item to annotate
                     NSToolbarItemViewer *matchingAXItem = nil;
                     for (NSToolbarItem *item in toolbar.items) {
-                        id axItem = [Utility getRepresentingAccessibilityElementForObject:item];
-                        BOOL containsUIString = [UIStringAnnotationHelper accessibilityElement:axItem containsUIString:uiString];
+                        id axItem = [AnnotationUtility getRepresentingAccessibilityElementForObject:item];
+                        BOOL containsUIString = [AnnotationUtility accessibilityElement:axItem containsUIString:uiString];
                         if (containsUIString) {
                              matchingAXItem = axItem;
                             break;
@@ -678,8 +677,8 @@ static void postDive(NSString *nibName, NSString *fileName) {
                     assert(matchingAXItem != nil);
                     
                     /// Add annotation
-                    NSAccessibilityElement *annotationElement = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
-                    [UIStringAnnotationHelper addAnnotations:@[annotationElement] toAccessibilityElement:matchingAXItem]; /// The `find item to annotate` code above already serves as validation, so we might skip the validation that's happening in here?
+                    NSAccessibilityElement *annotationElement = [AnnotationUtility createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+                    [AnnotationUtility addAnnotations:@[annotationElement] toAccessibilityElement:matchingAXItem]; /// The `find item to annotate` code above already serves as validation, so we might skip the validation that's happening in here?
                     /// Flag
                     validation_lastLocalizedStringWasNotUsed = NO;
                     /// Stop iterating relatedNodes
@@ -723,13 +722,13 @@ static void postDive(NSString *nibName, NSString *fileName) {
                     }
                     
                     /// Get new ax child
-                    NSAccessibilityElement *annotationElement = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+                    NSAccessibilityElement *annotationElement = [AnnotationUtility createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
                     
                     if (matchingItem != nil) {
                         
                         
                         /// Regular case: Add to item
-                        [UIStringAnnotationHelper addAnnotations:@[annotationElement] toAccessibilityElement:matchingItem];
+                        [AnnotationUtility addAnnotations:@[annotationElement] toAccessibilityElement:matchingItem];
                         
                     } else {
                         
@@ -740,7 +739,7 @@ static void postDive(NSString *nibName, NSString *fileName) {
                         ///     So this case will always hit for the NSMenuTitle afaik.
                         /// - I think this might fail in a subtle way if the NSMenuTitle is the same as the title for one of its items.
                         ///     Then we might associate the NSMenuTitle localizationKey with the NSMenuItem instead.
-                        [UIStringAnnotationHelper addAnnotations:@[annotationElement] toAccessibilityElement:relatedNode.representedObject.value];
+                        [AnnotationUtility addAnnotations:@[annotationElement] toAccessibilityElement:relatedNode.representedObject.value];
                     }
                     
                     /// Flag
@@ -773,8 +772,8 @@ static void postDive(NSString *nibName, NSString *fileName) {
                     
                     /// Attach annotation
                     NSAccessibilityElement *annotation =
-                    [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
-                    [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:relatedNode.representedObject.value];
+                    [AnnotationUtility createAnnotationElementWithLocalizationKey:localizationKey translatedString:uiString developmentString:developmentString translatedStringNibKey:uiStringNibKey mergedUIString:nil];
+                    [AnnotationUtility addAnnotations:@[annotation] toAccessibilityElement:relatedNode.representedObject.value];
                     
                     /// Flag
                     validation_lastLocalizedStringWasNotUsed = NO;

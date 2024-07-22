@@ -122,38 +122,6 @@
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "B086724C-3947-464C-B87B-13BA948BA2A1"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Swizzle.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "72"
-            endingLineNumber = "72"
-            landmarkName = "swizzleMethod(class, selector, interceptorFactory)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "51A2DD7A-A701-4A90-A5F8-30AB8CE75B54"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Swizzle.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "38"
-            endingLineNumber = "38"
-            landmarkName = "swizzleMethod(class, selector, interceptorFactory)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.AddressBreakpoint">
          <BreakpointContent
             uuid = "8FA3CFE6-3B13-46F6-B85C-D1814CB192DB"
@@ -163,22 +131,6 @@
             symbolName = "*0x19612c2a4">
             <Locations>
             </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "1D7F5F99-349E-4A2C-AFD3-A6112371A9BE"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Utility.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "393"
-            endingLineNumber = "393"
-            landmarkName = "BREAKPOINT(context)"
-            landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -219,8 +171,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/CodeAnnotation/UIStringChangeDetector.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "153"
-            endingLineNumber = "153"
+            startingLineNumber = "152"
+            endingLineNumber = "152"
             landmarkName = "+handleSetString:onObject:selector:recursionDepth:returnAddress:extraInfo:"
             landmarkType = "7">
          </BreakpointContent>
@@ -235,8 +187,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/CodeAnnotation/UIStringChangeDetector.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "155"
-            endingLineNumber = "155"
+            startingLineNumber = "154"
+            endingLineNumber = "154"
             landmarkName = "+handleSetString:onObject:selector:recursionDepth:returnAddress:extraInfo:"
             landmarkType = "7">
          </BreakpointContent>
@@ -251,8 +203,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/CodeAnnotation/UIStringChangeDetector.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "92"
-            endingLineNumber = "92"
+            startingLineNumber = "91"
+            endingLineNumber = "91"
             landmarkName = "+handleSetString:onObject:selector:recursionDepth:returnAddress:extraInfo:"
             landmarkType = "7">
          </BreakpointContent>
@@ -267,89 +219,9 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/CodeAnnotation/UIStringChangeDetector.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "96"
-            endingLineNumber = "96"
+            startingLineNumber = "95"
+            endingLineNumber = "95"
             landmarkName = "+handleSetString:onObject:selector:recursionDepth:returnAddress:extraInfo:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "134C6F3B-91B2-471B-8A47-0245D20F6F77"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Utility.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "783"
-            endingLineNumber = "783"
-            landmarkName = "+getRepresentingAccessibilityElementForObject:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "B2556043-EAD4-4D4C-9143-82B85FADE764"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Utility.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "784"
-            endingLineNumber = "784"
-            landmarkName = "+getRepresentingAccessibilityElementForObject:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "FA6FB5D0-6264-419B-99A0-32F9367196C9"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Utility.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "789"
-            endingLineNumber = "789"
-            landmarkName = "+getRepresentingAccessibilityElementForObject:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "FECF288F-C23F-4B63-8A91-B3413082CFE5"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Utility.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "794"
-            endingLineNumber = "794"
-            landmarkName = "+getRepresentingAccessibilityElementForObject:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "122EA92D-FA2A-4BC2-9BB4-CBEEFF4EDDC3"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Utility.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "793"
-            endingLineNumber = "793"
-            landmarkName = "+getRepresentingAccessibilityElementForObject:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -363,8 +235,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/CodeAnnotation/UIStringChangeDetector.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "89"
-            endingLineNumber = "89"
+            startingLineNumber = "88"
+            endingLineNumber = "88"
             landmarkName = "+handleSetString:onObject:selector:recursionDepth:returnAddress:extraInfo:"
             landmarkType = "7">
          </BreakpointContent>

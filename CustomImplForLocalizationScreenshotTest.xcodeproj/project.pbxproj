@@ -17,11 +17,10 @@
 		4F53EBE92C3AF1CA00843320 /* CustomImplForLocalizationScreenshotTestUITestsLaunchTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F53EBE82C3AF1CA00843320 /* CustomImplForLocalizationScreenshotTestUITestsLaunchTests.m */; };
 		4F53EBF92C3AF64C00843320 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 4F53EBF82C3AF64C00843320 /* Localizable.xcstrings */; };
 		4F58C2402C3AFFBB0047F651 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4F58C23F2C3AFFBB0047F651 /* MainMenu.xib */; };
-		4F5A28132C3B443D00F95211 /* Swizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F5A28122C3B443D00F95211 /* Swizzle.m */; };
 		4F5A281C2C3B596800F95211 /* Utility.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F5A281B2C3B596800F95211 /* Utility.m */; };
 		4F5A284E2C3C563600F95211 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F5A284C2C3C49EF00F95211 /* AppKit.framework */; };
 		4F746D112C4073B40031DA27 /* NibDecodingAnalysis.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F5A28182C3B4D3700F95211 /* NibDecodingAnalysis.m */; };
-		4F746D122C4074F60031DA27 /* UIStringAnnotationHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FB7E9E82C3E9CF900A36F3B /* UIStringAnnotationHelper.m */; };
+		4F746D122C4074F60031DA27 /* AnnotationUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FB7E9E82C3E9CF900A36F3B /* AnnotationUtility.m */; };
 		4F8738102C43E348001F95DE /* SystemRenameTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F87380F2C43E348001F95DE /* SystemRenameTracker.m */; };
 		4F8738132C4414A6001F95DE /* AppKitIntrospection.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F8738122C4414A6001F95DE /* AppKitIntrospection.m */; };
 		4F87381D2C443669001F95DE /* toolTipSettersFromLLDB.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4F87381C2C443669001F95DE /* toolTipSettersFromLLDB.txt */; };
@@ -79,8 +78,6 @@
 		4F58C2492C3B08AC0047F651 /* CleanShot 2024-07-07 at 19.31.59@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "CleanShot 2024-07-07 at 19.31.59@2x.png"; sourceTree = "<group>"; };
 		4F58C24A2C3B0B920047F651 /* de-manual-edit.xcloc */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = "de-manual-edit.xcloc"; sourceTree = "<group>"; };
 		4F5A28062C3B330D00F95211 /* TakeScreenshots.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TakeScreenshots.xctestplan; sourceTree = "<group>"; };
-		4F5A28112C3B443D00F95211 /* Swizzle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swizzle.h; sourceTree = "<group>"; };
-		4F5A28122C3B443D00F95211 /* Swizzle.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Swizzle.m; sourceTree = "<group>"; };
 		4F5A28172C3B4D3700F95211 /* NibDecodingAnalysis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NibDecodingAnalysis.h; sourceTree = "<group>"; };
 		4F5A28182C3B4D3700F95211 /* NibDecodingAnalysis.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NibDecodingAnalysis.m; sourceTree = "<group>"; };
 		4F5A281A2C3B596800F95211 /* Utility.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Utility.h; sourceTree = "<group>"; };
@@ -112,8 +109,8 @@
 		4F966AB62C415ECD003226B2 /* KVPair.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KVPair.h; sourceTree = "<group>"; };
 		4F966AB72C415ECD003226B2 /* KVPair.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KVPair.m; sourceTree = "<group>"; };
 		4FB7E9E22C3DD61800A36F3B /* accessibilityNotificationPostingSymbolsFromLLDB.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = accessibilityNotificationPostingSymbolsFromLLDB.txt; sourceTree = "<group>"; };
-		4FB7E9E72C3E9CF900A36F3B /* UIStringAnnotationHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UIStringAnnotationHelper.h; sourceTree = "<group>"; };
-		4FB7E9E82C3E9CF900A36F3B /* UIStringAnnotationHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UIStringAnnotationHelper.m; sourceTree = "<group>"; };
+		4FB7E9E72C3E9CF900A36F3B /* AnnotationUtility.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AnnotationUtility.h; sourceTree = "<group>"; };
+		4FB7E9E82C3E9CF900A36F3B /* AnnotationUtility.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AnnotationUtility.m; sourceTree = "<group>"; };
 		4FB7E9EC2C3EACD200A36F3B /* UIStringChangeDetector.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UIStringChangeDetector.m; sourceTree = "<group>"; };
 		4FE8396D2C3D7C0900AFCA6D /* Queue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Queue.h; sourceTree = "<group>"; };
 		4FE8396E2C3D7C0900AFCA6D /* Queue.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Queue.m; sourceTree = "<group>"; };
@@ -164,6 +161,7 @@
 		4F3C93DA2C49C5CD0012F50D /* Notes */ = {
 			isa = PBXGroup;
 			children = (
+				4FF8AD962C3B17DF0000CC4D /* Examples */,
 				4F3C93D92C49C5B30012F50D /* AppKitSetters */,
 			);
 			path = Notes;
@@ -175,7 +173,6 @@
 				4F53EBF52C3AF1E900843320 /* Readme.md */,
 				4F53EBC82C3AF1C800843320 /* CustomImplForLocalizationScreenshotTest */,
 				4F5A28072C3B331B00F95211 /* Test */,
-				4FF8AD962C3B17DF0000CC4D /* Examples */,
 				4F53EBC72C3AF1C800843320 /* Products */,
 				4F5A28272C3C472700F95211 /* Frameworks */,
 			);
@@ -269,14 +266,42 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		4F81ED192C4F16FD005AC997 /* PortToMMF */ = {
+			isa = PBXGroup;
+			children = (
+				4F966AB02C414C3E003226B2 /* TreeNode.h */,
+				4F966AB12C414C3E003226B2 /* TreeNode.m */,
+				4F966AB62C415ECD003226B2 /* KVPair.h */,
+				4F966AB72C415ECD003226B2 /* KVPair.m */,
+				4F966AB32C414DCE003226B2 /* NSString+Additions.h */,
+				4F966AB42C414DCE003226B2 /* NSString+Additions.m */,
+				4FE8396D2C3D7C0900AFCA6D /* Queue.h */,
+				4FE8396E2C3D7C0900AFCA6D /* Queue.m */,
+				4F5A281A2C3B596800F95211 /* Utility.h */,
+				4F5A281B2C3B596800F95211 /* Utility.m */,
+				4F1E09082C491846005569B7 /* NSRunLoop+Additions.h */,
+				4F1E09092C491846005569B7 /* NSRunLoop+Additions.m */,
+			);
+			path = PortToMMF;
+			sourceTree = "<group>";
+		};
+		4F81ED1A2C4F1994005AC997 /* SystemRenameTracker */ = {
+			isa = PBXGroup;
+			children = (
+				4F87380E2C43E348001F95DE /* SystemRenameTracker.h */,
+				4F87380F2C43E348001F95DE /* SystemRenameTracker.m */,
+			);
+			path = SystemRenameTracker;
+			sourceTree = "<group>";
+		};
 		4FB7E9E42C3E98C300A36F3B /* UIStringAnnotation */ = {
 			isa = PBXGroup;
 			children = (
+				4F81ED1A2C4F1994005AC997 /* SystemRenameTracker */,
 				4FB7E9E62C3E997200A36F3B /* NibAnnotation */,
 				4FB7E9E52C3E996B00A36F3B /* CodeAnnotation */,
 				4FE839682C3D6F9000AFCA6D /* Utility */,
 				4FE839692C3D6F9B00AFCA6D /* External */,
-				4FE839672C3D6F8400AFCA6D /* Old */,
 			);
 			path = UIStringAnnotation;
 			sourceTree = "<group>";
@@ -301,34 +326,12 @@
 			path = NibAnnotation;
 			sourceTree = "<group>";
 		};
-		4FE839672C3D6F8400AFCA6D /* Old */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Old;
-			sourceTree = "<group>";
-		};
 		4FE839682C3D6F9000AFCA6D /* Utility */ = {
 			isa = PBXGroup;
 			children = (
-				4FB7E9E72C3E9CF900A36F3B /* UIStringAnnotationHelper.h */,
-				4FB7E9E82C3E9CF900A36F3B /* UIStringAnnotationHelper.m */,
-				4F87380E2C43E348001F95DE /* SystemRenameTracker.h */,
-				4F87380F2C43E348001F95DE /* SystemRenameTracker.m */,
-				4F966AB02C414C3E003226B2 /* TreeNode.h */,
-				4F966AB12C414C3E003226B2 /* TreeNode.m */,
-				4F966AB62C415ECD003226B2 /* KVPair.h */,
-				4F966AB72C415ECD003226B2 /* KVPair.m */,
-				4F966AB32C414DCE003226B2 /* NSString+Additions.h */,
-				4F966AB42C414DCE003226B2 /* NSString+Additions.m */,
-				4FE8396D2C3D7C0900AFCA6D /* Queue.h */,
-				4FE8396E2C3D7C0900AFCA6D /* Queue.m */,
-				4F5A28112C3B443D00F95211 /* Swizzle.h */,
-				4F5A28122C3B443D00F95211 /* Swizzle.m */,
-				4F5A281A2C3B596800F95211 /* Utility.h */,
-				4F5A281B2C3B596800F95211 /* Utility.m */,
-				4F1E09082C491846005569B7 /* NSRunLoop+Additions.h */,
-				4F1E09092C491846005569B7 /* NSRunLoop+Additions.m */,
+				4FB7E9E72C3E9CF900A36F3B /* AnnotationUtility.h */,
+				4FB7E9E82C3E9CF900A36F3B /* AnnotationUtility.m */,
+				4F81ED192C4F16FD005AC997 /* PortToMMF */,
 			);
 			path = Utility;
 			sourceTree = "<group>";
@@ -502,13 +505,12 @@
 				4F1382E42C3FEDFF007E0C03 /* UINibDecoderIntrospection.m in Sources */,
 				4F966AB52C414DCE003226B2 /* NSString+Additions.m in Sources */,
 				4F966AB82C415ECD003226B2 /* KVPair.m in Sources */,
-				4F746D122C4074F60031DA27 /* UIStringAnnotationHelper.m in Sources */,
+				4F746D122C4074F60031DA27 /* AnnotationUtility.m in Sources */,
 				4F8738132C4414A6001F95DE /* AppKitIntrospection.m in Sources */,
 				4F1E090A2C491846005569B7 /* NSRunLoop+Additions.m in Sources */,
 				4F8738102C43E348001F95DE /* SystemRenameTracker.m in Sources */,
 				4FB7E9ED2C3EACD200A36F3B /* UIStringChangeDetector.m in Sources */,
 				4F5A281C2C3B596800F95211 /* Utility.m in Sources */,
-				4F5A28132C3B443D00F95211 /* Swizzle.m in Sources */,
 				4FE8396F2C3D7C0900AFCA6D /* Queue.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

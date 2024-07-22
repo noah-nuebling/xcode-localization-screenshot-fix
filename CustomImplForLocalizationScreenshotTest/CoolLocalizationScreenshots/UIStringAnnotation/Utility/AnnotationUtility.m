@@ -1,5 +1,5 @@
 //
-//  UIStringAnnotationHelper.m
+//  AnnotationUtility.m
 //  CustomImplForLocalizationScreenshotTest
 //
 //  Created by Noah Nübling on 10.07.24.
@@ -13,7 +13,8 @@
 /// will then be displayed to human translators, providing them with context.)
 ///
 
-#import "UIStringAnnotationHelper.h"
+#import "Utility.h"
+#import "AnnotationUtility.h"
 #import "UINibDecoderIntrospection.h"
 #import "NSLocalizedStringRecord.h"
 #import "Utility.h"
@@ -21,7 +22,7 @@
 #import "objc/runtime.h"
 #import "AppKitIntrospection.h"
 
-@implementation UIStringAnnotationHelper
+@implementation AnnotationUtility
 
 ///
 /// Definitions
@@ -281,7 +282,7 @@ NSDictionary<NSString *, NSString *> *getUIStringsFromAXElement(NSObject<NSAcces
     ///     NSAccessibilityHelpAttribute in IB it will differ from the tooltip.
     ///     Since tooltips aren't consistently available through the AX API, we need to get tooltips directly from the object instead.
     
-    NSObject *toolTipHolder = [Utility getRepresentingToolTipHolderForObject:element];
+    NSObject *toolTipHolder = [AnnotationUtility getRepresentingToolTipHolderForObject:element];
     
     NSString *toolTip = nil;
     if ([toolTipHolder respondsToSelector:@selector(toolTip)]) {
@@ -522,5 +523,248 @@ NSString *annotationDescription(NSAccessibilityElement *element) {
     NSDictionary *elementData = [element accessibilityValue];
     return [elementData description];
 }
+
+#pragma mark - Utility
+
++ (NSObject <NSAccessibility> * _Nullable)getRepresentingAccessibilityElementForObject:(id)object {
+    
+    /// This function tries to to find the object that represents `object` in the accessibility hierarchy. This can be `object` itself or a related object.
+    /// Explanation:
+    /// Many Objects use an NSCell internally to draw content and also to handle accessibility stuff.
+    /// In the accessibility hierarchy, only the NSCell will show up, the encapsulating view is 'represented' by it but doesn't appear in the accessibility hierarchy itself.
+    /// The represented object itself will have its `isAccessibilityElement` property set to NO, and it will have one child - the NSCell,
+    /// which has its `isAccessibilityElement` set to true - which makes it show up in the accessibility hierarchy.
+    /// This function is made for this NSCell scenario, but might also work in other situations.
+
+    
+    /// Simple case
+    if ([object respondsToSelector:@selector(isAccessibilityElement)] && [object isAccessibilityElement]) {
+        return object;
+    }
+    
+    /// Special cases
+    
+    /// Special case: NSTextStorage
+    if ([object isKindOfClass:[NSTextStorage class]]) {
+        NSTextStorage *textStorage = (id)object;
+        assert([[textStorage textStorageObserver] isKindOfClass:[NSTextContentStorage class]]);
+        NSTextContentStorage *textContentStorage = (id)[textStorage textStorageObserver];
+        NSTextLayoutManager *textLayoutManager = [[textContentStorage textLayoutManagers] firstObject];
+        NSTextContainer *textContainer = [textLayoutManager textContainer];
+        NSTextView *textView = [textContainer textView];
+        assert(textView != nil);
+        return [self getRepresentingAccessibilityElementForObject:textView];
+    }
+    
+    /// Special case: NSToolbar.
+    if ([object isKindOfClass:[NSToolbarItem class]]) {
+        NSToolbarItemViewer *itemViewer = [(NSToolbarItem *)object rawItemViewer];
+        assert(itemViewer != NULL);
+        if (![itemViewer isAccessibilityElement]) {
+            return [(id)itemViewer accessibilityParent]; /// Some items viewers, e.g. flexibleSpaceItem are not ax elements themselves, so we use the parent (which is the toolbar itself from what I observed.)
+        }
+        return itemViewer;
+    }
+    
+    /// Special case: NSTableView
+    if ([object isKindOfClass:[NSTableColumn class]]) {
+        return [(NSTableColumn *)object headerCell];
+    }
+    
+    /// Special case: NSSegmentedControl items
+    ///     This code is currently unused, because we simply attach the annotations for the segmented control items directly to their parent - the segmented control's cell.
+    ///     The NSSegmentedCell has an accessibilityChild "mock element" for each of its segments. It would be better to attach our annotations for the segments directly to those.
+    if ([object isKindOfClass:objc_getClass("NSSegmentItemLabelCell")]) {
+        assert(false);
+        id segmentItemLabelView = [(id)object controlView];
+        object = segmentItemLabelView; /// We don't return here so this is handled by the if (NSSegmentItemLabelView) statement below.
+    }
+    if ([object isKindOfClass:objc_getClass("NSSegmentItemLabelView")]) {
+        assert(false);
+        NSSegmentedCell *cell = [(id)[[(id)object superview] superview] cell];
+        assert([cell respondsToSelector:@selector(isAccessibilityElement)] && [cell isAccessibilityElement]);
+        return cell;
+    }
+    
+    /// Special case: NSTabView
+    if ([object isKindOfClass:[NSTabViewItem class]]) {
+        /// Get tabView
+        ///     Each single tabViewButton is selectable in the Accessibility Inspector. It would be ideal to set our annotation to that.
+        ///     But I can't find the corresponding elements in the view hierarchy or the accessibility hierarchy.
+        ///     So we just assign the annotation to the tabView.
+        NSTabView *tabView = [(NSTabViewItem *)object tabView];
+        return tabView;
+    }
+    
+    /// Special case: NSTouchBarItem
+    ///     (Does it really make sense to handle touchbar stuff? It seems pretty
+    ///     obsolete and and totally irrelevant for MMF and I don't know if localizationScreenshots will even work)
+    if ([object isKindOfClass:[NSTouchBarItem class]]) {
+        NSView *view = [(NSTouchBarItem *)object view];
+        return [self getRepresentingAccessibilityElementForObject:view];
+    }
+    
+    /// Default: Search childen
+    ///     This will find the NSCell of an NSControl.
+    NSArray *children = [object accessibilityChildren];
+    for (NSObject<NSAccessibility> *child in children) {
+        NSObject<NSAccessibility> *childRepresenter = [self getRepresentingAccessibilityElementForObject:child];
+        if (childRepresenter != nil) {
+            return childRepresenter; /// When there are multiple ax children we just take the first one which might be problematic? But works so far.
+        }
+    }
+    
+    /// Nil return
+    id axParent = [object accessibilityParent];
+    NSLog(@"Error: Couldn't find accessibilityElement representing object %@. AXParent: %@", object, axParent);
+    assert(false);
+    return nil;
+}
+
++ (NSObject *)getRepresentingToolTipHolderForObject:(NSObject *)object {
+    
+    /// For NSCells, return their controlView
+    ///     -> Those hold the tooltips, while the cell holds all the other UIStrings.
+    ///     -> Not sure making this a separate function makes any sense. I guess we wanted to make it symmetrical with `getRepresentingAccessibilityElementForObject:`, which is kind of the inverse of this method - on NSCells and their controlViews.
+    NSObject *result = nil;
+    if ([object isKindOfClass:[NSCell class]]) {
+        result = [(NSCell *)object controlView];
+    }
+    
+    /// Special case: comboButton
+    if ([result isKindOfClass:objc_getClass("NSComboButtonSegmentedControl")]) {
+        result = [(NSControl *)result superview];
+    }
+    
+    /// Fallback to the object itself
+    if (result == nil) {
+        result = object;
+    }
+    
+    /// Return
+    return result;
+}
+
+#pragma mark - Localized String Processing
+/// (Not porting this to MMF)
+
+BOOL stringHasOnlyLocaleSharedContent(NSString *string) {
+    
+    /// Returns YES if the string only contains characters that are likely to be shared between different locales.
+    
+    /// Get char set
+    ///     Note: Only considering letters non-locale-shared. All punctuation, digits etc. will be considered locale-shared.
+    NSCharacterSet *localeDistinctCharacters = [NSCharacterSet letterCharacterSet];
+    
+    /// Search chars
+    NSStringCompareOptions compareOptions = 0;
+    NSRange localeDistinctCharacterRange = [string rangeOfCharacterFromSet:localeDistinctCharacters options:compareOptions range:NSMakeRange(0, string.length)];
+    BOOL hasOnlyLocaleSharedCharacters = localeDistinctCharacterRange.location == NSNotFound;
+    
+    /// Return
+    return hasOnlyLocaleSharedCharacters;
+}
+
+
+NSString *uiStringByRemovingLocalizedString(NSString *uiString, NSString *localizedString) {
+    
+    /// Get regex
+    NSRegularExpression *localizedStringRegex = formatStringRecognizer(localizedString);
+    
+    /// Apply regex
+    
+    NSTextCheckingResult *regexMatch;
+    
+    NSMatchingOptions matchingOptions = 0;
+    NSArray<NSTextCheckingResult *> *regexMatches = [localizedStringRegex matchesInString:uiString options:matchingOptions range:NSMakeRange(0, uiString.length)];
+
+    if (regexMatches.count == 1) {
+        
+        /// Validate
+        ///     Make sure the match spans the entire string
+        assert(NSEqualRanges([regexMatches[0] range], NSMakeRange(0, uiString.length)));
+        /// Unwrap
+        regexMatch = regexMatches[0];
+        
+    } else if (regexMatches.count == 0) {
+        /// No matches - localizedString doesn't appear in uiString
+        return uiString;
+    } else {
+        /// Validate
+        ///     Make sure there's exactly one or zero matches.
+        ///     The pattern is designed to always match the whole string so somethings really wrong if this happens.
+        NSLog(@"Error: There was more than one regex for localizedString %@ in uiString %@ (regex: %@)", localizedString, uiString, localizedStringRegex);
+        assert(false);
+        return uiString;
+    }
+    
+    /// The recorded string matched!
+    
+    /// Remove literally matched parts of the recorded localizedString from the uiString.
+    /// Explanation:
+    ///     When creating the `formatStringRecognizer(localizedString)` regex,  we take the `localizedString` and put regex insertion points `.*` before, after and into the format specifiers (`%d, %@`) of the `localizedString`
+    ///     Then, when we apply the `formatStringRecognizer` regex to the `uiString` and it matches the `uiString`, then the insertion points `.*` match everything inside the `uiString` that comes before, or after the `localizedString`, as well as the parts of the `uiString` that were inserted into the the `localizedString` via format specifiers (`%d, %@`). So in effect, the insertion points capture every part of the `uiString` that isn't the content of the `localizedString`.
+    ///     We surround the insertion points `.*` with parentheses `(.*)` which creates regex matching groups.
+    ///     What we do here, is iterate through all the match groups and concatenating their contents - this has the effect of taking `uiString` and removing all text from it that came from `localizedString`.
+    NSMutableString *result = [NSMutableString string];
+    for (int i = 1; i < regexMatch.numberOfRanges; i++) { /// Start iterating at 1 since the 0 group is the whole matched string, not the groups inside of it.
+        NSRange matchingGroupRange = [regexMatch rangeAtIndex:i];
+        NSString *insertionPointMatch = [uiString substringWithRange:matchingGroupRange];
+        [result appendString:insertionPointMatch];
+    }
+    return result;
+}
+
+NSString *removeMarkdownFormatting(NSString* input) {
+    
+    /// Convert Markdown to NSAttributedString
+    NSAttributedStringMarkdownParsingOptions *options = [[NSAttributedStringMarkdownParsingOptions alloc] init];
+    options.allowsExtendedAttributes = YES; /// Not sure whether to use this.
+    options.interpretedSyntax = NSAttributedStringMarkdownInterpretedSyntaxFull;
+    options.failurePolicy = NSAttributedStringMarkdownParsingFailureReturnError;
+    options.languageCode = nil;
+
+    NSError *error;
+    NSAttributedString *attributedString = [[NSAttributedString alloc] initWithMarkdownString:input options:options baseURL:nil error:&error];
+    
+    if (error) {
+        NSLog(@"Error parsing markdown: %@", error.localizedDescription);
+        return input;
+    }
+    
+    /// Extract plain text
+    NSString *plainString = [attributedString string];
+    
+    return plainString;
+}
+
+NSString *pureString(id value) {
+    
+    /// Pass in an NSString or an NSAttributedString and get a simple NSString
+    
+    NSString *result = nil;
+    
+    if ([value isKindOfClass:[NSString class]]) {
+        result = value;
+    } else if ([value isKindOfClass:[NSAttributedString class]]) {
+        result = [(NSAttributedString *)value string];
+    } else if (value == nil) {
+        result = nil;
+    } else {
+        assert(false);
+        result = nil;
+    }
+    
+    return result;
+}
+
+
+#pragma mark - Other
+
+void BREAKPOINT(id context) { /// Be able to break inside c macros
+    
+
+}
+
 
 @end

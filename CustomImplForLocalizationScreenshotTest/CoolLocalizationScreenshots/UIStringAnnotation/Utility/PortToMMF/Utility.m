@@ -18,6 +18,128 @@
 
 @implementation Utility
 
+#pragma mark - Swizzling
+/// (Porting this to MMF)
+
+///
+/// Discussion:
+///
+/// Why use the `InterceptorFactory` pattern?
+///     When swizzling, after your swizzled method (we call it the `interceptor`) is called, you normally always want to call the original implementation of the method which was intercepted.
+///     The usual pattern for intercepting a method with name `-[methodName]`, is to define a method `-[swizzled_methodName]`, and then swap the implementations of the two.
+///     Then to invoke the original implementation inside the interceptor, you'd call `[self swizzled_methodName]` (which invokes the original implementation of `[self methodName]` since the two implementations have been swapped) .
+///     However, this does not invoke the original implementation in all cases.
+///     For example, if your interceptor is invoked from a subclass with a `[super methodName]` call, and the subclass also has an implementation for `[swizzled_methodName]` then `[self swizzled_methodName]` would be invoking the original implementation on the subclass.
+///
+///     This stuff lead to really complicated issues in the implementation of `swizzleMethodOnClassAndSubclasses()`. (We deleted the detailed notes on that, I think in commit fc3064033f974c454aebb479f20bb0cc3d0eebb6)
+///
+///     I've thought about the problem quite a bit and I think the only way to reliably get a reference to the original implementation, is to store a reference to the original implementation directly inside the interceptor function. You can't dynamically figure it out without extra information.
+///         (I tried a weird appraoch with counting recursions on the interceptor to infer `super` invokations and then find the right implementation  which worked pretty well but was complicated and broke for actually recursive functions. I don't think it's possible to find a robust solution.)
+///     Thatt's where the InterceptorFactory comes in. The swizzling code passes the originalImplementation (and some other metadata) to the InterceptorFactory which then creates an Interceptor function that can reliably call its original implementation. - And then the swizzling code replaces the original implementation with the Interceptor.
+///
+///     Such an InterceptorFactory is quite tedious to write, since you'd have to write all the arguments and types again and again and declare complicated objc blocks. But that's what the MakeInterceptorFactory() macro is for! It provides a clean syntax.
+///
+///     We have to make it a macro, not a function I think. since the compiler needs to be aware of the argument number and types and stuff. I don't remember. But I tried dynamically parsing the arguments and passing them on to the original implementation from inside the interceptor but it didn't work. varargs didn't work. All the arguments were in weird registers. You'd have to like hardcode knowledge about the calling convention to do this. So we have to declare the interceptor method and its factory with the right types and argument number at compile time. And making that easier is only possible with a macro (I think? I don't remember exactly.)
+///
+
+
+void swizzleMethod(Class class, SEL selector, InterceptorFactory interceptorFactory) {
+    
+    /// Replaces the method for `selector` on `class` with the interceptor retrieved from the `interceptorFactory`.
+    /// - Use the `MakeInterceptorFactor()` macro to conveniently create an interceptor factory.
+    /// - Note on arg `class`:
+    ///     Pass in a metaclass to swap out class methods instead of instance methods.
+    ///     You can get the metaclass of a class `baseClass` by calling `object_getClass(baseClass)`.
+    
+    /// Log
+    NSLog(@"Swizzling [%s %s]", class_getName(class), sel_getName(selector));
+    
+    /// Validate
+    ///     Make sure `selector` is defined on class or one of its superclasses.
+    ///     Otherwise swizzling doesn't make sense.
+    assert([class instancesRespondToSelector:selector]); /// Note: This seems to work as expected on meta classes
+    
+    /// Get original
+    ///     Note: Based on my testing, we don't need to use `class_getClassMethod` to make swizzling class methods work, if we just pass in a meta class as `class`, then `class_getInstanceMethod` will get the class methods, and everything works as expected.
+    Method originalMethod = class_getInstanceMethod(class, selector);
+    IMP originalImplementation = method_getImplementation(originalMethod);
+    
+    /// Make sure originalMethod is present directly on `class`
+    ///     (Instead of being inherited from a superclass -> So we're not replacing the implementation of the method from the superclass, affecting all its other subclasses.)
+    BOOL didAddOriginal = class_addMethod(class, selector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod));
+    if (didAddOriginal) { /// Re-fetch
+        originalMethod = class_getInstanceMethod(class, selector);
+    }
+    
+    /// Get interceptor implementation
+    ///  Explanation:
+    ///  We need to use the 'factory' pattern because this is the only way to reliably have the interceptor code find its original implementation.
+    InterceptorBlock interceptorBlock = interceptorFactory(class, selector, originalImplementation);
+    IMP interceptorImplementation = imp_implementationWithBlock(interceptorBlock);
+    
+    /// Replace implementation
+    IMP previousImplementation = method_setImplementation(originalMethod, interceptorImplementation);
+    
+    /// Validate
+    assert(previousImplementation == originalImplementation);
+}
+
+void swizzleMethodOnClassAndSubclasses(Class baseClass, NSDictionary<MFClassSearchCriterion, id> *subclassSearchCriteria, SEL selector, InterceptorFactory interceptorFactory) {
+
+    /// Log
+    NSLog(@"Swizzling [%s %s] including subclasses. subclassSearchCriteria: %@ (Class is in %s)", class_getName(baseClass), sel_getName(selector), subclassSearchCriteria, class_getImageName(baseClass));
+    
+    /// Validate args
+    assert(baseClass != nil);
+    assert(interceptorFactory != nil);
+    
+    /// Preprocess classSearchCriteria
+    assert([subclassSearchCriteria isKindOfClass:[NSDictionary class]]);
+    NSMutableDictionary *classSearchCriteria = subclassSearchCriteria.mutableCopy;
+    assert(classSearchCriteria[MFClassSearchCriterionSuperclass] == nil);
+    classSearchCriteria[MFClassSearchCriterionSuperclass] = baseClass;
+    
+    /// Find subclasses
+    NSArray<Class> *subclasses = searchClasses(classSearchCriteria);
+    
+    /// Declare validation state
+    BOOL someClassHasBeenSwizzled = NO;
+    
+    /// Swizzle subclasses
+    for (Class subclass in subclasses) {
+        
+        /// Skip
+        ///     We only need to swizzle one method, and then all its subclasses will also be swizzled - as long as they inherit the method and don't override it.
+        if (![subclass instancesRespondToSelector:selector]
+            || classInheritsMethod(subclass, selector)) continue;
+        
+        /// Swizzle
+        swizzleMethod(subclass, selector, interceptorFactory);
+        someClassHasBeenSwizzled = YES;
+    }
+    
+    /// Swizzle on baseClass
+    ///     We (almost) always want to at least swizzle on the baseClass. Even if the baseClass, doesn't define it's own implementation for `selector`, and instead inherits the implementation.
+    ///     That way all the subclasses inherit the swizzled method from the baseClass.
+    ///     Except, if `baseClass` doesn't respond to the `selector` at all, then we skip this.
+    
+    if ([baseClass instancesRespondToSelector:selector]) {
+        swizzleMethod(baseClass, selector, interceptorFactory);
+        someClassHasBeenSwizzled = YES;
+    }
+    
+    /// Validate
+    if (!someClassHasBeenSwizzled) {
+        NSLog(@"Error: Neither %@ nor any of the subclasses we found for it (%@) have been swizzled. This is probably because none of the processed classes implement a method for selector %@. We used the search criteria: %@", baseClass, subclasses, selector, subclassSearchCriteria);
+        assert(false);
+    }
+    
+}
+
+
+#pragma mark - Runtime
+/// (Porting this to MMF)
+
 NSString *getExecutablePath(void) {
     
     /// Get the path of the current executable.
@@ -48,6 +170,7 @@ NSString *getImagePath(void *address) {
     /// For example when the address comes from the AppKit framework, the result will be
     ///     `@"/System/Library/Frameworks/AppKit.framework/AppKit"`
     /// Pass in the address of a function and compare the result to `getExecutablePath()` to see if the function is defined inside the current executable (and not by a framework or library.)
+    /// Particularly useful with `getReturnAddress()` to see if the caller of a function was a framework or the current app.
     
     Dl_info info;
     int ret = dladdr(address, &info);
@@ -248,7 +371,7 @@ const char *searchFrameworkPath(const char *frameworkName) {
     free(imagePaths);
     
     if (result == NULL) {
-        NSLog(@"Error: Couldn't find framework with name %@", frameworkName);
+        NSLog(@"Error: Couldn't find framework with name %s", frameworkName);
         assert(false);
     }
     return result;
@@ -293,53 +416,8 @@ bool classIsSubclass(Class potentialSub, Class potentialSuper) {
     return false;
 }
 
-NSArray<Class> *getClassesFromFramework(NSString *frameworkNameNS) {
-    
-    /// Unused at the moment
-    ///     - but might be useful if we want to support pre macOS 13.0
-    assert(false);
-    
-    /// Trying to write cool confusing c code without comments 😎
-    
-    static NSMutableDictionary *_cache = nil;
-    if (_cache == nil) {
-        _cache = [NSMutableDictionary dictionary];
-    }
-    
-    NSArray *resultFromCache = _cache[frameworkNameNS];
-    if (resultFromCache != nil) {
-        return resultFromCache;
-    }
-    
-    bool frameworkIsSpecified = frameworkNameNS != nil && frameworkNameNS.length != 0;
-    
-    char *frameworkPathComponent = NULL;
-    if (frameworkIsSpecified) {
-        const char *frameworkName = [frameworkNameNS cStringUsingEncoding:NSUTF8StringEncoding];
-        asprintf(&frameworkPathComponent, "/%s.framework/", frameworkName);
-    }
-    
-    unsigned int count;
-    Class *classes = objc_copyClassList(&count);
-    
-    NSMutableArray<Class> *result = [NSMutableArray array];
-    
-    for (int i = 0; i < count; i++) {
-        
-        Class class = classes[i];
-        
-        bool classIsInFramework = !frameworkIsSpecified || (strstr(class_getImageName(class), frameworkPathComponent) != NULL);
-        
-        if (classIsInFramework) {
-            [result addObject:class];
-        }
-    }
-    free(classes);
-    
-    _cache[frameworkNameNS] = result;
-    
-    return result;
-}
+#pragma mark - Recursions
+/// (Porting this to MMF)
 
 #define MFRecursionCounterBaseKey @"MFRecursionCounterBaseKey"
 
@@ -389,27 +467,8 @@ void _recursionSwitch(id selfKey, SEL _cmdKey, void (^onFirstRecursion)(void), v
     });
 }
 
-void BREAKPOINT(id context) { /// Be able to break inside c macros
-    
-
-}
-
-BOOL stringHasOnlyLocaleSharedContent(NSString *string) {
-    
-    /// Returns YES if the string only contains characters that are likely to be shared between different locales.
-    
-    /// Get char set
-    ///     Note: Only considering letters non-locale-shared. All punctuation, digits etc. will be considered locale-shared.
-    NSCharacterSet *localeDistinctCharacters = [NSCharacterSet letterCharacterSet];
-    
-    /// Search chars
-    NSStringCompareOptions compareOptions = 0;
-    NSRange localeDistinctCharacterRange = [string rangeOfCharacterFromSet:localeDistinctCharacters options:compareOptions range:NSMakeRange(0, string.length)];
-    BOOL hasOnlyLocaleSharedCharacters = localeDistinctCharacterRange.location == NSNotFound;
-    
-    /// Return
-    return hasOnlyLocaleSharedCharacters;
-}
+#pragma mark - Parse format strings
+/// (Porting this to MMF)
 
 NSRegularExpression *formatSpecifierRegex(void) {
     
@@ -475,7 +534,7 @@ NSRegularExpression *formatSpecifierRegex(void) {
     return regex;
 }
 
-NSRegularExpression *localizedStringRecognizer(NSString *localizedString) {
+NSRegularExpression *formatStringRecognizer(NSString *localizedString) {
     
     /// Turn the localizedString into a matching pattern
     ///     By replacing format specifiers (e.g. `%d`) inside the localizedString with insertion point `.*?.
@@ -515,97 +574,8 @@ NSRegularExpression *localizedStringRecognizer(NSString *localizedString) {
     return resultRegex;
 }
 
-NSString *uiStringByRemovingLocalizedString(NSString *uiString, NSString *localizedString) {
-    
-    /// Get regex
-    NSRegularExpression *localizedStringRegex = localizedStringRecognizer(localizedString);
-    
-    /// Apply regex
-    
-    NSTextCheckingResult *regexMatch;
-    
-    NSMatchingOptions matchingOptions = 0;
-    NSArray<NSTextCheckingResult *> *regexMatches = [localizedStringRegex matchesInString:uiString options:matchingOptions range:NSMakeRange(0, uiString.length)];
-
-    if (regexMatches.count == 1) {
-        
-        /// Validate
-        ///     Make sure the match spans the entire string
-        assert(NSEqualRanges([regexMatches[0] range], NSMakeRange(0, uiString.length)));
-        /// Unwrap
-        regexMatch = regexMatches[0];
-        
-    } else if (regexMatches.count == 0) {
-        /// No matches - localizedString doesn't appear in uiString
-        return uiString;
-    } else {
-        /// Validate
-        ///     Make sure there's exactly one or zero matches.
-        ///     The pattern is designed to always match the whole string so somethings really wrong if this happens.
-        NSLog(@"Error: There was more than one regex for localizedString %@ in uiString %@ (regex: %@)", localizedString, uiString, localizedStringRegex);
-        assert(false);
-        return uiString;
-    }
-    
-    /// The recorded string matched!
-    
-    /// Remove literally matched parts of the recorded localizedString from the uiString.
-    /// Explanation:
-    ///     When creating the `localizedStringRecognizer(localizedString)` regex,  we take the `localizedString` and put regex insertion points `.*` before, after and into the format specifiers (`%d, %@`) of the `localizedString`
-    ///     Then, when we apply the `localizedStringRecognizer` regex to the `uiString` and it matches the `uiString`, then the insertion points `.*` match everything inside the `uiString` that comes before, or after the `localizedString`, as well as the parts of the `uiString` that were inserted into the the `localizedString` via format specifiers (`%d, %@`). So in effect, the insertion points capture every part of the `uiString` that isn't the content of the `localizedString`.
-    ///     We surround the insertion points `.*` with parentheses `(.*)` which creates regex matching groups.
-    ///     What we do here, is iterate through all the match groups and concatenating their contents - this has the effect of taking `uiString` and removing all text from it that came from `localizedString`.
-    NSMutableString *result = [NSMutableString string];
-    for (int i = 1; i < regexMatch.numberOfRanges; i++) { /// Start iterating at 1 since the 0 group is the whole matched string, not the groups inside of it.
-        NSRange matchingGroupRange = [regexMatch rangeAtIndex:i];
-        NSString *insertionPointMatch = [uiString substringWithRange:matchingGroupRange];
-        [result appendString:insertionPointMatch];
-    }
-    return result;
-}
-
-NSString *removeMarkdownFormatting(NSString* input) {
-    
-    /// Convert Markdown to NSAttributedString
-    NSAttributedStringMarkdownParsingOptions *options = [[NSAttributedStringMarkdownParsingOptions alloc] init];
-    options.allowsExtendedAttributes = YES; /// Not sure whether to use this.
-    options.interpretedSyntax = NSAttributedStringMarkdownInterpretedSyntaxFull;
-    options.failurePolicy = NSAttributedStringMarkdownParsingFailureReturnError;
-    options.languageCode = nil;
-
-    NSError *error;
-    NSAttributedString *attributedString = [[NSAttributedString alloc] initWithMarkdownString:input options:options baseURL:nil error:&error];
-    
-    if (error) {
-        NSLog(@"Error parsing markdown: %@", error.localizedDescription);
-        return input;
-    }
-    
-    /// Extract plain text
-    NSString *plainString = [attributedString string];
-    
-    return plainString;
-}
-
-NSString *pureString(id value) {
-    
-    /// Pass in an NSString or an NSAttributedString and get a simple NSString
-    
-    NSString *result = nil;
-    
-    if ([value isKindOfClass:[NSString class]]) {
-        result = value;
-    } else if ([value isKindOfClass:[NSAttributedString class]]) {
-        result = [(NSAttributedString *)value string];
-    } else if (value == nil) {
-        result = nil;
-    } else {
-        assert(false);
-        result = nil;
-    }
-    
-    return result;
-}
+#pragma mark - objc inspection
+/// (Porting this to MMF)
 
 NSString *typeNameFromEncoding(const char *typeEncoding) { /// Credit ChatGPT & Claude
     
@@ -671,6 +641,9 @@ NSString *typeNameFromEncoding(const char *typeEncoding) { /// Credit ChatGPT & 
 
 void listMethods(id obj) {
     
+    /// This method prints a list of all methods defined on a class (not its superclass) with decoded return types and argument types
+    ///     This is really handy for inspecting private classes, creating categories or swizzles of private classes.
+    
     unsigned int methodCount = 0;
     Method *methods = class_copyMethodList([obj class], &methodCount);
     
@@ -705,126 +678,5 @@ void printClassHierarchy(NSObject *obj) {
         cls = class_getSuperclass(cls);  /// Move to the superclass
     }
 }
-
-+ (NSObject <NSAccessibility> * _Nullable)getRepresentingAccessibilityElementForObject:(id)object {
-    
-    /// This function tries to to find the object that represents `object` in the accessibility hierarchy. This can be `object` itself or a related object.
-    /// Explanation:
-    /// Many Objects use an NSCell internally to draw content and also to handle accessibility stuff.
-    /// In the accessibility hierarchy, only the NSCell will show up, the encapsulating view is 'represented' by it but doesn't appear in the accessibility hierarchy itself.
-    /// The represented object itself will have its `isAccessibilityElement` property set to NO, and it will have one child - the NSCell,
-    /// which has its `isAccessibilityElement` set to true - which makes it show up in the accessibility hierarchy.
-    /// This function is made for this NSCell scenario, but might also work in other situations.
-
-    
-    /// Simple case
-    if ([object respondsToSelector:@selector(isAccessibilityElement)] && [object isAccessibilityElement]) {
-        return object;
-    }
-    
-    /// Special cases
-    
-    /// Special case: NSTextStorage
-    if ([object isKindOfClass:[NSTextStorage class]]) {
-        NSTextStorage *textStorage = (id)object;
-        assert([[textStorage textStorageObserver] isKindOfClass:[NSTextContentStorage class]]);
-        NSTextContentStorage *textContentStorage = (id)[textStorage textStorageObserver];
-        NSTextLayoutManager *textLayoutManager = [[textContentStorage textLayoutManagers] firstObject];
-        NSTextContainer *textContainer = [textLayoutManager textContainer];
-        NSTextView *textView = [textContainer textView];
-        assert(textView != nil);
-        return [self getRepresentingAccessibilityElementForObject:textView];
-    }
-    
-    /// Special case: NSToolbar.
-    if ([object isKindOfClass:[NSToolbarItem class]]) {
-        NSToolbarItemViewer *itemViewer = [(NSToolbarItem *)object rawItemViewer];
-        assert(itemViewer != NULL);
-        if (![itemViewer isAccessibilityElement]) {
-            return [(id)itemViewer accessibilityParent]; /// Some items viewers, e.g. flexibleSpaceItem are not ax elements themselves, so we use the parent (which is the toolbar itself from what I observed.)
-        }
-        return itemViewer;
-    }
-    
-    /// Special case: NSTableView
-    if ([object isKindOfClass:[NSTableColumn class]]) {
-        return [(NSTableColumn *)object headerCell];
-    }
-    
-    /// Special case: NSSegmentedControl items
-    ///     This code is currently unused, because we simply attach the annotations for the segmented control items directly to their parent - the segmented control's cell.
-    ///     The NSSegmentedCell has an accessibilityChild "mock element" for each of its segments. It would be better to attach our annotations for the segments directly to those.
-    if ([object isKindOfClass:objc_getClass("NSSegmentItemLabelCell")]) {
-        assert(false);
-        id segmentItemLabelView = [(id)object controlView];
-        object = segmentItemLabelView; /// We don't return here so this is handled by the if (NSSegmentItemLabelView) statement below.
-    }
-    if ([object isKindOfClass:objc_getClass("NSSegmentItemLabelView")]) {
-        assert(false);
-        NSSegmentedCell *cell = [(id)[[(id)object superview] superview] cell];
-        assert([cell respondsToSelector:@selector(isAccessibilityElement)] && [cell isAccessibilityElement]);
-        return cell;
-    }
-    
-    /// Special case: NSTabView
-    if ([object isKindOfClass:[NSTabViewItem class]]) {
-        /// Get tabView
-        ///     Each single tabViewButton is selectable in the Accessibility Inspector. It would be ideal to set our annotation to that.
-        ///     But I can't find the corresponding elements in the view hierarchy or the accessibility hierarchy.
-        ///     So we just assign the annotation to the tabView.
-        NSTabView *tabView = [(NSTabViewItem *)object tabView];
-        return tabView;
-    }
-    
-    /// Special case: NSTouchBarItem
-    ///     (Does it really make sense to handle touchbar stuff? It seems pretty
-    ///     obsolete and and totally irrelevant for MMF and I don't know if localizationScreenshots will even work)
-    if ([object isKindOfClass:[NSTouchBarItem class]]) {
-        NSView *view = [(NSTouchBarItem *)object view];
-        return [self getRepresentingAccessibilityElementForObject:view];
-    }
-    
-    /// Default: Search childen
-    ///     This will find the NSCell of an NSControl.
-    NSArray *children = [object accessibilityChildren];
-    for (NSObject<NSAccessibility> *child in children) {
-        NSObject<NSAccessibility> *childRepresenter = [self getRepresentingAccessibilityElementForObject:child];
-        if (childRepresenter != nil) {
-            return childRepresenter; /// When there are multiple ax children we just take the first one which might be problematic? But works so far. 
-        }
-    }
-    
-    /// Nil return
-    id axParent = [object accessibilityParent];
-    NSLog(@"Error: Couldn't find accessibilityElement representing object %@. AXParent: %@", object, axParent);
-    assert(false);
-    return nil;
-}
-
-+ (NSObject *)getRepresentingToolTipHolderForObject:(NSObject *)object {
-    
-    /// For NSCells, return their controlView
-    ///     -> Those hold the tooltips, while the cell holds all the other UIStrings.
-    ///     -> Not sure making this a separate function makes any sense. I guess we wanted to make it symmetrical with `getRepresentingAccessibilityElementForObject:`, which is kind of the inverse of this method - on NSCells and their controlViews. 
-    NSObject *result = nil;
-    if ([object isKindOfClass:[NSCell class]]) {
-        result = [(NSCell *)object controlView];
-    }
-    
-    /// Special case: comboButton
-    if ([result isKindOfClass:objc_getClass("NSComboButtonSegmentedControl")]) {
-        result = [(NSControl *)result superview];
-    }
-    
-    /// Fallback to the object itself
-    if (result == nil) {
-        result = object;
-    }
-    
-    /// Return
-    return result;
-}
-
-
 
 @end

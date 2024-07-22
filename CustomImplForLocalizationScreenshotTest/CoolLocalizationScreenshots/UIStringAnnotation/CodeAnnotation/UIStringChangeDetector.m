@@ -6,9 +6,8 @@
 //
 
 #import "UIStringChangeDetector.h"
-#import "Swizzle.h"
 #import "NSLocalizedStringRecord.h"
-#import "UIStringAnnotationHelper.h"
+#import "AnnotationUtility.h"
 #import "NibDecodingAnalysis.h"
 #import "NSString+Additions.h"
 #import "SystemRenameTracker.h"
@@ -315,7 +314,7 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
     ///
     
     /// Find accessibilityElement for `object`
-    id<NSAccessibility> axObject = [Utility getRepresentingAccessibilityElementForObject:object];
+    id<NSAccessibility> axObject = [AnnotationUtility getRepresentingAccessibilityElementForObject:object];
     
     /// Special cases - additionalUIStringHolder
     id additionalUIStringHolder = nil;
@@ -332,8 +331,8 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
         NSString *localizedStringFromRecordPure = pureString(m_localizedStringFromRecord); /// Should we have the localizedString record just record the strings as pure strings? Making this unnecessary
         NSString *mergedUIString = [localizedStringFromRecordPure isEqual:newlySetStringPure] ? nil : newlySetStringPure;
         
-        NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:m_stringKeyFromRecord translatedString:localizedStringFromRecordPure developmentString:m_developmentStringFromRecord translatedStringNibKey:nil mergedUIString:mergedUIString];
-        [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:axObject withAdditionalUIStringHolder:additionalUIStringHolder];
+        NSAccessibilityElement *annotation = [AnnotationUtility createAnnotationElementWithLocalizationKey:m_stringKeyFromRecord translatedString:localizedStringFromRecordPure developmentString:m_developmentStringFromRecord translatedStringNibKey:nil mergedUIString:mergedUIString];
+        [AnnotationUtility addAnnotations:@[annotation] toAccessibilityElement:axObject withAdditionalUIStringHolder:additionalUIStringHolder];
     }
     
     /// 
@@ -843,7 +842,7 @@ static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
             
             /// Get newUIString
             NSAccessibilityAttributeName changedAttribute = [UIStringAnnotationHelper getAttributeForAccessibilityNotification:notification] ?: stringf(@"(unhandled: %@)", notification);
-            NSString *newUIString = [UIStringAnnotationHelper getUserFacingStringsFromAccessibilityElement:object]; //changedAttribute ? [UIStringAnnotationHelper getUserFacingStringsFromAccessibilityElement:object][changedAttribute] : NSNull.null;
+            NSString *newUIString = [UIStringAnnotationHelper getUserFacingStringsFromAccessibilityElement:object]; //changedAttribute ? [AnnotationUtility getUserFacingStringsFromAccessibilityElement:object][changedAttribute] : NSNull.null;
             
             /// Log
             NSString *logMessage = stringf(@"UIStringChangeInterceptor: %@ changedAttribute: %@ toNewValue: %@", object, changedAttribute, newUIString);

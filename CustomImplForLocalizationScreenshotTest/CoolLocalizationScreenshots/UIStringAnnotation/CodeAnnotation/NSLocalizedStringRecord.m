@@ -14,7 +14,6 @@
 ///     But I couldn't get any info by calling it. 
 
 #import "NSLocalizedStringRecord.h"
-#import "Swizzle.h"
 #import "objc/runtime.h"
 #import "Utility.h"
 

@@ -7,7 +7,6 @@
 
 #import "SystemRenameTracker.h"
 #import "AppKit/AppKit.h"
-#import "Swizzle.h"
 #import "Utility.h"
 #import "objc/runtime.h"
 
@@ -15,6 +14,7 @@
 /// We record whether the system is currently inside a routine that might set a uiString on a uiElement.
 /// The UIStringChangeDetector can then know if it's dealing with a uiString change caused by the system or by the current program by calling `MFSystemIsChangingUIStrings()`.
 ///
+/// Update: This is obsolete now I think, because we can now analyze the address of the uiString-setter-methods' caller to see if the setter was called by a system framework or by the application code.
 
 #pragma mark - RenameDepth definitions
 
