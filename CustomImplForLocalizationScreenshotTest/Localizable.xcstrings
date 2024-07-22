@@ -61,11 +61,79 @@
     "test-string.CB" : {
       "comment" : "Test string with id CB"
     },
+    "test-string.CC" : {
+      "comment" : "First draft: [Markdown](https://google.com/) **test string** with _id_ CC",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First draft: [Markdown](https://google.com/) **test string** with _id_ CC"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First draft: [Markdown](https://google.com/) **test string** with _id_ CC"
+          }
+        }
+      }
+    },
     "test-string.DA" : {
       "comment" : "Test string with id DA"
     },
     "test-string.DB" : {
       "comment" : "Test string with id DB"
+    },
+    "test-string.DC" : {
+      "comment" : "First draft: Format string test. 1: (%@), 2: <%ld>. End of format|||",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Format strüng test. 1: (%@), 2: <%ld>. End of format|||"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Format string test. 1: (%@), 2: <%ld>. End of format|||"
+          }
+        }
+      }
+    },
+    "test-string.DC.appendage" : {
+      "comment" : "First draft: <First format appendage>",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "<First förmat appendage>"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First draft: <First format appendage>"
+          }
+        }
+      }
+    },
+    "test-string.DC.arg" : {
+      "comment" : "First draft: First format arg",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First förmat arg"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First draft: First format arg"
+          }
+        }
+      }
     },
     "test-string.EA" : {
       "comment" : "Test string with id EA"

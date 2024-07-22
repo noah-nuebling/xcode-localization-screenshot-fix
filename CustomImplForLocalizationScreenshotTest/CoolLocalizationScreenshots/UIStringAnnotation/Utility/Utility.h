@@ -33,6 +33,9 @@ void BREAKPOINT(id context);
 void listMethods(id obj);
 void printClassHierarchy(NSObject *obj);
 
+BOOL stringHasOnlyLocaleSharedContent(NSString *string);
+NSString *uiStringByRemovingLocalizedString(NSString *uiString, NSString *localizedString);
+NSString *removeMarkdownFormatting(NSString* input);
 NSString *pureString(id value);
 + (NSObject *)getRepresentingToolTipHolderForObject:(NSObject *)object;
 + (NSObject <NSAccessibility> * _Nullable)getRepresentingAccessibilityElementForObject:(id)object;

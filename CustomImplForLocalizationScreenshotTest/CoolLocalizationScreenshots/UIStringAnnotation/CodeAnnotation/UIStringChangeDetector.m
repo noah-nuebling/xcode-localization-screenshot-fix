@@ -23,8 +23,30 @@
 
 @implementation UIStringChangeInterceptor
 
+///
+/// RunLoop observation
+///
+
+static NSMutableSet<NSDictionary *> *_recordedStringsUsedThisRunLoop;
+void markLocalizedStringRecordEntryAsUsedForThisRunLoop(NSDictionary *entry) {
+    if (_recordedStringsUsedThisRunLoop == nil) {
+        _recordedStringsUsedThisRunLoop = [NSMutableSet set];
+    }
+    [_recordedStringsUsedThisRunLoop addObject:entry];
+}
+
 + (void)load {
+    
+    /// Clean up at the end of each runLoop
     [NSRunLoop.mainRunLoop observeLoopActivities:kCFRunLoopBeforeTimers withCallback:^(CFRunLoopObserverRef  _Nonnull observer, CFRunLoopActivity activity) { /// kCFRunLoopBeforeTimers is the earliest time in the runLoop iteration we can observe.
+        
+        /// Remove the used strings from the record
+        [NSLocalizedStringRecord.queue._rawStorage removeObjectsInArray:_recordedStringsUsedThisRunLoop.allObjects];
+        
+        /// Clear state
+        [_recordedStringsUsedThisRunLoop removeAllObjects];
+        
+        /// Validate
         NSArray *unhandledStrings = NSLocalizedStringRecord.queue._rawStorage;
         if (unhandledStrings.count > 0) {
             NSLog(@"    UIStringChangeDetector: Error: Unhandled localizedStrings in the NSLocalizedStringRecord after last runLoop iteration: %@\nThis might be due to a bug in the NSLocalizedStringRecord or UIStringChangeDetector code or because the UIStringChangeDetector is not yet capable of detecting you setting the string on a UI Element in the way that you did.\nThe error could also be because the strings are defined by the system, instead of your app and the the code failed to recognize this and properly ignore the system strings.\n\nTip: If you did retrieve these localized strings in your code (probably using NSLocalizedString()) but you just didn't set them to a UI Element immediately, and instead you want to store the strings and set them to a UI Element later, then you can solve this error by telling the system about this through calling <...>.", unhandledStrings);
@@ -32,6 +54,22 @@
         }
     }];
 }
+
+///
+/// Extra interface
+///     for special cases
+///
+
+static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
++ (void)nextUIStringUpdateIsComposedOfNSLocalizedStrings:(NSArray <NSString *>*)rawLocalizedStrings {
+    
+    assert(NSThread.currentThread.isMainThread); /// Only call this from the main thread to prevent race conditions
+    
+    assert(_localizedStringsComposingNextUpdate == nil);
+    _localizedStringsComposingNextUpdate = rawLocalizedStrings;
+}
+
+/// Main interface
 
 + (void)handleSetString:(id)updatedUIStringRaw
                onObject:(id)object
@@ -121,82 +159,160 @@
     ///
     /// Main work
     ///
-    
-    /// Get NSLocalizedStrings return-values that make up the updatedUIString
-    
-    NSArray *localizedStringsComposingChangedUIString = nil;
-    
-    if (_localizedStringsComposingNextUpdate != nil) {
-        
-        /// Explanation:
-        ///     This case is intended to occur when the application code has called NSLocalizedString() several times, and then composed the resulting raw localizedStrings together
-        ///     before setting them as a UIString to the UIElement `object`. In this case, we can't determine with high confidence which entries in the
-        ///     NSLocalizedStringRecord belong to `object`, since no UIStrings on `object` exactly match any of the strings in the NSLocalizedStringRecord.
-        ///     So for this case, we require the application code to call `nextUIStringUpdateIsComposedOfNSLocalizedStrings:`
-        ///     to let us know which raw localized strings compose the new UIString that was set on `object`.
-        
-        assert(![_localizedStringsComposingNextUpdate containsObject:newlySetStringPure]);
-        localizedStringsComposingChangedUIString = _localizedStringsComposingNextUpdate;
-        
-    } else {
-        
-        /// Explanation:
-        ///     In the default case, we assume that the UIString that changed on the element is exactly equal to one of the entries in the NSLocalizedStringRecord.
-        ///     If that's the case, we have high confidence that exactly this entry in the NSLocalizedStringRecord belongs to `object`, and we'll only extract that one.
-        ///     If we can't find the string in the LocalizedStringRecord, we'll throw an error/crash.
-        
-        localizedStringsComposingChangedUIString = @[newlySetStringPure];
-    }
+
     
     /// Update global state
     _localizedStringsComposingNextUpdate = nil;
     
-    /// Validate detected changes
-    assert(localizedStringsComposingChangedUIString != nil && localizedStringsComposingChangedUIString.count > 0);
+    /// 
+    /// Match the detected change with entries in in localizedStringRecord
+    ///
     
-    /// Validate NSLocalizedStringRecord
-    ///     Note: We're already validating the same thing down below
-//    assert(NSLocalizedStringRecord.queue != nil && NSLocalizedStringRecord.queue.count > 0);
+    /// Declare loop results.
+    NSMutableArray<NSDictionary *> *recordEntriesMatchingNewlySetString = [NSMutableArray array];
+    BOOL newlySetStringWasCompletelyMatchedWithRecordedStrings = NO;
     
-    /// Match the detected change with an entry in in localizedStringRecord
-    
-    BOOL everyDetectedChangeWasRecorded = YES;
-    NSMutableArray<NSDictionary *> *stringRecordsMatchingDetectedChange = [NSMutableArray array];
-    
-    for (NSString *localizedStringFromDetectedChange in localizedStringsComposingChangedUIString) {
+    if (_localizedStringsComposingNextUpdate != nil) {
         
-        BOOL localizedStringFromDetectedChangeWasRecorded = NO;
+        /// Shortcut the loop
+    
+        /// Explanation:
+        ///     The application code can call `nextUIStringUpdateIsComposedOfNSLocalizedStrings:`
+        ///     to let us know which raw localized strings compose the new uiString that was set on `object`,
+        ///     In case our automatic mechanism (which is implemented in the loop below) fails.
+
+        assert(![_localizedStringsComposingNextUpdate containsObject:newlySetStringPure]);
         
-        for (NSDictionary *localizedStringRecord in NSLocalizedStringRecord.queue.peekAll) {
+        for (NSDictionary *entry in NSLocalizedStringRecord.queue.peekAll) {
             
-            unpackLocalizedStringRecord(localizedStringRecord);
-            BOOL isAMatch = [pureString(m_localizedStringFromRecord) isEqual:localizedStringFromDetectedChange] && m_localizedStringFromRecord.length > 0;
-            if (isAMatch) {
-                [stringRecordsMatchingDetectedChange addObject:localizedStringRecord];
-                localizedStringFromDetectedChangeWasRecorded = YES;
-                break;
+            unpackLocalizedStringRecord(entry);
+            NSString *recordedString = pureString(m_localizedStringFromRecord);
+            
+            for (id s in _localizedStringsComposingNextUpdate) {
+                NSString *sPure = pureString(s);
+                if ([sPure isEqual:recordedString]) {
+                    [recordEntriesMatchingNewlySetString addObject:entry];
+                }
             }
         }
         
-        if (!localizedStringFromDetectedChangeWasRecorded) {
-            everyDetectedChangeWasRecorded = NO;
-//            assert(false); /// No match found NOTE: We're already validating the same thing down below
+        if (recordEntriesMatchingNewlySetString.count == 0) {
+            assert(false);
         }
-    }
-         
-    /// Validate
-    if (!everyDetectedChangeWasRecorded || stringRecordsMatchingDetectedChange.count != localizedStringsComposingChangedUIString.count) {
-        NSLog(@"    UIStringChangeDetector: Error: Couldn't match match the detected uiStringChange with any entries from the NSLocalizedStringRecord.Remember to call `nextUIStringUpdateIsComposedOfRawLocalizedStrings:` before setting a UIString to an object - if that UIString has been altered after being retrieved from NSLocalizedString()\n\n    Detected change: %@\n    Current record: %@", descriptionOfUIStringChange, NSLocalizedStringRecord.queue._rawStorage);
-        assert(false);
+        
+        newlySetStringWasCompletelyMatchedWithRecordedStrings = YES;
+        
+    } else {
+        
+        /// Main loop
+        
+        /// Explanation:
+        /// In the default case, we try to automatically find entries from the localizedStringRecord that make up th newlySetUIString
+        
+        /// Declare loop state
+        NSString *uiStringRemainder = [newlySetStringPure copy];
+        NSInteger localizedStringRecordIndex = 0;
+        
+        while (true) {
+            
+            if (NSLocalizedStringRecord.queue.peekAll.count == 0) {
+                /// Update result
+                newlySetStringWasCompletelyMatchedWithRecordedStrings = NO;
+                /// Break
+                break;
+            }
+            
+            /// Unpack localizedStringRecord entry
+            NSDictionary *localizedStringRecordEntry = NSLocalizedStringRecord.queue.peekAll[localizedStringRecordIndex];
+            unpackLocalizedStringRecord(localizedStringRecordEntry);
+            if (m_localizedStringFromRecord.length == 0) {
+                assert(false); /// Not sure how to handle this.
+                continue;
+            }
+            
+            /// Remove attributes
+            NSString *recordedString = pureString(m_localizedStringFromRecord);
+            
+            /// Declare match state
+            BOOL isExactMatch = NO;
+            BOOL isPartialMatch = NO;
+            NSString *newUIStringRemainder = nil;
+            
+            /// Check match
+            
+            /// Check 1: Exact equivalence
+            isExactMatch = [recordedString isEqual:uiStringRemainder];
+            
+            /// Check 2: Exact equivalence after removing markdown formatting
+            if (!isExactMatch) {
+                recordedString = removeMarkdownFormatting(recordedString);
+                isExactMatch = [recordedString isEqual:uiStringRemainder];
+            }
+            
+            /// Check 3: Use regex for partial matching
+            if (!isExactMatch) {
+                newUIStringRemainder = uiStringByRemovingLocalizedString(uiStringRemainder, recordedString);
+                if (![newUIStringRemainder isEqual:uiStringRemainder]) {
+                    isPartialMatch = YES; /// Remainder has changed, meaning that the recordedString was found inside the remainder
+                }
+            }
+            
+            /// Update loop state
+            
+            if (isExactMatch || isPartialMatch) {
+                
+                /// Update result
+                ///     - Store matched recordedString
+                [recordEntriesMatchingNewlySetString addObject:localizedStringRecordEntry];
+                
+                if (isExactMatch) {
+                    /// Update result
+                    newlySetStringWasCompletelyMatchedWithRecordedStrings = YES;
+                    /// Break
+                    break;
+                }
+                
+                if (isPartialMatch) {
+                    /// Update remainder
+                    uiStringRemainder = newUIStringRemainder;
+                    /// Restart iteration through localizedString record
+                    localizedStringRecordIndex = 0;
+                }
+                
+            } else { /// No match
+                
+                if (localizedStringRecordIndex < NSLocalizedStringRecord.queue._rawStorage.count - 1) {
+                    /// Move to next recordedString
+                    localizedStringRecordIndex += 1;
+                } else {
+                    /// Update result
+                    newlySetStringWasCompletelyMatchedWithRecordedStrings = NO;
+                    /// Break
+                    break;
+                }
+            }
+        }
+        
+        ///  Modify loop-result
+        ///     Check if there's any localizable content left in the uiString that we haven't matched to a recordedString
+        if (stringHasOnlyLocaleSharedContent(uiStringRemainder)) {
+            /// Update result
+            newlySetStringWasCompletelyMatchedWithRecordedStrings = YES; /// Note that recordEntriesMatchingNewlySetString.count could still be 0 if the uiString was devoid of localeDistinct content in the first place. If that happens we crash in the validation below.
+        }
+        
+        /// Validate loop result
+        if (!newlySetStringWasCompletelyMatchedWithRecordedStrings || recordEntriesMatchingNewlySetString.count == 0) {
+            NSLog(@"    UIStringChangeDetector: Error: Couldn't fully match the detected uiStringChange with entries from the NSLocalizedStringRecord. Remember to call `nextUIStringUpdateIsComposedOfRawLocalizedStrings:` before <...>\n\n    Detected change: %@\n    Current record: %@", descriptionOfUIStringChange, NSLocalizedStringRecord.queue._rawStorage);
+            assert(false);
+        }
     }
     
     /// DEBUG
     NSLog(@"    UIStringChangeDetector: Debug: LocalizedStringRecord before removing matched string (%@): %@", newlySetStringPure, NSLocalizedStringRecord.queue._rawStorage);
     
-    /// Remove the matching records from the record
-    ///     (the record of records? weird naming)
-    ///     (We totally misuse the queue here. Should probably not use queue at all.)
-    [NSLocalizedStringRecord.queue._rawStorage removeObjectsInArray:stringRecordsMatchingDetectedChange];
+    ///
+    /// Attach ax annotation
+    ///
     
     /// Find accessibilityElement for `object`
     id<NSAccessibility> axObject = [Utility getRepresentingAccessibilityElementForObject:object];
@@ -209,7 +325,7 @@
     }
     
     /// Attach annotations to the object
-    for (NSDictionary *record in stringRecordsMatchingDetectedChange) {
+    for (NSDictionary *record in recordEntriesMatchingNewlySetString) {
         
         unpackLocalizedStringRecord(record);
         
@@ -219,20 +335,14 @@
         NSAccessibilityElement *annotation = [UIStringAnnotationHelper createAnnotationElementWithLocalizationKey:m_stringKeyFromRecord translatedString:localizedStringFromRecordPure developmentString:m_developmentStringFromRecord translatedStringNibKey:nil mergedUIString:mergedUIString];
         [UIStringAnnotationHelper addAnnotations:@[annotation] toAccessibilityElement:axObject withAdditionalUIStringHolder:additionalUIStringHolder];
     }
-}
-
-///
-/// Extra interface
-///     for special cases
-///
-
-static NSArray <NSString *>*_localizedStringsComposingNextUpdate = nil;
-+ (void)nextUIStringUpdateIsComposedOfNSLocalizedStrings:(NSArray <NSString *>*)rawLocalizedStrings {
     
-    assert(NSThread.currentThread.isMainThread); /// Only call this from the main thread to prevent race conditions
+    /// 
+    /// Mark the matched recorded strings as used
+    ///
     
-    assert(_localizedStringsComposingNextUpdate == nil);
-    _localizedStringsComposingNextUpdate = rawLocalizedStrings;
+    for (NSDictionary *entry in recordEntriesMatchingNewlySetString) {
+        markLocalizedStringRecordEntryAsUsedForThisRunLoop(entry);
+    }
 }
 
 @end

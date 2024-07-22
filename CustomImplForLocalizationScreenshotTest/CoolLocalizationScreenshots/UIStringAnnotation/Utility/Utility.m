@@ -394,6 +394,199 @@ void BREAKPOINT(id context) { /// Be able to break inside c macros
 
 }
 
+BOOL stringHasOnlyLocaleSharedContent(NSString *string) {
+    
+    /// Returns YES if the string only contains characters that are likely to be shared between different locales.
+    
+    /// Get char set
+    ///     Note: Only considering letters non-locale-shared. All punctuation, digits etc. will be considered locale-shared.
+    NSCharacterSet *localeDistinctCharacters = [NSCharacterSet letterCharacterSet];
+    
+    /// Search chars
+    NSStringCompareOptions compareOptions = 0;
+    NSRange localeDistinctCharacterRange = [string rangeOfCharacterFromSet:localeDistinctCharacters options:compareOptions range:NSMakeRange(0, string.length)];
+    BOOL hasOnlyLocaleSharedCharacters = localeDistinctCharacterRange.location == NSNotFound;
+    
+    /// Return
+    return hasOnlyLocaleSharedCharacters;
+}
+
+NSRegularExpression *formatSpecifierRegex(void) {
+    
+    /// Regex pattern that matches format specifiers such as %d in format strings.
+    /// Notes:
+    /// - \ and % are doubled to escape them.
+    ///     Update: Removed doubling on % as I don't think that's necessary.
+    /// - Matches escaped percent `%%` in a string inside the `escaped_percent` group.
+    ///     The content of this group is **not** part of a format specifier, and needs to be filtered out by the client.
+    /// - Based on this regex101 pattern: https://regex101.com/r/lu3nWp/
+    ///     Not sure this was the best way to translate the pattern. We had to remove the `(?<groupnames>)` and add `(?#comments)` instead.
+    
+    NSString *pattern =
+    @"%"
+    "("
+        "(?:((?#<argument_position>)[1-9]\\d*)\\$)?"
+        "("
+            /// Integer specifiers (d, i, o, u, x, X)
+            "((?#<flags>)[-'+ #0]*)?"
+            "((?#<width>)\\*|\\d*)?"
+            "(?:\\.((?#<precision>)\\*|\\d+))?"
+            "((?#<length>)(?:hh|h|l|ll|j|z|t|q))?"
+            "((?#<type>)[diouxX])"
+            "|"  /// Floating point specifiers (f, F, e, E, g, G, a, A)
+            "((?#<flags>)[-'+ #0]*)?"
+            "((?#<width>)\\*|\\d*)?"
+            "(?:\\.((?#<precision>)\\*|\\d+))?"
+            "((?#<length>)(?:l|L|q))?"
+            "((?#<type>)[fFeEgGaA])"
+            "|"  /// String specifiers (s, ls, S)
+            "((?#<flags>)[-]?)?"
+            "((?#<width>)\\*|\\d*)?"
+            "(?:\\.((?#<precision>)\\*|\\d+))?"
+            "((?#<type>)(?:s|ls|S))"
+            "|"  /// Character specifiers (c, lc, C)
+            "((?#<flags>)[-]?)?"
+            "((?#<width>)\\*|\\d*)?"
+            "((?#<type>)(?:c|lc|C))"
+            "|"  /// Pointer specifier
+            "((?#<flags>)[-]?)?"
+            "((?#<width>)\\*|\\d*)?"
+            "((?#<type>)[p])"
+            "|"  /// objc object specifier
+            "((?#<flags>)[-]?)?"
+            "((?#<width>)\\*|\\d*)?"
+            "((?#<type>)[@])"
+            "|"  /// Written-byte counter specifier
+            "((?#<type>)[n])"
+        ")"
+    ")"
+    "|"  /// Percent sign (%%)
+    "((?#<escaped_percent>)%%)";
+
+    
+    NSRegularExpressionOptions options = 0;
+    NSError *error;
+    NSRegularExpression *regex = [[NSRegularExpression alloc] initWithPattern:pattern options:options error:&error];
+    if (error != nil) {
+        NSLog(@"Failed to create formatSpeciferRegex. Error: %@", error);
+        assert(false);
+    }
+    
+    return regex;
+}
+
+NSRegularExpression *localizedStringRecognizer(NSString *localizedString) {
+    
+    /// Turn the localizedString into a matching pattern
+    ///     By replacing format specifiers (e.g. `%d`) inside the localizedString with insertion point `.*?.
+    ///     This matching mattern should match any ui strings that are composed of the localized string.
+    NSRegularExpression *specifierRegex = formatSpecifierRegex();
+    NSString *localizedStringPattern = [NSRegularExpression escapedPatternForString:localizedString];
+    NSString *insertionPoint = [NSRegularExpression escapedTemplateForString:@"(.*?)"]; /// Escaping this doesn't seem to do anything.
+    NSMatchingOptions matchingOptions = NSMatchingWithoutAnchoringBounds; /// Make $ and ^ work as normal chars.
+    localizedStringPattern = [specifierRegex stringByReplacingMatchesInString:localizedStringPattern options:matchingOptions range:NSMakeRange(0, localizedString.length) withTemplate:insertionPoint];
+    
+    /// Make it so the pattern must match the entire string
+    ///     and capture everything except the literal chars from the localizedString inside the insertionPoint groups.
+    localizedStringPattern = [NSString stringWithFormat:@"^%@%@%@$", insertionPoint, localizedStringPattern, insertionPoint];
+    
+    /// TEST
+    NSLog(@"%@", localizedStringPattern);
+    
+    
+    /// Create regex
+    ///     From new matching pattern
+    NSRegularExpressionOptions regexOptions = NSRegularExpressionDotMatchesLineSeparators   /** Strings in insertion points might have linebreaks - still match those */
+                                                | NSRegularExpressionCaseInsensitive        /** The localizedString might have been case-transformed - still match it */
+                                                | NSRegularExpressionUseUnixLineSeparators; /** Turn off line separators from foreign platforms, since we're working with macOS localized strings. Not sure if necessary */
+    NSError *error;
+    NSRegularExpression *resultRegex = [NSRegularExpression regularExpressionWithPattern:localizedStringPattern options:regexOptions error:&error];
+    if (error != nil) {
+        NSLog(@"Failed to create recognizer regex for localized string %@. Error: %@", localizedString, error);
+        assert(false);
+    }
+    
+    /// Validate
+    ///     Check that the regex needs at least some literal content to match. Not sure what I'm doing.
+    assert([resultRegex firstMatchInString:@"" options:0 range:NSMakeRange(0, @"".length)] == nil);
+    assert([resultRegex firstMatchInString:@" " options:0 range:NSMakeRange(0, @" ".length)] == nil);
+    
+    /// Return
+    return resultRegex;
+}
+
+NSString *uiStringByRemovingLocalizedString(NSString *uiString, NSString *localizedString) {
+    
+    /// Get regex
+    NSRegularExpression *localizedStringRegex = localizedStringRecognizer(localizedString);
+    
+    /// Apply regex
+    
+    NSTextCheckingResult *regexMatch;
+    
+    NSMatchingOptions matchingOptions = 0;
+    NSArray<NSTextCheckingResult *> *regexMatches = [localizedStringRegex matchesInString:uiString options:matchingOptions range:NSMakeRange(0, uiString.length)];
+
+    if (regexMatches.count == 1) {
+        
+        /// Validate
+        ///     Make sure the match spans the entire string
+        assert(NSEqualRanges([regexMatches[0] range], NSMakeRange(0, uiString.length)));
+        /// Unwrap
+        regexMatch = regexMatches[0];
+        
+    } else if (regexMatches.count == 0) {
+        /// No matches - localizedString doesn't appear in uiString
+        return uiString;
+    } else {
+        /// Validate
+        ///     Make sure there's exactly one or zero matches.
+        ///     The pattern is designed to always match the whole string so somethings really wrong if this happens.
+        NSLog(@"Error: There was more than one regex for localizedString %@ in uiString %@ (regex: %@)", localizedString, uiString, localizedStringRegex);
+        assert(false);
+        return uiString;
+    }
+    
+    /// The recorded string matched!
+    
+    /// Remove literally matched parts of the recorded localizedString from the uiString.
+    /// Explanation:
+    ///     When creating the `localizedStringRecognizer(localizedString)` regex,  we take the `localizedString` and put regex insertion points `.*` before, after and into the format specifiers (`%d, %@`) of the `localizedString`
+    ///     Then, when we apply the `localizedStringRecognizer` regex to the `uiString` and it matches the `uiString`, then the insertion points `.*` match everything inside the `uiString` that comes before, or after the `localizedString`, as well as the parts of the `uiString` that were inserted into the the `localizedString` via format specifiers (`%d, %@`). So in effect, the insertion points capture every part of the `uiString` that isn't the content of the `localizedString`.
+    ///     We surround the insertion points `.*` with parentheses `(.*)` which creates regex matching groups.
+    ///     What we do here, is iterate through all the match groups and concatenating their contents - this has the effect of taking `uiString` and removing all text from it that came from `localizedString`.
+    NSMutableString *result = [NSMutableString string];
+    for (int i = 1; i < regexMatch.numberOfRanges; i++) { /// Start iterating at 1 since the 0 group is the whole matched string, not the groups inside of it.
+        NSRange matchingGroupRange = [regexMatch rangeAtIndex:i];
+        NSString *insertionPointMatch = [uiString substringWithRange:matchingGroupRange];
+        [result appendString:insertionPointMatch];
+    }
+    return result;
+}
+
+NSString *removeMarkdownFormatting(NSString* input) {
+    
+    /// Convert Markdown to NSAttributedString
+    NSAttributedStringMarkdownParsingOptions *options = [[NSAttributedStringMarkdownParsingOptions alloc] init];
+    options.allowsExtendedAttributes = YES; /// Not sure whether to use this.
+    options.interpretedSyntax = NSAttributedStringMarkdownInterpretedSyntaxFull;
+    options.failurePolicy = NSAttributedStringMarkdownParsingFailureReturnError;
+    options.languageCode = nil;
+
+    NSError *error;
+    NSAttributedString *attributedString = [[NSAttributedString alloc] initWithMarkdownString:input options:options baseURL:nil error:&error];
+    
+    if (error) {
+        NSLog(@"Error parsing markdown: %@", error.localizedDescription);
+        return input;
+    }
+    
+    /// Extract plain text
+    NSString *plainString = [attributedString string];
+    
+    return plainString;
+}
+
 NSString *pureString(id value) {
     
     /// Pass in an NSString or an NSAttributedString and get a simple NSString

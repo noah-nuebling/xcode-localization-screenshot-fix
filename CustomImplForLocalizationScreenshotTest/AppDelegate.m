@@ -48,14 +48,19 @@
 @property (weak) IBOutlet NSTouchBarItem *tbSegmentedControlItem;
 @property (weak) IBOutlet NSSegmentedControl *tbSegmentedControl;
 
-/// TestsWindow outlets
-
-@property (strong) IBOutlet NSWindow *testsWindow;
-
 /// MainMenu outlets
 
 @property (weak) IBOutlet NSMenu *aboutMenuItem;
 @property (weak) IBOutlet NSMenuItem *preferencesMenuItem;
+
+/// Extended CodeAnnotation Tests window
+@property (weak) IBOutlet NSWindow *extendedTestsWindow;
+@property (weak) IBOutlet NSButton *extendedButton;
+@property (weak) IBOutlet NSTextField *extendedLabel;
+@property (weak) IBOutlet NSTextField *extendedTextField;
+@property (weak) IBOutlet NSPopUpButton *extendedPopUpButton;
+@property (weak) IBOutlet NSMenuItem *extendedMenuItemOne;
+@property (weak) IBOutlet NSMenuItem *extendedMenuItemTwo;
 
 @end
 
@@ -177,6 +182,34 @@
     
     TEST_UISTRING(NSLocalizedString(@"test-string.AC", @"Test string with id AC"), _codeTestsPanel.title); /// Setting these sends a bazillion duplicated NSAccessibilityNotifications, so we're doing this last
     TEST_UISTRING(NSLocalizedString(@"test-string.BC", @"Test string with id BC"), _codeTestsPanel.subtitle);
+    
+    ///
+    /// Extended tests
+    ///
+    
+    /// Markdown test
+    ///     Remember to actually define a translation with markdown formatting in .xcstrings
+    ///     (for the language that you're testing)
+    
+    NSAttributedStringMarkdownParsingOptions *parsingOptions = [[NSAttributedStringMarkdownParsingOptions alloc] init];
+    parsingOptions.interpretedSyntax = NSAttributedStringMarkdownInterpretedSyntaxFull;
+    
+    NSString *stringRaw = NSLocalizedString(@"test-string.CC", @"First draft: [Markdown](https://google.com/) **test string** with _id_ CC");
+    NSAttributedString *string = [[NSAttributedString alloc] initWithMarkdownString:stringRaw options:parsingOptions baseURL:nil error:nil];
+    [_extendedButton setAttributedTitle:string];
+    
+    /// String combination test
+    NSString *stringFormat = NSLocalizedString(@"test-string.DC", @"First draft: Format string test. 1: (%@), 2: <%ld>. End of format|||");
+    NSString *stringArg = NSLocalizedString(@"test-string.DC.arg", @"First draft: First format arg");
+    NSString *stringAppendage = NSLocalizedString(@"test-string.DC.appendage", @"First draft: <First format appendage>");
+    
+    stringRaw = [NSString stringWithFormat:stringFormat, stringArg, 77];
+    stringRaw = [stringRaw stringByAppendingString:stringAppendage];
+    
+    string = [[NSAttributedString alloc] initWithMarkdownString:stringRaw options:parsingOptions baseURL:nil error:nil];
+    [_extendedLabel setAttributedStringValue:string];
+    
+    /// localizedString storage test
 }
 
 

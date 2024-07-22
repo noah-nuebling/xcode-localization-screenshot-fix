@@ -40,13 +40,19 @@
                 <outlet property="codeTextField" destination="SiQ-9Z-oXM" id="i1v-oU-MuO"/>
                 <outlet property="codeTextScrollView" destination="Hsa-1a-MWA" id="uuf-yG-FWg"/>
                 <outlet property="codeTextView" destination="suu-N2-pHo" id="J8a-dq-ysq"/>
+                <outlet property="extendedButton" destination="arf-6z-Yl7" id="WIo-2K-S4G"/>
+                <outlet property="extendedLabel" destination="PN5-nY-niL" id="0aX-UL-9bN"/>
+                <outlet property="extendedMenuItemOne" destination="t2O-nD-Z5u" id="SEs-Tg-bDD"/>
+                <outlet property="extendedMenuItemTwo" destination="FlM-XM-7gc" id="ksH-He-GWY"/>
+                <outlet property="extendedPopUpButton" destination="Uqi-AV-cy1" id="p8Y-tJ-GrD"/>
+                <outlet property="extendedTestsWindow" destination="QvC-M9-y7g" id="dwN-dd-bmX"/>
+                <outlet property="extendedTextField" destination="2xD-4W-HNU" id="8cm-TD-4sT"/>
                 <outlet property="preferencesMenuItem" destination="BOF-NM-1cW" id="BSv-qD-iGb"/>
                 <outlet property="tbButton" destination="SIb-Dt-tpz" id="ztj-Ig-0gA"/>
                 <outlet property="tbLabel" destination="824-ec-2jH" id="5KC-uq-B3U"/>
                 <outlet property="tbSegmentedControl" destination="7OE-uN-6EQ" id="Cmh-r2-itv"/>
                 <outlet property="tbSegmentedControlItem" destination="Aco-T9-k3Z" id="ENq-NE-VvV"/>
                 <outlet property="tbSlider" destination="RMa-wx-ilR" id="bbA-UT-qSy"/>
-                <outlet property="testsWindow" destination="QvC-M9-y7g" id="NDK-Bf-BWs"/>
             </connections>
         </customObject>
         <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
@@ -1201,7 +1207,7 @@
             </toolbar>
             <point key="canvasLocation" x="1067" y="460.5"/>
         </window>
-        <window title="Title of IB Tests Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="QvC-M9-y7g">
+        <window title="Title of IB Tests Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="QvC-M9-y7g" userLabel="Extended CodeAnnotation Tests Window">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="335" y="390" width="480" height="360"/>
@@ -1219,14 +1225,6 @@
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="arf-6z-Yl7">
-                        <rect key="frame" x="136" y="295" width="210" height="32"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <buttonCell key="cell" type="push" title="Button from Interface Builder" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Fua-BR-Frr">
-                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                            <font key="font" metaFont="system"/>
-                        </buttonCell>
-                    </button>
                     <textField focusRingType="none" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2xD-4W-HNU">
                         <rect key="frame" x="21" y="211" width="440" height="21"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1250,6 +1248,14 @@
                             </menu>
                         </popUpButtonCell>
                     </popUpButton>
+                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="arf-6z-Yl7">
+                        <rect key="frame" x="25" y="296" width="443" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <buttonCell key="cell" type="push" title="Button from Interface Builder" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Fua-BR-Frr">
+                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                    </button>
                 </subviews>
             </view>
             <connections>

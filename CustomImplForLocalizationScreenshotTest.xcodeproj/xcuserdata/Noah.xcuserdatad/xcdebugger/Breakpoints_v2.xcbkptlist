@@ -207,36 +207,6 @@
             endingLineNumber = "210"
             landmarkName = "+_addAnnotations:toAccessibilityElement:forceValidation:additionalUIStringHolder:"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "BC885BAB-78CD-41D6-AEE4-95881E5CBBAB - 2dc1ac3c6355f88c"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "+[UIStringAnnotationHelper _addAnnotations:toAccessibilityElement:forceValidation:additionalUIStringHolder:]"
-                  moduleName = "CustomImplForLocalizationScreenshotTest"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Noah/Desktop/mmf-stuff/xcode-localization-screenshot-fix/CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/UIStringAnnotationHelper.m"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "211"
-                  endingLineNumber = "211">
-               </Location>
-               <Location
-                  uuid = "BC885BAB-78CD-41D6-AEE4-95881E5CBBAB - 2dc1ac3c6355f8ad"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "+[UIStringAnnotationHelper _addAnnotations:toAccessibilityElement:forceValidation:additionalUIStringHolder:]"
-                  moduleName = "CustomImplForLocalizationScreenshotTest"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/Noah/Desktop/mmf-stuff/xcode-localization-screenshot-fix/CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/UIStringAnnotationHelper.m"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "210"
-                  endingLineNumber = "210">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -249,8 +219,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/CodeAnnotation/UIStringChangeDetector.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "115"
-            endingLineNumber = "115"
+            startingLineNumber = "153"
+            endingLineNumber = "153"
             landmarkName = "+handleSetString:onObject:selector:recursionDepth:returnAddress:extraInfo:"
             landmarkType = "7">
          </BreakpointContent>
@@ -265,8 +235,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/CodeAnnotation/UIStringChangeDetector.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "117"
-            endingLineNumber = "117"
+            startingLineNumber = "155"
+            endingLineNumber = "155"
             landmarkName = "+handleSetString:onObject:selector:recursionDepth:returnAddress:extraInfo:"
             landmarkType = "7">
          </BreakpointContent>
@@ -281,8 +251,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/CodeAnnotation/UIStringChangeDetector.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "54"
-            endingLineNumber = "54"
+            startingLineNumber = "92"
+            endingLineNumber = "92"
             landmarkName = "+handleSetString:onObject:selector:recursionDepth:returnAddress:extraInfo:"
             landmarkType = "7">
          </BreakpointContent>
@@ -297,8 +267,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/CodeAnnotation/UIStringChangeDetector.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "58"
-            endingLineNumber = "58"
+            startingLineNumber = "96"
+            endingLineNumber = "96"
             landmarkName = "+handleSetString:onObject:selector:recursionDepth:returnAddress:extraInfo:"
             landmarkType = "7">
          </BreakpointContent>
@@ -313,8 +283,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Utility.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "590"
-            endingLineNumber = "590"
+            startingLineNumber = "783"
+            endingLineNumber = "783"
             landmarkName = "+getRepresentingAccessibilityElementForObject:"
             landmarkType = "7">
          </BreakpointContent>
@@ -329,8 +299,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Utility.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "591"
-            endingLineNumber = "591"
+            startingLineNumber = "784"
+            endingLineNumber = "784"
             landmarkName = "+getRepresentingAccessibilityElementForObject:"
             landmarkType = "7">
          </BreakpointContent>
@@ -345,8 +315,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Utility.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "596"
-            endingLineNumber = "596"
+            startingLineNumber = "789"
+            endingLineNumber = "789"
             landmarkName = "+getRepresentingAccessibilityElementForObject:"
             landmarkType = "7">
          </BreakpointContent>
@@ -361,8 +331,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Utility.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "601"
-            endingLineNumber = "601"
+            startingLineNumber = "794"
+            endingLineNumber = "794"
             landmarkName = "+getRepresentingAccessibilityElementForObject:"
             landmarkType = "7">
          </BreakpointContent>
@@ -377,8 +347,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/Utility/Utility.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "600"
-            endingLineNumber = "600"
+            startingLineNumber = "793"
+            endingLineNumber = "793"
             landmarkName = "+getRepresentingAccessibilityElementForObject:"
             landmarkType = "7">
          </BreakpointContent>
@@ -393,8 +363,8 @@
             filePath = "CustomImplForLocalizationScreenshotTest/CoolLocalizationScreenshots/UIStringAnnotation/CodeAnnotation/UIStringChangeDetector.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "51"
-            endingLineNumber = "51"
+            startingLineNumber = "89"
+            endingLineNumber = "89"
             landmarkName = "+handleSetString:onObject:selector:recursionDepth:returnAddress:extraInfo:"
             landmarkType = "7">
          </BreakpointContent>
