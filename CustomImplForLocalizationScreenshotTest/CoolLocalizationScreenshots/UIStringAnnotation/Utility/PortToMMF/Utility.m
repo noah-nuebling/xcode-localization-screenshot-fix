@@ -22,26 +22,20 @@
 /// (Porting this to MMF)
 
 ///
-/// Discussion:
+/// Swizzling Discussion:
 ///
 /// Why use the `InterceptorFactory` pattern?
 ///     When swizzling, after your swizzled method (we call it the `interceptor`) is called, you normally always want to call the original implementation of the method which was intercepted.
 ///     The usual pattern for intercepting a method with name `-[methodName]`, is to define a method `-[swizzled_methodName]`, and then swap the implementations of the two.
-///     Then to invoke the original implementation inside the interceptor, you'd call `[self swizzled_methodName]` (which invokes the original implementation of `[self methodName]` since the two implementations have been swapped) .
-///     However, this does not invoke the original implementation in all cases.
-///     For example, if your interceptor is invoked from a subclass with a `[super methodName]` call, and the subclass also has an implementation for `[swizzled_methodName]` then `[self swizzled_methodName]` would be invoking the original implementation on the subclass.
+///     However, this pattern won't let you reliably call the original implementation of the interceptor in more complicated cases.
 ///
-///     This stuff lead to really complicated issues in the implementation of `swizzleMethodOnClassAndSubclasses()`. (We deleted the detailed notes on that, I think in commit fc3064033f974c454aebb479f20bb0cc3d0eebb6)
+///     For example, in the implementation of `swizzleMethodOnClassAndSubclasses()` this lead to infinite loops when swizzling a method whose original implementation calls the superclass implementation when we're also replacing that superclass implementation with the same interceptor.  (We deleted the detailed notes on that, I think in commit fc3064033f974c454aebb479f20bb0cc3d0eebb6 of the xcode-localization-screenshot-fix repo)
 ///
-///     I've thought about the problem quite a bit and I think the only way to reliably get a reference to the original implementation, is to store a reference to the original implementation directly inside the interceptor function. You can't dynamically figure it out without extra information.
-///         (I tried a weird appraoch with counting recursions on the interceptor to infer `super` invokations and then find the right implementation  which worked pretty well but was complicated and broke for actually recursive functions. I don't think it's possible to find a robust solution.)
-///     Thatt's where the InterceptorFactory comes in. The swizzling code passes the originalImplementation (and some other metadata) to the InterceptorFactory which then creates an Interceptor function that can reliably call its original implementation. - And then the swizzling code replaces the original implementation with the Interceptor.
+///     The only solution I could think of is to store a reference to the original implementation inside the function definition. That's what the interceptor factory does.
+///     Use the MakeInterceptorFactory() macro to easily create an interceptor factory.
 ///
-///     Such an InterceptorFactory is quite tedious to write, since you'd have to write all the arguments and types again and again and declare complicated objc blocks. But that's what the MakeInterceptorFactory() macro is for! It provides a clean syntax.
+/// We're sort of re-implementing https://github.com/rabovik/RSSwizzle here, but without thread-saftey and some other features. (But with slightly simpler syntax and powerful subclass-swizzling)
 ///
-///     We have to make it a macro, not a function I think. since the compiler needs to be aware of the argument number and types and stuff. I don't remember. But I tried dynamically parsing the arguments and passing them on to the original implementation from inside the interceptor but it didn't work. varargs didn't work. All the arguments were in weird registers. You'd have to like hardcode knowledge about the calling convention to do this. So we have to declare the interceptor method and its factory with the right types and argument number at compile time. And making that easier is only possible with a macro (I think? I don't remember exactly.)
-///
-
 
 void swizzleMethod(Class class, SEL selector, InterceptorFactory interceptorFactory) {
     
@@ -121,7 +115,7 @@ void swizzleMethodOnClassAndSubclasses(Class baseClass, NSDictionary<MFClassSear
     /// Swizzle on baseClass
     ///     We (almost) always want to at least swizzle on the baseClass. Even if the baseClass, doesn't define it's own implementation for `selector`, and instead inherits the implementation.
     ///     That way all the subclasses inherit the swizzled method from the baseClass.
-    ///     Except, if `baseClass` doesn't respond to the `selector` at all, then we skip this.
+    ///     Except, if `baseClass` doesn't respond to the `selector` at all, then the 'most super implementation' of the method is in one of the subclasses, and we can skip swizzling `baseClass`.
     
     if ([baseClass instancesRespondToSelector:selector]) {
         swizzleMethod(baseClass, selector, interceptorFactory);
@@ -130,7 +124,7 @@ void swizzleMethodOnClassAndSubclasses(Class baseClass, NSDictionary<MFClassSear
     
     /// Validate
     if (!someClassHasBeenSwizzled) {
-        NSLog(@"Error: Neither %@ nor any of the subclasses we found for it (%@) have been swizzled. This is probably because none of the processed classes implement a method for selector %@. We used the search criteria: %@", baseClass, subclasses, selector, subclassSearchCriteria);
+        NSLog(@"Error: Neither %@ nor any of the subclasses we found for it (%@) have been swizzled. This is probably because none of the processed classes implement a method for selector %s. We used the search criteria: %@", baseClass, subclasses, sel_getName(selector), subclassSearchCriteria);
         assert(false);
     }
     
@@ -144,11 +138,11 @@ NSString *getExecutablePath(void) {
     
     /// Get the path of the current executable.
     
-    static uint32_t pathBufferSize = MAXPATHLEN; /// Make this static to store between invocations. For optimization?
+    static uint32_t pathBufferSize = MAXPATHLEN; /// Make this static to store between invocations. For optimization, so we don't hit the fallback case over and over?
     char *pathBuffer = malloc(pathBufferSize); if (pathBuffer == NULL) return NULL; /// ChatGPT and SO tells me to NULL-check my malloc, and that not doing it is "unsafe" and "bad programming". I'm annoyed because that seems extremely unnecessary, but ok.
     int ret = _NSGetExecutablePath(pathBuffer, &pathBufferSize);
     
-    if (ret == -1) { /// If the buffer size is not large enough, the buffer size is set to the right value and the function returns -1
+    if (ret == -1) { /// Fallback case: If the buffer size is not large enough, the buffer size is set to the right value and the function returns -1
         free(pathBuffer);
         pathBuffer = malloc(pathBufferSize); if (pathBuffer == NULL) return NULL;
         ret = _NSGetExecutablePath(pathBuffer, &pathBufferSize);
@@ -185,6 +179,8 @@ NSString *getImagePath(void *address) {
 
 NSString *getSymbol(void *address) {
     
+    /// Use this with getReturnAddress() to get the name of the calling function
+    
     Dl_info info;
     int ret = dladdr(address, &info);
     assert(ret != 0); /// 0 is failure code of dladrr()
@@ -198,6 +194,10 @@ NSString *getSymbol(void *address) {
 
 
 NSArray<Class> *searchClasses(NSDictionary<MFClassSearchCriterion, id> *criteria) {
+    
+    /// Searches classes in the objc runtime by different criteria.
+    ///     It think you should always at least specify a framework, otherwise might become quite slow.
+    ///     This is largely a wrapper around `objc_enumerateClasses()`
     
     /// Validate
     assert([criteria isKindOfClass:[NSDictionary class]]);
@@ -221,7 +221,7 @@ NSArray<Class> *searchClasses(NSDictionary<MFClassSearchCriterion, id> *criteria
     assert(protocol != nil || baseClass != nil || namePrefixNS != nil || frameworkNameNS != nil);
     
     /// Validate
-    /// - no extra criteria
+    /// - no extra/misspelled criteria
     NSMutableDictionary *criteriaMutable = criteria.mutableCopy;
     criteriaMutable[MFClassSearchCriterionProtocol] = nil;
     criteriaMutable[MFClassSearchCriterionSuperclass] = nil;
@@ -282,6 +282,7 @@ NSArray<Class> *searchClasses(NSDictionary<MFClassSearchCriterion, id> *criteria
                     [result addObject:class];
                 }
             }
+            free(classNames);
         }
     }
     
@@ -300,9 +301,9 @@ const char *searchFrameworkPath(const char *frameworkName) {
     /// Can't get dlopen to find any frameworks without hardcoding the path, so we're making our own framework searcher
     /// 
     /// Update: I just found this in the dlopen docs which explains the problem: (our app was codesigned with entitlements.)
-    ///   Note: If the main executable is a set[ug]id binary or codesigned with
+    ///   "Note: If the main executable is a set[ug]id binary or codesigned with
     ///   entitlements, then all environment variables are ignored, and only a full
-    ///   path can be used.
+    ///   path can be used."
     
     /// Preprocess framework name
     char *frameworkSubpath = NULL;
@@ -421,6 +422,12 @@ bool classIsSubclass(Class potentialSub, Class potentialSuper) {
 
 #define MFRecursionCounterBaseKey @"MFRecursionCounterBaseKey"
 
+void countRecursions(id recursionDepthKey, void (^workload)(NSInteger recursionDepth)) {
+    NSInteger depth = recursionCounterBegin(recursionDepthKey);
+    workload(depth);
+    recursionCounterEnd(recursionDepthKey);
+}
+
 NSMutableDictionary *_recursionCounterDict(void) {
     /// Get/init base dict
     NSMutableDictionary *counterDict = NSThread.currentThread.threadDictionary[MFRecursionCounterBaseKey];
@@ -444,12 +451,6 @@ void recursionCounterEnd(id key) {
     NSInteger recursionDepth = [counterDict[key] integerValue];
     assert(recursionDepth > 0);
     counterDict[key] = @(recursionDepth - 1);
-}
-
-void countRecursions(id recursionDepthKey, void (^workload)(NSInteger recursionDepth)) {
-    NSInteger depth = recursionCounterBegin(recursionDepthKey);
-    workload(depth);
-    recursionCounterEnd(recursionDepthKey);
 }
 
 void _recursionSwitch(id selfKey, SEL _cmdKey, void (^onFirstRecursion)(void), void (^onOtherRecursions)(void)) {
@@ -536,13 +537,15 @@ NSRegularExpression *formatSpecifierRegex(void) {
 
 NSRegularExpression *formatStringRecognizer(NSString *localizedString) {
     
+    /// TODO: FIX BUG: This function will treat escaped percent (%%) like a format specifer and replace it with with `.*`which is wrong.
+    
     /// Turn the localizedString into a matching pattern
     ///     By replacing format specifiers (e.g. `%d`) inside the localizedString with insertion point `.*?.
     ///     This matching mattern should match any ui strings that are composed of the localized string.
     NSRegularExpression *specifierRegex = formatSpecifierRegex();
     NSString *localizedStringPattern = [NSRegularExpression escapedPatternForString:localizedString];
     NSString *insertionPoint = [NSRegularExpression escapedTemplateForString:@"(.*?)"]; /// Escaping this doesn't seem to do anything.
-    NSMatchingOptions matchingOptions = NSMatchingWithoutAnchoringBounds; /// Make $ and ^ work as normal chars.
+    NSMatchingOptions matchingOptions = NSMatchingWithoutAnchoringBounds; /// Make $ and ^ work as normal chars inside the `formatSpecifierRegex` (because the 1$ `argument_position` format syntax uses $)
     localizedStringPattern = [specifierRegex stringByReplacingMatchesInString:localizedStringPattern options:matchingOptions range:NSMakeRange(0, localizedString.length) withTemplate:insertionPoint];
     
     /// Make it so the pattern must match the entire string
@@ -551,7 +554,6 @@ NSRegularExpression *formatStringRecognizer(NSString *localizedString) {
     
     /// TEST
     NSLog(@"%@", localizedStringPattern);
-    
     
     /// Create regex
     ///     From new matching pattern
@@ -641,8 +643,9 @@ NSString *typeNameFromEncoding(const char *typeEncoding) { /// Credit ChatGPT & 
 
 void listMethods(id obj) {
     
-    /// This method prints a list of all methods defined on a class (not its superclass) with decoded return types and argument types
-    ///     This is really handy for inspecting private classes, creating categories or swizzles of private classes.
+    /// This method prints a list of all methods defined on a class
+    ///     (not its superclass) with decoded return types and argument types!
+    ///     This is really handy for creating categories swizzles, or inspecting private classes.
     
     unsigned int methodCount = 0;
     Method *methods = class_copyMethodList([obj class], &methodCount);

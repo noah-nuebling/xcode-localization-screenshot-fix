@@ -17,8 +17,8 @@ NSString *annotationDescription(NSAccessibilityElement *element);
 + (BOOL)accessibilityElement:(NSObject *)object containsUIString:(NSString *)uiString;
 + (BOOL)additionalUIStringHolder:(NSObject *)object containsUIString:(NSString *)uiString;
 
-+ (NSDictionary<NSString *, NSString *> *)getUIStringsFromNonAXElement:(NSObject *)element;
-+ (NSDictionary<NSString *, NSString *> *)getUIStringsFromAXElement:(NSObject <NSAccessibility>*)element;
+NSDictionary<NSString *, NSString *> *getUIStringsFromAdditionalUIStringHolder(NSObject *object);
+NSDictionary<NSString *, NSString *> *getUIStringsFromAXElement(NSObject<NSAccessibility> *element);
 
 + (NSAccessibilityElement *)createAnnotationElementWithLocalizationKey:(NSString *_Nonnull)localizationKey
                                                       translatedString:(NSString *_Nonnull)translatedString

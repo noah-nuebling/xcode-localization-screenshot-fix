@@ -668,6 +668,8 @@ BOOL stringHasOnlyLocaleSharedContent(NSString *string) {
 
 NSString *uiStringByRemovingLocalizedString(NSString *uiString, NSString *localizedString) {
     
+    /// TODO: Handle escaped percent (%%) int the localizedString
+    
     /// Get regex
     NSRegularExpression *localizedStringRegex = formatStringRecognizer(localizedString);
     
