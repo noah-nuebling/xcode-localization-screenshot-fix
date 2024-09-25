@@ -35,6 +35,7 @@ So we're abandoning this repo.
 
 Plans to salvage the work in here:
 
+- I plan to copy the example xcloc files and the gist of these notes to MMF.
 - I plan to copy-paste the utility functions and datastructures from the `PortToMMF` folder over to MMF.
 - The content of NibDecodingAnalysis, UIStringChangeDetector, and NSLocalizedStringRecord, SystemRenameTracker, AnnotationUtility, as well as the External folder could serve as reference for understanding the internal structure of app kit stuff 
     - E.g. NibDecodingAnalysis prints the entire structure of the object-tree inside an Nib file, 
