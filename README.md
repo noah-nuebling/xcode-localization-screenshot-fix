@@ -37,10 +37,14 @@ Plans to salvage the work in here:
 
 - I plan to copy the example xcloc files and the gist of these notes to MMF.
 - I plan to copy-paste the utility functions and datastructures from the `PortToMMF` folder over to MMF.
-- The content of NibDecodingAnalysis, UIStringChangeDetector, and NSLocalizedStringRecord, SystemRenameTracker, AnnotationUtility, as well as the External folder could serve as reference for understanding the internal structure of app kit stuff 
-    - E.g. NibDecodingAnalysis prints the entire structure of the object-tree inside an Nib file, 
-    - E.g. UIStringChangeDetector has a quite comprehensive list of all uiString setters across AppKit. 
-    - E.g. AnnotationUtility features a pretty comprehensive list of user-facing (and therefore localizable) strings on objects. Even obscure ones such as NSAccessibilityMarkerTypeDescriptionAttribute or paletteLabel. 
-- `Notes > AppKitSetters` documents techniques for finding uistring-setter-methods using lldb
-- `Notes > Examples` Contains a handcrafted .xcloc file which contains screenshots that can be displayed inline in the .xcloc editing GUI in Xcode - along with red squares around the localizedStrings inside the screenshots!
 
+Other interesting stuff that we won't port to MMF for now:
+    - The content of NibDecodingAnalysis, UIStringChangeDetector, and NSLocalizedStringRecord, SystemRenameTracker, AnnotationUtility, as well as the External folder could serve as reference for understanding the internal structure of app kit stuff 
+        - E.g. NibDecodingAnalysis prints the entire structure of the object-tree inside an Nib file, 
+        - E.g. UIStringChangeDetector has a quite comprehensive list of all uiString setters across AppKit. 
+        - E.g. AnnotationUtility features a pretty comprehensive list of user-facing (and therefore localizable) strings on objects. Even obscure ones such as NSAccessibilityMarkerTypeDescriptionAttribute or paletteLabel. 
+    - `Notes > AppKitSetters` documents techniques for finding uistring-setter-methods using lldb
+    - `Notes > Examples` Contains a handcrafted .xcloc file which contains screenshots that can be displayed inline in the .xcloc editing GUI in Xcode - along with red squares around the localizedStrings inside the screenshots!
+    
+Update: [Apr 2025] 
+    Also see `Automatic Localization Screenshots.md` inside mac-mouse-fix.
